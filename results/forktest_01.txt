@@ -1,0 +1,5 @@
+dict / list                | parent: unchanged (isolated)  | child: exit=0, ok
+numpy array                | parent: unchanged (isolated)  | child: exit=0, ok
+pandas DataFrame           | parent: unchanged (isolated)  | child: exit=0, ok
+background thread + lock   | parent: n/a                   | child: exit=0, threads in child=1, lock acquired=False
+file on disk               | parent: CHANGED (leaked)      | child: exit=0, ok

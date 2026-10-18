@@ -1,0 +1,4 @@
+numpy after heavy matmul    | parent: unchanged (isolated)  | exit=0, child matmul ok, checksum=844304305.0
+pandas after big groupby    | parent: unchanged (isolated)  | exit=0, child groupby ok, groups=1000
+open thread pool            | parent: n/a                   | HANG: child killed after timeout
+fork time with 1 GB memory  | parent: n/a                   | fork() call took 1.8 ms with ~1 GB in memory
