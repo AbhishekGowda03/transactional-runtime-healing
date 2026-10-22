@@ -40,4 +40,33 @@ Single runs on one machine (WSL2, Ubuntu, Python 3.12). To be repeated.
 | File on disk | Not isolated: child's write is visible to the parent |
 | `fork()` time with ~1 GB in memory | about 2 ms |
 
-Takeaways: in-memory state is isolated; hangs
+Takeaways: in-memory state is isolated; hangs need a timeout (a hang counts as a rejected
+repair); files need a separate filesystem layer (planned as a second step).
+
+## Requirements
+
+- Linux (the protocol uses `os.fork()`, which does not exist on Windows). On Windows use WSL2.
+- Python 3.12
+- [uv](https://docs.astral.sh/uv/)
+
+## Setup
+
+```bash
+git clone https://github.com/AbhishekGowda03/transactional-runtime-healing.git
+cd transactional-runtime-healing
+uv sync
+```
+
+A pinned `requirements.txt` is also provided (for Docker or `pip install -r requirements.txt`).
+Regenerate it after changing dependencies:
+
+```bash
+uv export --no-hashes --no-emit-project -o requirements.txt
+```
+
+## Running the fork tests
+
+```bash
+uv run python experiments/forktest/fork_test.py
+uv run python experiments/forktest/fork_test_heavy.py   # takes about 30 s (one case waits for a hang)
+```
