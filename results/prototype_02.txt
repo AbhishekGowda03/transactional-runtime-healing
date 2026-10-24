@@ -1,0 +1,72 @@
+good repair
+   protocol : COMMITTED - all checks passed
+   continuation: ok, result=16
+   original state untouched: True
+   plain    : continued, result=16, state now {'data': [1, 2, 3], 'offset': 10}
+
+damaging repair (deletes 'offset')
+   protocol : REJECTED_CHECK - offset must still exist
+   original state untouched: True
+   plain    : failed with KeyError('offset'), state now {'data': [1, 2, 3]}
+
+repair raises an exception
+   protocol : REJECTED_REPAIR_ERROR - repair raised ZeroDivisionError('division by zero')
+   original state untouched: True
+   plain    : failed with ZeroDivisionError('division by zero'), state now {'data': None, 'offset': 10}
+
+repair hangs
+   protocol : REJECTED_TIMEOUT - no verdict within 2s
+   original state untouched: True
+
+repair runs a subprocess
+   protocol : REJECTED_EXTERNAL_EFFECT - external effect attempted: subprocess.Popen
+   blocked effects  : ['subprocess.Popen']
+   original state untouched: True
+
+repair SWALLOWS the blocked effect
+   protocol : REJECTED_EXTERNAL_EFFECT - external effect attempted: subprocess.Popen
+   blocked effects  : ['subprocess.Popen']
+   original state untouched: True
+
+repair uses os.system
+   protocol : REJECTED_EXTERNAL_EFFECT - external effect attempted: os.system
+   blocked effects  : ['os.system']
+   original state untouched: True
+
+repair sends a UDP packet
+   protocol : REJECTED_EXTERNAL_EFFECT - external effect attempted: socket.sendto
+   blocked effects  : ['socket.sendto']
+   original state untouched: True
+
+repair says: fixed data
+good repair that prints
+   protocol : COMMITTED - all checks passed
+   continuation: ok, result=16
+   original state untouched: True
+
+bad repair that prints
+   protocol : REJECTED_CHECK - data must be a list
+   original state untouched: True
+
+repair writes a file (known limit)
+   protocol : COMMITTED - all checks passed
+   continuation: ok, result=16
+   recorded fs writes: ['open-write:/tmp/heal_demo_cache.txt']
+   original state untouched: True | FILE LEFT BEHIND
+   plain    : continued, result=16, state now {'data': [1, 2, 3], 'offset': 10}
+
+repair ok, original error again later
+   protocol : COMMITTED - all checks passed
+   continuation: original_error_again, error=TypeError('original error again')
+   original state untouched: True
+
+repair ok, NEW error later
+   protocol : COMMITTED - all checks passed
+   continuation: new_error, error=KeyError('a different error')
+   original state untouched: True
+
+repair ok, result not picklable
+   protocol : COMMITTED - all checks passed
+   continuation: result_not_transferable, error=AttributeError("Can't get local object 'resume_unpicklable.<locals>.<lambda>'")
+   original state untouched: True
+

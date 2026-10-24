@@ -1,0 +1,31 @@
+side effect
+good repair
+   protocol : COMMIT - all checks passed - result=16
+   original state untouched: True
+   plain    : continued, result=16, state now {'data': [1, 2, 3], 'offset': 10}
+
+damaging repair (deletes 'offset')
+   protocol : RESTORE - check failed: offset must still exist
+   original state untouched: True
+   plain    : failed with KeyError('offset'), state now {'data': [1, 2, 3]}
+
+repair raises an exception
+   protocol : RESTORE - repair raised ZeroDivisionError('division by zero')
+   original state untouched: True
+   plain    : failed with ZeroDivisionError('division by zero'), state now {'data': None, 'offset': 10}
+
+repair hangs
+   protocol : RESTORE - timeout after 2s (child killed)
+   original state untouched: True
+   plain    : would hang forever (no protection)
+
+repair runs a subprocess
+   protocol : RESTORE - external effect attempted during trial
+   original state untouched: True
+   plain    : continued, result=11, state now {'data': [1], 'offset': 10}
+
+repair writes a file (known limit)
+   protocol : COMMIT - all checks passed - result=16
+   original state untouched: True | FILE LEFT BEHIND
+   plain    : continued, result=16, state now {'data': [1, 2, 3], 'offset': 10}
+
