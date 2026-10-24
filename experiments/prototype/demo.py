@@ -1,4 +1,4 @@
-"""Demo of the transactional protocol (v3), compared with plain healing.
+"""Demo of the transactional protocol (v4), compared with plain healing.
 
 The 'program' crashed because state['data'] is None. Each case offers a
 different repair. For each one we show what the protocol decides, and what
@@ -152,6 +152,8 @@ CASES = [
 ]
 
 if __name__ == "__main__":
+    import sys
+    sys.stdout.reconfigure(line_buffering=True)
     for name, repair, res, orig_err, with_plain in CASES:
         if os.path.exists(LEAK_FILE):
             os.remove(LEAK_FILE)
@@ -168,6 +170,8 @@ if __name__ == "__main__":
                   f"{', error=' + str(out.error) if out.error else ''}")
         if out.effects:
             print(f"   blocked effects  : {out.effects}")
+        if out.fd_effects:
+            print(f"   inherited fd changes: {out.fd_effects}")
         if out.fs_effects:
             print(f"   recorded fs writes: {out.fs_effects}")
         extra = ""

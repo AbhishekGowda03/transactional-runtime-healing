@@ -19,10 +19,10 @@ repair hangs
    original state untouched: True
 
 repair runs a subprocess
-side effect
    protocol : REJECTED_EXTERNAL_EFFECT - external effect attempted: subprocess.Popen
    blocked effects  : ['subprocess.Popen']
    original state untouched: True
+side effect
    plain    : continued, result=11, state now {'data': [1], 'offset': 10}
 
 repair SWALLOWS the blocked effect
@@ -31,10 +31,10 @@ repair SWALLOWS the blocked effect
    original state untouched: True
 
 repair uses os.system
-side effect via os.system
    protocol : REJECTED_EXTERNAL_EFFECT - external effect attempted: os.system
    blocked effects  : ['os.system']
    original state untouched: True
+side effect via os.system
    plain    : continued, result=11, state now {'data': [1], 'offset': 10}
 
 repair sends a UDP packet
