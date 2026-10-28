@@ -109,15 +109,17 @@ _FS_EVENTS = {"os.remove", "os.rename", "os.mkdir", "os.rmdir", "os.truncate",
               "os.link", "os.symlink"}
 _WRITE_FLAGS = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
 
-_trial = {"active": False, "effects": [], "fs": []}
+_trial = {"active": False, "effects": [], "fs": [], "allow": frozenset(), "on_effect": None}
 _hook_installed = False
 
 
 def _audit_hook(event, args):
     if not _trial["active"]:
         return
-    if event in _BLOCKED_EVENTS:
+    if event in _BLOCKED_EVENTS and event not in _trial["allow"]:
         _trial["effects"].append(event)          # flag: cannot be swallowed
+        if _trial["on_effect"] is not None:
+            _trial["on_effect"](event)           # e.g. reject the trial at once
         raise ExternalEffectBlocked(event)       # and stop the effect
     if event == "open":
         path, mode, flags = args
@@ -136,15 +138,22 @@ def install_hook():
         _hook_installed = True
 
 
-def begin_watch():
-    """Switch effect detection on (clears earlier records)."""
+def begin_watch(allow=frozenset(), on_effect=None):
+    """Switch effect detection on (clears earlier records).
+
+    allow     -- audit events that are NOT blocked (for example "ctypes.dlopen" when
+                 the program imports libraries that use ctypes)
+    on_effect -- called with the event name when an external effect is attempted,
+                 before the exception is raised (the live trial uses it to reject at once)
+    """
     install_hook()
-    _trial.update(active=True, effects=[], fs=[])
+    _trial.update(active=True, effects=[], fs=[], allow=frozenset(allow), on_effect=on_effect)
 
 
 def end_watch() -> Tuple[List[str], List[str]]:
     """Switch effect detection off; return (blocked effects, recorded fs writes)."""
     _trial["active"] = False
+    _trial["on_effect"] = None
     return list(_trial["effects"]), list(_trial["fs"])
 
 
@@ -182,9 +191,13 @@ def site_matches(site, expected) -> bool:
 # Output hold-back at file-descriptor level
 # ----------------------------------------------------------------------
 class _FdCapture:
-    """Send fd 1 and 2 to temp files; keep the bytes for replay on commit."""
+    """Send fd 1 and 2 to temp files; keep the bytes for replay on commit.
 
-    def __enter__(self):
+    Use as a context manager, or call start()/stop() when the capture has to
+    last across calls (the live trial). After stop(), `out` and `err` hold the
+    captured bytes."""
+
+    def start(self):
         sys.stdout.flush()
         sys.stderr.flush()
         self._files = [tempfile.TemporaryFile(), tempfile.TemporaryFile()]
@@ -201,7 +214,7 @@ class _FdCapture:
         self.out = self.err = b""
         return self
 
-    def __exit__(self, *exc):
+    def stop(self):
         sys.stdout.flush()
         sys.stderr.flush()
         sys.stdout, sys.stderr = self._streams
@@ -213,6 +226,12 @@ class _FdCapture:
             f.seek(0)
             setattr(self, name, f.read())
             f.close()
+
+    def __enter__(self):
+        return self.start()
+
+    def __exit__(self, *exc):
+        self.stop()
         return False
 
 

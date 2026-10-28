@@ -1,0 +1,45 @@
+
+=== 1. What the instrumenter does to one function ===
+def f(d):
+    try:
+        v = d['x']
+    except Exception as __eh_e:
+        __eh_r = __heal__(__eh_e, dict(locals()), globals(), ('<instrumented>', 2, 'f', "v = d['x']"))
+        if __eh_r is None:
+            raise
+        if '_eh_rtn' in __eh_r.bindings:
+            _eh_rtn = __eh_r.bindings['_eh_rtn']
+        if 'd' in __eh_r.bindings:
+            d = __eh_r.bindings['d']
+        if 'v' in __eh_r.bindings:
+            v = __eh_r.bindings['v']
+        __heal_apply__(__eh_r, globals(), ('_eh_rtn', 'd', 'v'))
+    _eh_rtn = None
+    try:
+        _eh_rtn = v
+    except Exception as __eh_e:
+        __eh_r = __heal__(__eh_e, dict(locals()), globals(), ('<instrumented>', 3, 'f', 'return v'))
+        if __eh_r is None:
+            raise
+        if '_eh_rtn' in __eh_r.bindings:
+            _eh_rtn = __eh_r.bindings['_eh_rtn']
+        if 'd' in __eh_r.bindings:
+            d = __eh_r.bindings['d']
+        if 'v' in __eh_r.bindings:
+            v = __eh_r.bindings['v']
+        __heal_apply__(__eh_r, globals(), ('_eh_rtn', 'd', 'v'))
+    return _eh_rtn
+
+=== 2. A program that crashes twice, healed ===
+result: [3, 5, 4] (expected [3, 5, 4])
+  line 7: KeyError -> HEALED, changed=['v'], diverged=False
+  line 8: TypeError -> HEALED, changed=['w'], diverged=False
+
+=== 3. A bad healing code is rejected, shared objects stay untouched ===
+original exception propagated: ZeroDivisionError('division by zero')
+shared after the rejected attempt: [1, 2, 3] (plain healing would leave 99)
+status: REJECTED_HEAL_ERROR
+
+=== 4. Healing code that tries an external effect ===
+original exception propagated: ZeroDivisionError('division by zero')
+status: REJECTED_EXTERNAL_EFFECT ['os.system']
