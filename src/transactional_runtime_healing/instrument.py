@@ -37,9 +37,16 @@ their own; a crash inside them is caught by the statement around them. Only
 """
 import ast
 from dataclasses import dataclass, field
+import sys
 from typing import Any, Callable, Dict, List, Optional
 
 from transactional_runtime_healing.heal_point import HealResult, heal_point
+
+# Per instrumented file: which exception types the program's own `try` statements catch
+# around each statement, and which names the file reads. Kept here (not in the module
+# globals) so that code from several files can be looked up from one place.
+HANDLER_TABLES: Dict[str, list] = {}
+READ_NAMES: Dict[str, set] = {}
 
 _NO_WRAP = (ast.Pass, ast.Break, ast.Continue, ast.Global, ast.Nonlocal,
             ast.Raise, ast.Assert, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
@@ -99,6 +106,7 @@ class _Instrumenter:
     def __init__(self, source: str, filename: str):
         self.source = source
         self.filename = filename
+        self.table = []          # (first line, last line, handler types) for every statement
 
     # -- public ----------------------------------------------------------
     def module(self, tree: ast.Module) -> ast.Module:
@@ -122,6 +130,7 @@ class _Instrumenter:
                     stmt.body[i] = self.statement(item, None, [], func)[0]
             return [stmt]
 
+        self.table.append((stmt.lineno, getattr(stmt, "end_lineno", stmt.lineno), list(expected)))
         self.recurse(stmt, names, expected, func)
 
         if isinstance(stmt, _NO_WRAP) or _is_docstring(stmt):
@@ -183,7 +192,8 @@ class _Instrumenter:
         lines.append("if __eh_r is None: raise")
         for n in (names or []):
             lines.append(f"if {n!r} in __eh_r.bindings: {n} = __eh_r.bindings[{n!r}]")
-        lines.append(f"__heal_apply__(__eh_r, globals(), {tuple(names or [])!r})")
+        lines.append(f"__heal_apply__(__eh_r, globals(), "
+                     f"{tuple(names) if names is not None else None!r}, {self.filename!r})")
         return ast.parse("\n".join(lines)).body
 
     def wrap(self, stmt, names, expected, func):
@@ -207,11 +217,70 @@ class _Instrumenter:
 
 
 # ----------------------------------------------------------------------
+def instrument_with_table(source: str, filename: str = "<instrumented>"):
+    """(code object, handler table). The table says, for every statement, which exception
+    types the program's own `try` statements around it catch."""
+    tree = ast.parse(source, filename)
+    ins = _Instrumenter(source, filename)
+    reads = {n.id for n in ast.walk(tree)
+             if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load)}
+    tree = ins.module(tree)
+    HANDLER_TABLES[filename] = ins.table
+    READ_NAMES[filename] = reads
+    return compile(tree, filename, "exec"), ins.table
+
+
 def instrument(source: str, filename: str = "<instrumented>"):
     """Return the code object of `source` with heal points inserted."""
-    tree = ast.parse(source, filename)
-    tree = _Instrumenter(source, filename).module(tree)
-    return compile(tree, filename, "exec")
+    return instrument_with_table(source, filename)[0]
+
+
+def _handler_types_at(table, lineno):
+    """Types caught around `lineno` (innermost statement wins; None = catches everything)."""
+    best, span = [], None
+    for start, end, types in table:
+        if start <= lineno <= end and (span is None or end - start <= span):
+            best, span = types, end - start
+    return best
+
+
+def _plain_names(expr: str) -> bool:
+    """Only names, attribute chains and tuples of them are evaluated (no calls)."""
+    try:
+        tree = ast.parse(expr, mode="eval")
+    except SyntaxError:
+        return False
+    return all(isinstance(n, (ast.Expression, ast.Name, ast.Attribute, ast.Tuple, ast.Load))
+               for n in ast.walk(tree))
+
+
+def handled_by_caller(exc, frame, globals_=None, filename=None) -> bool:
+    """True if a function further up the stack is inside a `try` whose handler catches `exc`.
+    Healing there would change what the program does, because the program expects and
+    handles that exception.
+
+    Every file instrumented in this process is known (HANDLER_TABLES). Limits: implicit
+    handlers (a `for` loop catching StopIteration, getattr defaults, contextlib.suppress,
+    library code) are not seen; handler expressions other than names, attribute chains and
+    tuples of them (for example a call) are not evaluated and count as "does not catch"."""
+    f = frame.f_back
+    while f is not None:
+        table = HANDLER_TABLES.get(f.f_code.co_filename)
+        if table is not None:
+            for t in _handler_types_at(table, f.f_lineno):
+                if t is None:
+                    return True
+                if not _plain_names(t):
+                    continue
+                try:
+                    env = dict(f.f_locals)
+                    env["__e"] = exc
+                    if eval(f"isinstance(__e, ({t},))", f.f_globals, env):
+                        return True
+                except Exception:
+                    pass
+        f = f.f_back
+    return False
 
 
 def instrumented_source(source: str, filename: str = "<instrumented>") -> str:
@@ -220,10 +289,21 @@ def instrumented_source(source: str, filename: str = "<instrumented>") -> str:
     return ast.unparse(_Instrumenter(source, filename).module(tree))
 
 
-def _apply(result: HealResult, globals_: dict, local_names: tuple):
+def _apply(result: HealResult, globals_: dict, local_names, filename=None):
+    """Write the healer's bindings to module globals.
+
+    local_names=None: module-level crash, every binding is a global.
+    Inside a function: names the function assigns are written by the generated code.
+    Other names go to globals if they already exist there, or if the program reads them
+    somewhere in the file (a missing function or constant that the repair defines).
+    Names nothing in the program reads are the healing code's own helpers: they are NOT
+    added and are listed in `result.leaked_globals`."""
+    reads = READ_NAMES.get(filename, set())
     for k, v in result.bindings.items():
-        if k not in local_names:
+        if local_names is None or (k not in local_names and (k in globals_ or k in reads)):
             globals_[k] = v
+        elif k not in local_names:
+            result.leaked_globals.append(k)
     globals_.update(result.globals_updates)
 
 
@@ -231,9 +311,10 @@ def run_instrumented(source: str, healer: Callable, filename: str = "<instrument
                      globals_: Optional[dict] = None) -> dict:
     """Run `source` with heal points; returns the module's globals afterwards."""
     g = {"__name__": "__main__"} if globals_ is None else globals_
+    code, _ = instrument_with_table(source, filename)
     g["__heal__"] = healer
     g["__heal_apply__"] = _apply
-    exec(instrument(source, filename), g)
+    exec(code, g)
     return g
 
 
@@ -274,11 +355,17 @@ class Healer:
         self.kw = heal_point_kw
         self.log: List[HealRecord] = []
         self._busy = False
+        self.skipped_caller_handled = 0
 
     def __call__(self, exc, locals_, globals_, site):
         if self._busy or len(self.log) >= self.max_heals:     # no nested healing
             return None
         filename, lineno, func, statement = site
+        if getattr(exc, "_heal_rejected", False):             # rejected once: not offered again
+            return None
+        if handled_by_caller(exc, sys._getframe(1), globals_, filename):
+            self.skipped_caller_handled += 1                  # the program handles it itself
+            return None
         clean = {k: v for k, v in locals_.items() if not k.startswith("__eh")}
         ctx = HealContext(exc, filename, lineno, func, statement, clean, globals_)
         self._busy = True
@@ -289,6 +376,11 @@ class Healer:
                 return None
             result = heal_point(clean, globals_, code, self.checks, **self.kw)
             self.log.append(HealRecord(ctx, code, result))
+            if not result.healed:
+                try:
+                    exc._heal_rejected = True
+                except Exception:
+                    pass
             return result if result.healed else None
         finally:
             self._busy = False

@@ -15,9 +15,14 @@ pytestmark = pytest.mark.skipif(sys.version_info < (3, 12), reason="needs sys.mo
 SRC = os.path.join(os.path.dirname(__file__), "..", "src")
 
 
-def run_live(tmp_path, program, rules, *args, timeout=60):
+# The original error must reach the program through a handler the instrumenter cannot see
+# (a `try` in the same file would make the crash "handled by a caller", so it is not healed).
+HOOK = "import sys\nsys.excepthook = lambda *a: print('original error')\n"
+
+
+def run_live(tmp_path, program, rules, *args, hook=False, timeout=60):
     prog = tmp_path / "prog.py"
-    prog.write_text(textwrap.dedent(program))
+    prog.write_text((HOOK if hook else "") + textwrap.dedent(program))
     rul = tmp_path / "rules.json"
     rul.write_text(json.dumps(rules))
     log = tmp_path / "log.jsonl"
@@ -130,17 +135,15 @@ def test_rejected_repair_leaves_state_and_output_untouched(tmp_path):
 
 def test_parent_memory_is_untouched_after_reject(tmp_path):
     p, log = run_live(tmp_path, """
+        import sys
         shared = [1, 2, 3]
+        sys.excepthook = lambda *a: print('shared =', shared)
         def f():
             v = 1 / 0
             return v
-        try:
-            f()
-        except ZeroDivisionError:
-            pass
-        print('shared =', shared)
+        f()
     """, [{"match": "1 / 0", "code": "shared.append(99)\nraise ValueError('bad')"}])
-    assert p.returncode == 0 and p.stdout.strip() == "shared = [1, 2, 3]"
+    assert p.stdout.strip() == "shared = [1, 2, 3]"
     assert statuses(log) == ["REJECTED_REPAIR_ERROR"]
 
 
@@ -149,12 +152,9 @@ def test_effect_in_healing_code_is_rejected(tmp_path):
         def f():
             v = 1 / 0
             return v
-        try:
-            f()
-        except ZeroDivisionError:
-            print('original error')
+        f()
     """, [{"match": "1 / 0", "code": "import os\ntry:\n    os.system('true')\n"
-                                    "except Exception:\n    pass\nv = 0"}])
+                                    "except Exception:\n    pass\nv = 0"}], hook=True)
     assert p.stdout.strip() == "original error"
     assert statuses(log) == ["REJECTED_EXTERNAL_EFFECT"] and "os.system" in log[0]["effects"]
 
@@ -170,11 +170,8 @@ def test_effect_in_the_continuation_is_rejected_even_if_swallowed(tmp_path):
             except Exception:
                 pass
             return v
-        try:
-            f()
-        except ZeroDivisionError:
-            print('original error')
-    """, [{"match": "1 / 0", "code": "v = 0"}])
+        f()
+    """, [{"match": "1 / 0", "code": "v = 0"}], hook=True)
     assert p.stdout.strip() == "original error"
     assert statuses(log) == ["REJECTED_EXTERNAL_EFFECT"]
     assert not marker.exists()
@@ -202,32 +199,28 @@ def test_output_of_the_continuation_is_dropped_when_rejected(tmp_path):
             print('continuation output')
             os.system('true')
             return v
-        try:
-            f()
-        except ZeroDivisionError:
-            print('original error')
-    """, [{"match": "1 / 0", "code": "v = 0"}])
+        f()
+    """, [{"match": "1 / 0", "code": "v = 0"}], hook=True)
     assert p.stdout.splitlines() == ["original error"]
+    assert statuses(log) == ["REJECTED_EXTERNAL_EFFECT"]
 
 
-def test_original_error_again_rejects(tmp_path):
+def test_strict_mode_rejects_when_the_same_error_comes_again(tmp_path):
+    """Strict reading of proposal check 4 (not the default): in a loop it rejects repairs that
+    plain healing would get right."""
     prog = """
-        def f(d):
-            v = d['x']
-            w = d['x']          # the same error again, same message
-            return v
-        try:
-            f({})
-        except KeyError:
-            print('original error reached the program')
+        def f(items):
+            for d in items:
+                v = d['x']
+        f([{}, {}])
     """
-    # first statement is healed with a repair that does not fix the second lookup
-    p, log = run_live(tmp_path, prog, [{"match": "v = d['x']", "code": "v = 0"}])
-    assert p.stdout.strip() == "original error reached the program"
-    assert statuses(log) == ["REJECTED_RECURRENCE"]
+    p, log = run_live(tmp_path, prog, [{"match": "d['x']", "code": "v = 0"}],
+                      "--recurrence", "reject", hook=True)
+    assert p.stdout.strip() == "original error"
+    assert statuses(log) == ["REJECTED_RECURRENCE"] and log[0]["category"] == "safety"
 
 
-def test_original_error_again_can_be_allowed(tmp_path):
+def test_same_error_type_at_another_place_is_not_a_recurrence(tmp_path):
     prog = """
         def f(d):
             v = d['x']
@@ -236,9 +229,136 @@ def test_original_error_again_can_be_allowed(tmp_path):
         f({})
         print('ok')
     """
-    p, log = run_live(tmp_path, prog, [{"code": "v = 0\nw = 0"}], "--recurrence", "allow")
+    p, log = run_live(tmp_path, prog, [{"code": "v = 0\nw = 0"}])
     assert p.returncode == 0 and p.stdout.strip() == "ok"
     assert statuses(log) == ["COMMITTED", "COMMITTED"]
+
+
+def test_same_error_again_is_just_the_next_crash_by_default(tmp_path):
+    prog = """
+        def f(items):
+            out = []
+            for d in items:
+                v = d['x']
+                out.append(v)
+            return out
+        print(f([{}, {}, {}]))
+    """
+    p, log = run_live(tmp_path, prog, [{"match": "d['x']", "code": "v = 0"}])
+    assert p.returncode == 0 and p.stdout.strip() == "[0, 0, 0]"
+    assert statuses(log) == ["COMMITTED"] * 3
+    assert [e["repeat_count"] for e in log if e["status"] == "COMMITTED"] == [0, 1, 2]
+
+
+# ---- exceptions the program handles itself ---------------------------------
+def test_exception_handled_by_a_caller_is_not_healed(tmp_path):
+    p, log = run_live(tmp_path, """
+        def get(d):
+            return d['x']
+        def main():
+            try:
+                v = get({})
+            except KeyError:
+                v = 'default'
+            print('v =', v)
+        main()
+    """, [{"match": "d['x']", "code": "_eh_rtn = 42"}])
+    assert p.stdout.strip() == "v = default"
+    assert [e["status"] for e in log] == ["SKIPPED"]
+    assert "caller" in log[0]["reason"]
+
+
+def test_handled_exception_during_a_trial_is_not_a_false_recurrence(tmp_path):
+    p, log = run_live(tmp_path, """
+        def get(d):
+            return d['x']
+        def f(d):
+            v = d['x']                  # healed
+            try:
+                get({})                 # same exception type, but the program handles it
+            except KeyError:
+                pass
+            return v
+        print(f({}))
+    """, [{"match": "v = d['x']", "code": "v = 5"}])
+    assert p.returncode == 0 and p.stdout.strip() == "5"
+    assert statuses(log) == ["SKIPPED", "COMMITTED"]      # the handled KeyError was skipped
+    assert log[0]["category"] == "skipped" and log[1]["category"] == "committed"
+
+
+def test_caller_that_catches_another_type_does_not_block_healing(tmp_path):
+    p, log = run_live(tmp_path, """
+        def get(d):
+            return d['x']
+        def main():
+            try:
+                v = get({})
+            except ValueError:
+                v = 'default'
+            print('v =', v)
+        main()
+    """, [{"match": "d['x']", "code": "_eh_rtn = 42"}])
+    assert p.stdout.strip() == "v = 42" and statuses(log) == ["COMMITTED"]
+
+
+# ---- bookkeeping in the log ----------------------------------------------------
+def test_log_records_the_exception_that_ended_the_trial(tmp_path):
+    p, log = run_live(tmp_path, """
+        def f(d):
+            v = d['x']
+            return int('abc')
+        f({})
+    """, [{"match": "d['x']", "code": "v = 1"}])
+    assert log[0]["status"] == "COMMITTED" and "ValueError" in log[0]["continuation_error"]
+
+
+def test_missing_function_defined_by_the_repair_is_kept(tmp_path):
+    p, log = run_live(tmp_path, """
+        def f(x):
+            y = normalize(x)
+            z = normalize(x + 1)
+            return y + z
+        print(f(1))
+    """, [{"match": "y = normalize", "code": "def normalize(v):\n    return v * 10\ny = normalize(x)"}])
+    assert p.returncode == 0 and p.stdout.strip() == "30"
+    assert statuses(log) == ["COMMITTED"] and log[0]["leaked_globals"] == []
+
+
+def test_helper_names_from_the_healing_code_do_not_leak_into_globals(tmp_path):
+    p, log = run_live(tmp_path, """
+        def f(d):
+            v = d['x']
+            return v
+        f({})
+        print('helper' in globals())
+    """, [{"match": "d['x']", "code": "helper = 7\nv = helper"}])
+    assert p.stdout.strip() == "False"
+    assert log[0]["leaked_globals"] == ["helper"]
+
+
+def test_timeout_is_an_operational_rejection(tmp_path):
+    p, log = run_live(tmp_path, """
+        def f():
+            v = 1 / 0
+            while True:
+                pass
+        f()
+    """, [{"match": "1 / 0", "code": "v = 0"}], "--timeout", "1", hook=True)
+    assert log[0]["status"] == "REJECTED_TIMEOUT" and log[0]["category"] == "operational"
+
+
+def test_generator_validates_at_its_first_yield(tmp_path):
+    p, log = run_live(tmp_path, """
+        def gen(d):
+            v = d['x']
+            yield v
+            yield v + 1
+        for item in gen({}):
+            print('item', item)
+    """, [{"match": "d['x']", "code": "v = 10"}])
+    assert p.stdout.splitlines() == ["item 10", "item 11"]
+    assert log[0]["validated_at"] == "generator yielded"
+
 
 
 def test_timeout_rejects_a_trial_that_never_reaches_the_validation_point(tmp_path):
@@ -247,11 +367,8 @@ def test_timeout_rejects_a_trial_that_never_reaches_the_validation_point(tmp_pat
             v = 1 / 0
             while True:
                 pass
-        try:
-            f()
-        except ZeroDivisionError:
-            print('original error')
-    """, [{"match": "1 / 0", "code": "v = 0"}], "--timeout", "1")
+        f()
+    """, [{"match": "1 / 0", "code": "v = 0"}], "--timeout", "1", hook=True)
     assert p.stdout.strip() == "original error"
     assert statuses(log) == ["REJECTED_TIMEOUT"]
 
@@ -262,11 +379,8 @@ def test_child_dying_before_the_validation_point_rejects(tmp_path):
         def f():
             v = 1 / 0
             os._exit(7)
-        try:
-            f()
-        except ZeroDivisionError:
-            print('original error')
-    """, [{"match": "1 / 0", "code": "v = 0"}])
+        f()
+    """, [{"match": "1 / 0", "code": "v = 0"}], hook=True)
     assert p.stdout.strip() == "original error"
     assert statuses(log) == ["REJECTED_CHILD_DIED"]
 
@@ -281,13 +395,12 @@ def test_inherited_file_offset_is_restored_on_reject(tmp_path):
             v = 1 / 0
             f.read(5)
             os.system('true')
-        try:
-            g()
-        except ZeroDivisionError:
-            pass
-        print(repr(f.read(3)))
+        import sys
+        sys.excepthook = lambda *a: print(repr(f.read(3)))
+        g()
     """, [{"match": "1 / 0", "code": "v = 0"}])
     assert p.stdout.strip() == "'012'"
+    assert statuses(log) == ["REJECTED_EXTERNAL_EFFECT"]
 
 
 def test_repair_not_tried_when_other_threads_exist(tmp_path):
@@ -297,14 +410,12 @@ def test_repair_not_tried_when_other_threads_exist(tmp_path):
         t.start()
         def f():
             v = 1 / 0
-        try:
-            f()
-        except ZeroDivisionError:
-            print('original error')
+        f()
         t.join()
-    """, [{"match": "1 / 0", "code": "v = 0"}])
+    """, [{"match": "1 / 0", "code": "v = 0"}], hook=True)
     assert p.stdout.strip() == "original error"
-    assert statuses(log) == ["SKIPPED"]
+    assert statuses(log) and set(statuses(log)) == {"SKIPPED"}
+    assert "threads" in log[0]["reason"]
 
 
 # ---- checks (library use) -------------------------------------------------
@@ -317,12 +428,11 @@ def test_failed_check_rejects(tmp_path):
         def f():
             v = 1 / 0
             return v
-        try:
-            f()
-        except ZeroDivisionError:
-            print('original error')
+        f()
         '''
-        h = LiveHealer(lambda ctx: "v = 'text'",
+        import sys
+        sys.excepthook = lambda *a: print('original error')
+        h = LiveHealer(lambda ctx: "v = 'text'" if "1 / 0" in ctx.statement else None,
                        checks=[lambda env: (isinstance(env.get('v'), int), 'v must be an int')],
                        log_path='check.jsonl')
         run_instrumented(src, h)

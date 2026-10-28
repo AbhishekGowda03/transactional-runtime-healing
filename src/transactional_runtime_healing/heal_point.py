@@ -89,6 +89,7 @@ class HealResult:
     effects: List[str] = field(default_factory=list)
     fs_effects: List[str] = field(default_factory=list)
     fd_effects: List[str] = field(default_factory=list)
+    leaked_globals: List[str] = field(default_factory=list)   # new names not applied
 
     @property
     def healed(self) -> bool:
@@ -100,7 +101,7 @@ class _ReplayTimeout(BaseException):
 
 
 # ----------------------------------------------------------------------
-def _run(code: str, locals_: dict, globals_: dict):
+def run_healing_code(code: str, locals_: dict, globals_: dict):
     """Run healing code on shallow copies of the namespaces.
 
     Returns (env, changed_local, changed_global, code_object). Changed = names
@@ -139,7 +140,7 @@ def _fingerprints(env, locals_, changed, code_obj):
             if n in env and not isinstance(env[n], ModuleType)}
 
 
-def _checks_message(checks, env):
+def checks_message(checks, env):
     for check in checks:
         try:
             ok, msg = check(env)
@@ -153,8 +154,8 @@ def _checks_message(checks, env):
 # ----------------------------------------------------------------------
 def _child(w, code, locals_, globals_, checks, fingerprint):
     P.install_hook()
-    rep = P.trial_in_child(lambda: _run(code, locals_, globals_),
-                           lambda v: _checks_message(checks, v[0]))
+    rep = P.trial_in_child(lambda: run_healing_code(code, locals_, globals_),
+                           lambda v: checks_message(checks, v[0]))
     if rep.verdict is not None:
         P.send(w, "rejected", dict(verdict=rep.verdict, reason=rep.reason, effects=rep.effects,
                                    fs=rep.fs, fd=rep.fd))
@@ -196,11 +197,11 @@ def _replay(code, locals_, globals_, checks, replay_timeout, fingerprint):
         signal.setitimer(signal.ITIMER_REAL, replay_timeout)
     P.begin_watch()
     try:
-        env, cl, cg, code_obj = _run(code, locals_, globals_)
+        env, cl, cg, code_obj = run_healing_code(code, locals_, globals_)
         effects, fs = P.end_watch()
         if effects:                                  # swallowed by the healing code
             return ("blocked", effects, fs)
-        msg = _checks_message(checks, env)
+        msg = checks_message(checks, env)
         fp = _fingerprints(env, locals_, {**cl, **cg}, code_obj) if fingerprint else {}
         return ("ok", cl, cg, fp, msg, fs)
     except _ReplayTimeout:

@@ -8,7 +8,7 @@ RULES.json is a list of rules, tried in order for each crash:
 `code` is the healing code. In the real system an LLM writes this code; rules make the
 protocol testable without one.
 
-Options: --log FILE (JSON lines), --timeout SECONDS, --recurrence reject|allow,
+Options: --log FILE (JSON lines), --timeout SECONDS, --recurrence commit|reject,
          --allow EVENT (repeatable), --show-instrumented
 The exit status is the program's own (uncaught exception: 1, as usual).
 """
@@ -38,7 +38,7 @@ def main(argv=None):
     ap.add_argument("rules")
     ap.add_argument("--log")
     ap.add_argument("--timeout", type=float, default=60.0)
-    ap.add_argument("--recurrence", choices=("reject", "allow"), default="reject")
+    ap.add_argument("--recurrence", choices=("commit", "reject"), default="commit")
     ap.add_argument("--allow", action="append", default=[])
     ap.add_argument("--show-instrumented", action="store_true")
     ns = ap.parse_args(argv)

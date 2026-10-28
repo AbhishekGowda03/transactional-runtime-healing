@@ -1,7 +1,7 @@
 [project]
 name = "transactional-runtime-healing"
 version = "0.1.0"
-description = "Add your description here"
+description = "Transactional runtime healing for LLM-generated repairs (fork, validate, commit or restore)"
 readme = "README.md"
 authors = [
     { name = "Abhishek Gowda", email = "abhishekgowdat05@gmail.com" }
@@ -16,13 +16,13 @@ dependencies = [
 ]
 
 [project.scripts]
-transactional-runtime-healing = "transactional_runtime_healing:main"
+transactional-runtime-healing = "transactional_runtime_healing.live_run:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]
 
 [build-system]
 requires = ["uv_build>=0.13.1,<0.14.0"]
 build-backend = "uv_build"
-
-[dependency-groups]
-dev = [
-    "pytest>=9.1.1",
-]

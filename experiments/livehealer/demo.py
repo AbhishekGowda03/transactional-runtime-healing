@@ -18,35 +18,49 @@ CASES = [
         print('result', f({'y': 1}))
      """, [{"match": "d['x']", "code": "v = 0"}], []),
     ("2. repair raises: rejected, original error reaches the program", """
+        import sys
         shared = [1, 2, 3]
+        sys.excepthook = lambda *a: print('original error; shared =', shared)
         def f():
             v = 1 / 0
-        try:
-            f()
-        except ZeroDivisionError:
-            print('original error; shared =', shared)
+        f()
      """, [{"match": "1 / 0", "code": "shared.append(99)\nraise ValueError('bad')"}], []),
     ("3. repair looks fine but the continuation runs a command: rejected", """
-        import os
+        import os, sys
+        sys.excepthook = lambda *a: print('original error')
         def f():
             v = 1 / 0
             print('continuation output (must not appear)')
             os.system('echo side effect')
-        try:
-            f()
-        except ZeroDivisionError:
-            print('original error')
+        f()
      """, [{"match": "1 / 0", "code": "v = 0"}], []),
-    ("4. the original error happens again: rejected", """
-        def f(d):
-            v = d['x']
-            w = d['x']
+    ("4. same error at the same place in a loop: by default the next crash, healed again", """
+        def f(items):
+            out = []
+            for d in items:
+                v = d['x']
+                out.append(v)
+            return out
+        print(f([{}, {}]))
+     """, [{"match": "d['x']", "code": "v = 0"}], []),
+    ("4b. the same program in strict mode: the repeat rejects the first repair", """
+        import sys
+        sys.excepthook = lambda *a: print('original error reached the program')
+        def f(items):
+            for d in items:
+                v = d['x']
+        f([{}, {}])
+     """, [{"match": "d['x']", "code": "v = 0"}], ["--recurrence", "reject"]),
+    ("5. the program handles the exception itself: not healed", """
+        def get(d):
+            return d['x']
         try:
-            f({})
+            v = get({})
         except KeyError:
-            print('original error reached the program')
-     """, [{"match": "v = d['x']", "code": "v = 0"}], []),
-    ("5. two crashes: first validated at the next crash, second at the end", """
+            v = 'default'
+        print('v =', v)
+     """, [{"match": "d['x']", "code": "_eh_rtn = 42"}], []),
+    ("6. two crashes: first validated at the next crash, second at the end", """
         def process(items):
             out = []
             for item in items:
@@ -80,7 +94,8 @@ def main():
                 for line in open(log):
                     e = json.loads(line)
                     if e["status"] != "NO_PROPOSAL":
-                        print(f"   heal line {e['line']}: {e['status']} - {e['reason']}")
+                        print(f"   heal line {e['line']}: {e['status']} - {e['reason']}"
+                              + (f" (repeat {e['repeat_count']})" if e['repeat_count'] else ""))
         print()
 
 

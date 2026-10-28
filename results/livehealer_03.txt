@@ -1,0 +1,38 @@
+=== 1. good repair, validated at the end of the function
+   stdout: inside f, v = 0
+   stdout: result 1
+   exit status: 0
+   heal line 3: COMMITTED - validation point: end of function
+
+=== 2. repair raises: rejected, original error reaches the program
+   stdout: original error; shared = [1, 2, 3]
+   exit status: 1
+   heal line 6: REJECTED_REPAIR_ERROR - ValueError('bad')
+
+=== 3. repair looks fine but the continuation runs a command: rejected
+   stdout: original error
+   exit status: 1
+   heal line 5: REJECTED_EXTERNAL_EFFECT - attempted os.system
+
+=== 4. same error at the same place in a loop: by default the next crash, healed again
+   stdout: [0, 0]
+   exit status: 0
+   heal line 5: COMMITTED - validation point: next crash
+   heal line 5: COMMITTED - validation point: end of function (repeat 1)
+
+=== 4b. the same program in strict mode: the repeat rejects the first repair
+   stdout: original error reached the program
+   exit status: 1
+   heal line 6: REJECTED_RECURRENCE - KeyError('x') happened again at line 6
+
+=== 5. the program handles the exception itself: not healed
+   stdout: v = default
+   exit status: 0
+   heal line 3: SKIPPED - a caller handles this exception
+
+=== 6. two crashes: first validated at the next crash, second at the end
+   stdout: [3, 5, 4]
+   exit status: 0
+   heal line 5: COMMITTED - validation point: next crash
+   heal line 6: COMMITTED - validation point: end of function
+

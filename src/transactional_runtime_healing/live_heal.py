@@ -37,6 +37,25 @@ Limits (stated, not hidden):
     forwards SIGTERM, SIGHUP, SIGQUIT, SIGUSR1, SIGUSR2.
   * If the child ends without a verdict (for example os._exit before the validation
     point) the repair is rejected.
+  * "The same error again" means: same exception type raised at the same place (file and
+    line), as in protocol.py. By default this is just the next crash (a loop over bad
+    inputs hits it once per item); the log's `repeat_count` says how often it happened
+    before. `recurrence="reject"` gives the strict reading of proposal check 4, which
+    rejects repairs that plain healing would get right inside loops.
+  * After a rejection the same exception object is not offered to the enclosing statements
+    again (they would otherwise get the original crash a second time and heal around it).
+  * A crash whose exception a caller in the same file handles with its own `try` is not
+    healed (logged as SKIPPED). Implicit handlers (for loops catching StopIteration,
+    getattr defaults, contextlib.suppress, library code) are not seen.
+  * A generator's validation point is its first yield after the repair.
+  * Reading stdin in the trial is not undone: the child's buffer may take input from a
+    pipe that the parent then never sees.
+  * Each committed repair leaves one waiting process (the proxy) behind: n repairs in a
+    run means n nested processes until the program ends.
+  * Names that the healing code creates but the function does not use (helpers) are not
+    added to the program's globals; they are listed in `leaked_globals`.
+  * Log categories: "safety" rejections (error, check, effect, recurrence) versus
+    "operational" ones (timeout, child died) - report them separately.
 """
 import atexit
 import json
@@ -51,8 +70,8 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 from transactional_runtime_healing import protocol as P
-from transactional_runtime_healing.heal_point import _checks_message, _run
-from transactional_runtime_healing.instrument import HealContext, HealRecord
+from transactional_runtime_healing.heal_point import checks_message, run_healing_code
+from transactional_runtime_healing.instrument import HealContext, HealRecord, handled_by_caller
 
 _TOOL_ID = 3                                      # sys.monitoring tool id
 _FORWARD = [signal.SIGTERM, signal.SIGHUP, signal.SIGQUIT, signal.SIGUSR1, signal.SIGUSR2]
@@ -70,6 +89,15 @@ class LiveStatus(Enum):
     SKIPPED = "not tried"
 
 
+# For the evaluation: a rejection by a safety rule is a different thing from one caused by
+# the machinery (a slow repair killed by the timeout, a child that died).
+_CATEGORY = {"COMMITTED": "committed", "TRIAL_ACCEPTED": "pending",
+             "REJECTED_REPAIR_ERROR": "safety", "REJECTED_CHECK": "safety",
+             "REJECTED_EXTERNAL_EFFECT": "safety", "REJECTED_RECURRENCE": "safety",
+             "REJECTED_TIMEOUT": "operational", "REJECTED_CHILD_DIED": "operational",
+             "SKIPPED": "skipped"}
+
+
 @dataclass
 class LiveResult:
     status: LiveStatus
@@ -80,6 +108,13 @@ class LiveResult:
     effects: List[str] = field(default_factory=list)
     fs_effects: List[str] = field(default_factory=list)
     validated_at: str = ""
+    repeat_count: int = 0                        # earlier heals of the same error and place
+    continuation_error: str = ""                 # the exception that ended the trial, if any
+    leaked_globals: List[str] = field(default_factory=list)
+
+    @property
+    def category(self) -> str:
+        return _CATEGORY[self.status.name]
 
     @property
     def healed(self) -> bool:
@@ -96,7 +131,8 @@ class _Pending:
 
 
 def _signature(exc):
-    return (type(exc).__name__, str(exc))
+    """What 'the same error' means (same as protocol.py): type and raise site."""
+    return (type(exc).__name__, P.error_site(exc))
 
 
 class LiveHealer:
@@ -106,8 +142,11 @@ class LiveHealer:
     checks           -- list of check(env) -> (ok, message), run on the state right after
                         the healing code
     timeout          -- seconds the parent waits for the validation point
-    recurrence       -- "reject": the original error again before the validation point
-                        rejects the repair (proposal check 4); "allow": it does not
+    recurrence       -- what the same error (type and place) raised again before the
+                        validation point means. "commit" (default): it is the next crash;
+                        the pending repair is validated and the new crash is healed on its
+                        own (a loop over bad inputs is normal). "reject": strict reading of
+                        proposal check 4, the repair is rejected
     allow_events     -- audit events that are not blocked during the trial
     log_path         -- JSON-lines file; one line per heal attempt, written by whichever
                         process learns the outcome (parent on reject, child on commit)
@@ -115,8 +154,8 @@ class LiveHealer:
 
     def __init__(self, propose: Callable[[HealContext], Optional[str]],
                  checks: Optional[list] = None, timeout: float = 60.0, max_heals: int = 50,
-                 recurrence: str = "reject", allow_events=(), log_path: Optional[str] = None):
-        assert recurrence in ("reject", "allow")
+                 recurrence: str = "commit", allow_events=(), log_path: Optional[str] = None):
+        assert recurrence in ("commit", "reject")
         self.propose = propose
         self.checks = checks or []
         self.timeout = timeout
@@ -125,8 +164,11 @@ class LiveHealer:
         self.allow_events = frozenset(allow_events)
         self.log_path = log_path
         self.log: List[HealRecord] = []
+        self._seen: Dict[tuple, int] = {}
         self._pending: Optional[_Pending] = None
         self._busy = False
+        self._attempts = 0
+        self._repeat = 0
 
     # ------------------------------------------------------------------
     # called by the instrumented code at a crash
@@ -139,12 +181,19 @@ class LiveHealer:
         ctx = HealContext(exc, filename, lineno, func, statement, clean, globals_)
         target = sys._getframe(1)                    # the function that contains the crash
 
+        if getattr(exc, "_heal_rejected", False):    # a repair for this exception was rejected
+            return None                              # already; enclosing statements do not retry
+        if handled_by_caller(exc, target, globals_, filename):    # the program expects it
+            self._record(ctx, None, LiveResult(LiveStatus.SKIPPED,
+                                               "a caller handles this exception"))
+            return None
+
         if self._pending is not None:                # a crash before the validation point
             if self.recurrence == "reject" and self._pending.signature == _signature(exc):
                 self._reject_in_child("recurrence", f"{exc!r} happened again at line {lineno}")
-            self._commit("next crash")
+            self._commit("next crash", repr(exc))
 
-        if len(self.log) >= self.max_heals:
+        if self._attempts >= self.max_heals:
             return None
         skip = self._unsupported()
         if skip:
@@ -173,6 +222,11 @@ class LiveHealer:
 
     # ------------------------------------------------------------------
     def _attempt(self, ctx, code, target):
+        self._attempts += 1
+        sig = _signature(ctx.exception)
+        ctx_repeat = self._seen.get(sig, 0)
+        self._seen[sig] = ctx_repeat + 1
+        self._repeat = ctx_repeat
         sys.stdout.flush()
         sys.stderr.flush()
         offsets = P.fd_offsets()
@@ -188,15 +242,16 @@ class LiveHealer:
     # child: runs the repair, then keeps running the program
     # ------------------------------------------------------------------
     def _child_begin(self, ctx, code, target, w):
-        record = HealRecord(ctx, code, LiveResult(LiveStatus.TRIAL_ACCEPTED))
+        record = HealRecord(ctx, code, LiveResult(LiveStatus.TRIAL_ACCEPTED,
+                                                  repeat_count=self._repeat))
         cap = P._FdCapture().start()
         self._pending = _Pending(target, ctx, record, w, cap, _signature(ctx.exception))
         P.begin_watch(allow=self.allow_events, on_effect=self._effect_in_child)
         try:
-            env, cl, cg, _ = _run(code, ctx.locals_, ctx.globals_)
+            env, cl, cg, _ = run_healing_code(code, ctx.locals_, ctx.globals_)
         except BaseException as e:
             self._reject_in_child("error", repr(e))
-        msg = _checks_message(self.checks, env)
+        msg = checks_message(self.checks, env)
         if msg is not None:
             self._reject_in_child("check", msg)
         if not self._start_monitoring(target):
@@ -225,7 +280,8 @@ class LiveHealer:
         ev = mon.events
         mon.register_callback(_TOOL_ID, ev.PY_RETURN, self._on_return)
         mon.register_callback(_TOOL_ID, ev.PY_UNWIND, self._on_unwind)
-        mon.set_local_events(_TOOL_ID, frame.f_code, ev.PY_RETURN)
+        mon.register_callback(_TOOL_ID, ev.PY_YIELD, self._on_yield)
+        mon.set_local_events(_TOOL_ID, frame.f_code, ev.PY_RETURN | ev.PY_YIELD)
         mon.set_events(_TOOL_ID, ev.PY_UNWIND)       # unwinding cannot be set per code object
         return True
 
@@ -236,6 +292,7 @@ class LiveHealer:
             mon.set_events(_TOOL_ID, 0)
             mon.register_callback(_TOOL_ID, mon.events.PY_RETURN, None)
             mon.register_callback(_TOOL_ID, mon.events.PY_UNWIND, None)
+            mon.register_callback(_TOOL_ID, mon.events.PY_YIELD, None)
             mon.free_tool_id(_TOOL_ID)
         except ValueError:
             pass
@@ -246,18 +303,25 @@ class LiveHealer:
         if p is not None and sys._getframe(1) is p.frame:
             self._commit("end of function")
 
+    def _on_yield(self, code, offset, retval):
+        """A generator hands control back: that is its validation point (waiting for the
+        generator to finish would hold the program's output back indefinitely)."""
+        p = self._pending
+        if p is not None and sys._getframe(1) is p.frame:
+            self._commit("generator yielded")
+
     def _on_unwind(self, code, offset, exc):
         p = self._pending
         if p is not None and sys._getframe(1) is p.frame:
             if self.recurrence == "reject" and p.signature == _signature(exc):
                 self._reject_in_child("recurrence", f"{exc!r} left the function")
-            self._commit("function left by an exception")
+            self._commit("function left by an exception", repr(exc))
 
     def _at_exit(self):
         if self._pending is not None:
             self._commit("end of program")
 
-    def _commit(self, where):
+    def _commit(self, where, error=""):
         p = self._pending
         self._pending = None
         self._stop_monitoring(p.frame.f_code)
@@ -268,6 +332,7 @@ class LiveHealer:
         effects, fs = P.end_watch()
         res = p.record.result
         res.status, res.validated_at, res.fs_effects = LiveStatus.COMMITTED, where, fs
+        res.continuation_error = error
         res.reason = f"validation point: {where}"
         self._write_log(p.record)
         P.send(p.w, "commit", dict(where=where))
@@ -312,6 +377,8 @@ class LiveHealer:
                         break
         except BaseException:
             _kill(pid)
+            for s, h in saved.items():
+                signal.signal(s, h)
             raise
         os.close(r)
 
@@ -333,7 +400,11 @@ class LiveHealer:
                   "timeout": LiveStatus.REJECTED_TIMEOUT,
                   "died": LiveStatus.REJECTED_CHILD_DIED}[info["verdict"]]
         result = LiveResult(status, info["reason"], effects=info["effects"],
-                            fs_effects=info["fs"])
+                            fs_effects=info["fs"], repeat_count=self._repeat)
+        try:
+            ctx.exception._heal_rejected = True
+        except Exception:
+            pass
         self._record(ctx, code, result)
         return None                                  # caller re-raises the original exception
 
@@ -367,7 +438,11 @@ class LiveHealer:
                     status=res.status.name if res else "NO_PROPOSAL",
                     reason=res.reason if res else "", effects=res.effects if res else [],
                     fs_effects=res.fs_effects if res else [],
-                    validated_at=res.validated_at if res else "")
+                    validated_at=res.validated_at if res else "",
+                    repeat_count=res.repeat_count if res else 0,
+                    continuation_error=res.continuation_error if res else "",
+                    leaked_globals=res.leaked_globals if res else [],
+                    category=res.category if res else "none")
         fd = os.open(self.log_path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
         try:
             os.write(fd, (json.dumps(line) + "\n").encode())

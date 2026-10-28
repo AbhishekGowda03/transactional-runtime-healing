@@ -253,3 +253,67 @@ def test_docstring_and_future_import_survive():
 def test_instrumented_source_shows_the_rewrite():
     text = instrumented_source("def f(d):\n    return d['x']\n")
     assert "_eh_rtn" in text and "__heal__" in text and "except Exception as __eh_e" in text
+
+
+# ---- exceptions the program handles itself / helper names -------------------
+def test_exception_handled_by_a_caller_is_not_healed():
+    src = ("def get(d):\n"
+           "    return d['x']\n"
+           "def main():\n"
+           "    try:\n"
+           "        v = get({})\n"
+           "    except KeyError:\n"
+           "        v = 'default'\n"
+           "    return v\n"
+           "result = main()\n")
+    g, h = run(src, by_statement({"d['x']": "_eh_rtn = 42"}))
+    assert g["result"] == "default" and h.log == [] and h.skipped_caller_handled == 1
+
+
+def test_caller_with_tuple_handler_and_catch_all_are_seen():
+    for handler in ("(KeyError, ValueError)", "Exception", "LookupError"):
+        src = (f"def get(d):\n    return d['x']\ndef main():\n    try:\n        v = get({{}})\n"
+               f"    except {handler}:\n        v = 'default'\n    return v\nresult = main()\n")
+        g, h = run(src, by_statement({"d['x']": "_eh_rtn = 42"}))
+        assert g["result"] == "default", handler
+
+
+def test_caller_with_a_handler_for_another_type_still_allows_healing():
+    src = ("def get(d):\n    return d['x']\ndef main():\n    try:\n        v = get({})\n"
+           "    except ValueError:\n        v = 'default'\n    return v\nresult = main()\n")
+    g, _ = run(src, by_statement({"d['x']": "_eh_rtn = 42"}))
+    assert g["result"] == 42
+
+
+def test_exception_rejected_once_is_not_offered_to_enclosing_statements():
+    src = ("def f(items):\n    for d in items:\n        v = d['x']\n"
+           "f([{}])\n")
+    calls = []
+    healer = Healer(lambda ctx: calls.append(ctx.statement) or "raise ValueError('bad')")
+    with pytest.raises(KeyError):
+        run_instrumented(src, healer)
+    assert len(calls) == 1
+
+
+def test_helper_names_in_healing_code_are_not_added_to_globals():
+    src = "def f(d):\n    v = d['x']\n    return v\nresult = f({})\n"
+    g, h = run(src, by_statement({"d['x']": "helper = 7\nv = helper"}))
+    assert g["result"] == 7 and "helper" not in g
+    assert h.log[0].result.leaked_globals == ["helper"]
+
+
+def test_new_name_that_the_program_reads_is_added_to_globals():
+    src = ("def f(x):\n    y = normalize(x)\n    z = normalize(x + 1)\n    return y + z\n"
+           "result = f(1)\n")
+    g, h = run(src, by_statement({"y = normalize": "def normalize(v):\n    return v * 10\ny = normalize(x)"}))
+    assert g["result"] == 30 and len(h.log) == 1
+    assert h.log[0].result.leaked_globals == []
+
+
+def test_handler_expression_with_a_call_is_not_evaluated():
+    src = ("def get(d):\n    return d['x']\ndef main():\n    try:\n        v = get({})\n"
+           "    except make_handler():\n        v = 'default'\n    return v\n"
+           "def make_handler():\n    raise SystemError('must not be called')\n"
+           "result = main()\n")
+    g, h = run(src, by_statement({"d['x']": "_eh_rtn = 1"}))
+    assert g["result"] == 1
