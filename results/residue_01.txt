@@ -1,0 +1,24 @@
+=== repair changes a shared list, then raises
+  plain: REJECTED_REPAIR_ERROR    residue=['global:shared']  in-place changes=['global:shared']
+         stdout: program ended with the original error
+  live : REJECTED_REPAIR_ERROR    residue=[]  in-place changes=[]
+         stdout: program ended with the original error
+
+=== repair changes a shared dict, then hangs (timeout 1 s)
+  plain: REJECTED_TIMEOUT         residue=['global:config']  in-place changes=['global:config']
+         stdout: program ended with the original error
+  live : REJECTED_TIMEOUT         residue=[]  in-place changes=[]
+         stdout: program ended with the original error
+
+=== repair sets an environment variable, then raises
+  plain: REJECTED_REPAIR_ERROR    residue=['@environ']  in-place changes=['@environ']
+         stdout: program ended with the original error
+  live : REJECTED_REPAIR_ERROR    residue=[]  in-place changes=[]
+         stdout: program ended with the original error
+
+=== good repair that also changes a shared list
+  plain: COMMITTED                residue=[]  in-place changes=['global:log']
+         stdout: result 0 log = ['healed']
+  live : COMMITTED                residue=[]  in-place changes=[]
+         stdout: result 0 log = ['healed']
+

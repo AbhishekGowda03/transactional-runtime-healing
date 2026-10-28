@@ -8,7 +8,8 @@ RULES.json is a list of rules, tried in order for each crash:
 `code` is the healing code. In the real system an LLM writes this code; rules make the
 protocol testable without one.
 
-Options: --log FILE (JSON lines), --timeout SECONDS, --recurrence commit|reject,
+Options: --mode live|plain (live = the protocol, plain = HealBench-style baseline),
+         --meter (measure residual state), --log FILE (JSON lines), --timeout SECONDS, --recurrence commit|reject,
          --allow EVENT (repeatable), --show-instrumented
 The exit status is the program's own (uncaught exception: 1, as usual).
 """
@@ -18,6 +19,7 @@ import sys
 
 from transactional_runtime_healing.instrument import instrumented_source, run_instrumented
 from transactional_runtime_healing.live_heal import LiveHealer
+from transactional_runtime_healing.plain_heal import PlainHealer
 
 
 def rules_propose(rules):
@@ -37,6 +39,8 @@ def main(argv=None):
     ap.add_argument("program")
     ap.add_argument("rules")
     ap.add_argument("--log")
+    ap.add_argument("--mode", choices=("live", "plain"), default="live")
+    ap.add_argument("--meter", action="store_true")
     ap.add_argument("--timeout", type=float, default=60.0)
     ap.add_argument("--recurrence", choices=("commit", "reject"), default="commit")
     ap.add_argument("--allow", action="append", default=[])
@@ -50,8 +54,12 @@ def main(argv=None):
     if ns.show_instrumented:
         print(instrumented_source(source, ns.program))
         return 0
-    healer = LiveHealer(rules_propose(rules), timeout=ns.timeout, recurrence=ns.recurrence,
-                        allow_events=ns.allow, log_path=ns.log)
+    if ns.mode == "plain":
+        healer = PlainHealer(rules_propose(rules), timeout=ns.timeout, log_path=ns.log,
+                             meter_state=ns.meter)
+    else:
+        healer = LiveHealer(rules_propose(rules), timeout=ns.timeout, recurrence=ns.recurrence,
+                            allow_events=ns.allow, log_path=ns.log, meter_state=ns.meter)
     sys.argv = [ns.program]
     run_instrumented(source, healer, filename=ns.program,
                      globals_={"__name__": "__main__", "__file__": ns.program})

@@ -109,7 +109,8 @@ _FS_EVENTS = {"os.remove", "os.rename", "os.mkdir", "os.rmdir", "os.truncate",
               "os.link", "os.symlink"}
 _WRITE_FLAGS = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
 
-_trial = {"active": False, "effects": [], "fs": [], "allow": frozenset(), "on_effect": None}
+_trial = {"active": False, "effects": [], "fs": [], "allow": frozenset(), "on_effect": None,
+          "record_only": False}
 _hook_installed = False
 
 
@@ -118,6 +119,8 @@ def _audit_hook(event, args):
         return
     if event in _BLOCKED_EVENTS and event not in _trial["allow"]:
         _trial["effects"].append(event)          # flag: cannot be swallowed
+        if _trial["record_only"]:
+            return                               # plain healing: record the effect, do not stop it
         if _trial["on_effect"] is not None:
             _trial["on_effect"](event)           # e.g. reject the trial at once
         raise ExternalEffectBlocked(event)       # and stop the effect
@@ -138,22 +141,26 @@ def install_hook():
         _hook_installed = True
 
 
-def begin_watch(allow=frozenset(), on_effect=None):
+def begin_watch(allow=frozenset(), on_effect=None, record_only=False):
     """Switch effect detection on (clears earlier records).
 
     allow     -- audit events that are NOT blocked (for example "ctypes.dlopen" when
                  the program imports libraries that use ctypes)
     on_effect -- called with the event name when an external effect is attempted,
                  before the exception is raised (the live trial uses it to reject at once)
+    record_only -- list external effects in the result but let them happen (plain healing:
+                 the baseline has no protection, the log still says what it did)
     """
     install_hook()
-    _trial.update(active=True, effects=[], fs=[], allow=frozenset(allow), on_effect=on_effect)
+    _trial.update(active=True, effects=[], fs=[], allow=frozenset(allow), on_effect=on_effect,
+                  record_only=record_only)
 
 
 def end_watch() -> Tuple[List[str], List[str]]:
     """Switch effect detection off; return (blocked effects, recorded fs writes)."""
     _trial["active"] = False
     _trial["on_effect"] = None
+    _trial["record_only"] = False
     return list(_trial["effects"]), list(_trial["fs"])
 
 

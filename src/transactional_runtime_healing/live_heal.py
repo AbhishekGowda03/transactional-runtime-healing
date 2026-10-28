@@ -71,6 +71,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from transactional_runtime_healing import protocol as P
 from transactional_runtime_healing.heal_point import checks_message, run_healing_code
+from transactional_runtime_healing import meter
 from transactional_runtime_healing.instrument import HealContext, HealRecord, handled_by_caller
 
 _TOOL_ID = 3                                      # sys.monitoring tool id
@@ -111,6 +112,13 @@ class LiveResult:
     repeat_count: int = 0                        # earlier heals of the same error and place
     continuation_error: str = ""                 # the exception that ended the trial, if any
     leaked_globals: List[str] = field(default_factory=list)
+    mode: str = "live"                           # "live" (protocol) or "plain" (HealBench-style)
+    residue: List[str] = field(default_factory=list)   # state a failed attempt left behind
+    inplace_changes: Optional[List[str]] = None  # plain mode: state changed in place; None = not measured
+    external_residue: List[str] = field(default_factory=list)  # files written by a failed attempt
+    check_would_fail: str = ""                   # plain mode: a check the repair would not pass
+    invalid_commit_changes: List[str] = field(default_factory=list)  # plain mode: in-place changes
+    #                                              of a repair that was applied although a check fails
 
     @property
     def category(self) -> str:
@@ -148,13 +156,17 @@ class LiveHealer:
                         own (a loop over bad inputs is normal). "reject": strict reading of
                         proposal check 4, the repair is rejected
     allow_events     -- audit events that are not blocked during the trial
+    meter_state      -- measure residual state: fingerprint the program before each attempt
+                        and again after a rejection (`residue` in the result and the log;
+                        it must be empty - this checks the restore guarantee)
     log_path         -- JSON-lines file; one line per heal attempt, written by whichever
                         process learns the outcome (parent on reject, child on commit)
     """
 
     def __init__(self, propose: Callable[[HealContext], Optional[str]],
                  checks: Optional[list] = None, timeout: float = 60.0, max_heals: int = 50,
-                 recurrence: str = "commit", allow_events=(), log_path: Optional[str] = None):
+                 recurrence: str = "commit", allow_events=(), log_path: Optional[str] = None,
+                 meter_state: bool = False):
         assert recurrence in ("commit", "reject")
         self.propose = propose
         self.checks = checks or []
@@ -163,6 +175,7 @@ class LiveHealer:
         self.recurrence = recurrence
         self.allow_events = frozenset(allow_events)
         self.log_path = log_path
+        self.meter_state = meter_state
         self.log: List[HealRecord] = []
         self._seen: Dict[tuple, int] = {}
         self._pending: Optional[_Pending] = None
@@ -230,6 +243,8 @@ class LiveHealer:
         sys.stdout.flush()
         sys.stderr.flush()
         offsets = P.fd_offsets()
+        self._before = meter.snapshot(target, ctx.globals_) if self.meter_state else None
+        self._target = target
         r, w = os.pipe()
         pid = os.fork()
         if pid == 0:
@@ -401,6 +416,10 @@ class LiveHealer:
                   "died": LiveStatus.REJECTED_CHILD_DIED}[info["verdict"]]
         result = LiveResult(status, info["reason"], effects=info["effects"],
                             fs_effects=info["fs"], repeat_count=self._repeat)
+        result.external_residue = list(info["fs"])   # files written stay on disk
+        if self._before is not None:                 # what did the rejected attempt leave?
+            result.residue = meter.diff(self._before,
+                                        meter.snapshot(self._target, ctx.globals_))
         try:
             ctx.exception._heal_rejected = True
         except Exception:
@@ -429,25 +448,36 @@ class LiveHealer:
         self._write_log(rec)
 
     def _write_log(self, rec: HealRecord):
-        if not self.log_path:
-            return
-        ctx, res = rec.context, rec.result
-        line = dict(time=time.time(), pid=os.getpid(), file=ctx.filename, line=ctx.lineno,
-                    function=ctx.function, statement=ctx.statement,
-                    exception=repr(ctx.exception), code=rec.code,
-                    status=res.status.name if res else "NO_PROPOSAL",
-                    reason=res.reason if res else "", effects=res.effects if res else [],
-                    fs_effects=res.fs_effects if res else [],
-                    validated_at=res.validated_at if res else "",
-                    repeat_count=res.repeat_count if res else 0,
-                    continuation_error=res.continuation_error if res else "",
-                    leaked_globals=res.leaked_globals if res else [],
-                    category=res.category if res else "none")
-        fd = os.open(self.log_path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
-        try:
-            os.write(fd, (json.dumps(line) + "\n").encode())
-        finally:
-            os.close(fd)
+        write_log(self.log_path, rec)
+
+
+def write_log(path, rec: HealRecord):
+    """Append one JSON line describing a heal attempt (also used by the plain healer)."""
+    if not path:
+        return
+    ctx, res = rec.context, rec.result
+    line = dict(time=time.time(), pid=os.getpid(), file=ctx.filename, line=ctx.lineno,
+                function=ctx.function, statement=ctx.statement,
+                exception=repr(ctx.exception), code=rec.code,
+                mode=res.mode if res else "none",
+                status=res.status.name if res else "NO_PROPOSAL",
+                reason=res.reason if res else "", effects=res.effects if res else [],
+                fs_effects=res.fs_effects if res else [],
+                validated_at=res.validated_at if res else "",
+                repeat_count=res.repeat_count if res else 0,
+                continuation_error=res.continuation_error if res else "",
+                leaked_globals=res.leaked_globals if res else [],
+                residue=res.residue if res else [],
+                inplace_changes=res.inplace_changes if res else None,
+                external_residue=res.external_residue if res else [],
+                invalid_commit_changes=res.invalid_commit_changes if res else [],
+                check_would_fail=res.check_would_fail if res else "",
+                category=res.category if res else "none")
+    fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
+    try:
+        os.write(fd, (json.dumps(line) + "\n").encode())
+    finally:
+        os.close(fd)
 
 
 def _kill(pid):

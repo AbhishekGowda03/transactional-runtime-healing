@@ -1,0 +1,36 @@
+=== repair changes a shared list, then raises
+  plain: REJECTED_REPAIR_ERROR    residue=['global:shared']  files written=[]  in-place changes=['global:shared']
+         stdout: program ended with the original error
+  live : REJECTED_REPAIR_ERROR    residue=[]  files written=[]  in-place changes=n/a
+         stdout: program ended with the original error
+
+=== repair changes a shared dict, then hangs (timeout 1 s)
+  plain: REJECTED_TIMEOUT         residue=['global:config']  files written=[]  in-place changes=['global:config']
+         stdout: program ended with the original error
+  live : REJECTED_TIMEOUT         residue=[]  files written=[]  in-place changes=n/a
+         stdout: program ended with the original error
+
+=== repair sets an environment variable, then raises
+  plain: REJECTED_REPAIR_ERROR    residue=['@environ']  files written=[]  in-place changes=['@environ']
+         stdout: program ended with the original error
+  live : REJECTED_REPAIR_ERROR    residue=[]  files written=[]  in-place changes=n/a
+         stdout: program ended with the original error
+
+=== repair writes a cache file, then raises
+  plain: REJECTED_REPAIR_ERROR    residue=[]  files written=['open-write:heal_cache.txt']  in-place changes=[]
+         stdout: program ended with the original error
+  live : REJECTED_REPAIR_ERROR    residue=[]  files written=['open-write:heal_cache.txt']  in-place changes=n/a
+         stdout: program ended with the original error
+
+=== repair patches a library setting, then raises
+  plain: REJECTED_REPAIR_ERROR    residue=['module:json.loads']  files written=[]  in-place changes=['module:json.loads']
+         stdout: program ended with the original error
+  live : REJECTED_REPAIR_ERROR    residue=[]  files written=[]  in-place changes=n/a
+         stdout: program ended with the original error
+
+=== good repair that also changes a shared list
+  plain: COMMITTED                residue=[]  files written=[]  in-place changes=['global:log']
+         stdout: result 0 log = ['healed']
+  live : COMMITTED                residue=[]  files written=[]  in-place changes=n/a
+         stdout: result 0 log = ['healed']
+
