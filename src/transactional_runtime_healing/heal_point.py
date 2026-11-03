@@ -44,9 +44,11 @@ The caller (the instrumented handler) applies `result.bindings` to the frame;
 the paused function's locals cannot be assigned from here. Imported modules are
 not returned as bindings.
 """
+import ast
 import hashlib
 import os
 import pickle
+import textwrap
 import signal
 import sys
 import threading
@@ -149,6 +151,41 @@ def checks_message(checks, env):
         if not ok:
             return msg
     return None
+
+
+def _target_names(node):
+    if isinstance(node, ast.Name):
+        return [node.id]
+    if isinstance(node, (ast.Tuple, ast.List)):
+        return [n for e in node.elts for n in _target_names(e)]
+    if isinstance(node, ast.Starred):
+        return _target_names(node.value)
+    return []
+
+
+def missing_targets(statement: str, locals_: dict, globals_: dict, env: dict, code: str):
+    """Names the failing statement would have bound that the repair left unbound.
+
+    For `x = ...` (or `a, b = ...`): a name that was not bound before the crash and is not
+    bound after the healing code. For `return ...` (instrumented as `_eh_rtn = ...`): the
+    healing code never assigns `_eh_rtn`, so the function would return None. Statements of
+    other kinds, and statements that cannot be parsed, require nothing. This is a
+    completeness check: the repair has to supply what the statement would have produced."""
+    try:
+        node = ast.parse(textwrap.dedent(statement.strip())).body[0]
+        tree = ast.parse(code)
+    except (SyntaxError, IndexError, ValueError):
+        return []
+    if isinstance(node, ast.Return) and node.value is not None:
+        stored = any(isinstance(n, ast.Name) and n.id == "_eh_rtn"
+                     and isinstance(n.ctx, ast.Store) for n in ast.walk(tree))
+        return [] if stored else ["_eh_rtn"]
+    names = []
+    if isinstance(node, ast.Assign):
+        names = [n for t in node.targets for n in _target_names(t)]
+    elif isinstance(node, ast.AnnAssign) and node.value is not None:
+        names = _target_names(node.target)
+    return [n for n in names if n not in locals_ and n not in globals_ and n not in env]
 
 
 # ----------------------------------------------------------------------

@@ -34,7 +34,7 @@ from typing import Callable, List, Optional
 
 from transactional_runtime_healing import meter, taint
 from transactional_runtime_healing import protocol as P
-from transactional_runtime_healing.heal_point import checks_message, run_healing_code
+from transactional_runtime_healing.heal_point import checks_message, missing_targets, run_healing_code
 from transactional_runtime_healing.instrument import HealContext, HealRecord, handled_by_caller
 from transactional_runtime_healing.live_heal import LiveResult, LiveStatus, write_log
 
@@ -160,6 +160,8 @@ class PlainHealer:
                             bindings=cl, globals_updates=cg, changed=sorted({**cl, **cg}),
                             validated_at="none", inplace_changes=changed,
                             check_would_fail=msg or "", fs_effects=fs, effects=effects,
+                            targets_missing=missing_targets(ctx.statement, ctx.locals_,
+                                                            ctx.globals_, env, code),
                             invalid_commit_changes=(changed or []) if msg else [],
                             external_residue=effects + fs if msg else [])
         self._record(ctx, code, result)

@@ -1,0 +1,348 @@
+[
+ {
+  "setting": "plain",
+  "program": "key_missing",
+  "state": "3.0",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.7,
+  "stderr": ""
+ },
+ {
+  "setting": "plain",
+  "program": "zero_division",
+  "state": "None",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED",
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.7,
+  "stderr": ""
+ },
+ {
+  "setting": "plain",
+  "program": "none_attribute",
+  "state": "None",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.4,
+  "stderr": ""
+ },
+ {
+  "setting": "plain",
+  "program": "index_empty",
+  "state": null,
+  "proceeded": false,
+  "correct": false,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.8,
+  "stderr": ""
+ },
+ {
+  "setting": "plain",
+  "program": "type_mismatch",
+  "state": "3",
+  "proceeded": true,
+  "correct": false,
+  "harm": true,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.4,
+  "stderr": ""
+ },
+ {
+  "setting": "plain",
+  "program": "bad_int",
+  "state": null,
+  "proceeded": false,
+  "correct": false,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.6,
+  "stderr": ""
+ },
+ {
+  "setting": "plain",
+  "program": "missing_attribute",
+  "state": "None",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.3,
+  "stderr": ""
+ },
+ {
+  "setting": "plain",
+  "program": "file_missing",
+  "state": null,
+  "proceeded": false,
+  "correct": false,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.6,
+  "stderr": ""
+ },
+ {
+  "setting": "plain",
+  "program": "unpack_short",
+  "state": "None",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.4,
+  "stderr": ""
+ },
+ {
+  "setting": "plain",
+  "program": "cache_miss",
+  "state": "(None, ['a'])",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.3,
+  "stderr": ""
+ },
+ {
+  "setting": "plain",
+  "program": "empty_average",
+  "state": "None",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED",
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.8,
+  "stderr": ""
+ },
+ {
+  "setting": "plain",
+  "program": "same_error_twice",
+  "state": "[2.0, None, None]",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED",
+   "COMMITTED",
+   "COMMITTED",
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 1.3,
+  "stderr": ""
+ },
+ {
+  "setting": "full",
+  "program": "key_missing",
+  "state": "3.0",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.1,
+  "stderr": ""
+ },
+ {
+  "setting": "full",
+  "program": "zero_division",
+  "state": "None",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED",
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.1,
+  "stderr": ""
+ },
+ {
+  "setting": "full",
+  "program": "none_attribute",
+  "state": "None",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.1,
+  "stderr": ""
+ },
+ {
+  "setting": "full",
+  "program": "index_empty",
+  "state": null,
+  "proceeded": false,
+  "correct": false,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.1,
+  "stderr": ""
+ },
+ {
+  "setting": "full",
+  "program": "type_mismatch",
+  "state": "3",
+  "proceeded": true,
+  "correct": false,
+  "harm": true,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.1,
+  "stderr": ""
+ },
+ {
+  "setting": "full",
+  "program": "bad_int",
+  "state": null,
+  "proceeded": false,
+  "correct": false,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.1,
+  "stderr": ""
+ },
+ {
+  "setting": "full",
+  "program": "missing_attribute",
+  "state": "None",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.1,
+  "stderr": ""
+ },
+ {
+  "setting": "full",
+  "program": "file_missing",
+  "state": null,
+  "proceeded": false,
+  "correct": false,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.1,
+  "stderr": ""
+ },
+ {
+  "setting": "full",
+  "program": "unpack_short",
+  "state": "None",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.1,
+  "stderr": ""
+ },
+ {
+  "setting": "full",
+  "program": "cache_miss",
+  "state": "(None, ['a'])",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.1,
+  "stderr": ""
+ },
+ {
+  "setting": "full",
+  "program": "empty_average",
+  "state": "None",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED",
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.1,
+  "stderr": ""
+ },
+ {
+  "setting": "full",
+  "program": "same_error_twice",
+  "state": "[2.0, None, None]",
+  "proceeded": true,
+  "correct": true,
+  "harm": false,
+  "outcomes": [
+   "COMMITTED",
+   "COMMITTED",
+   "COMMITTED",
+   "COMMITTED"
+  ],
+  "residue": [],
+  "seconds": 0.1,
+  "stderr": ""
+ }
+]

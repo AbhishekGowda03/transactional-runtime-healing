@@ -72,7 +72,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 from transactional_runtime_healing import protocol as P
-from transactional_runtime_healing.heal_point import checks_message, run_healing_code
+from transactional_runtime_healing.heal_point import checks_message, missing_targets, run_healing_code
 from transactional_runtime_healing import meter, taint
 from transactional_runtime_healing.instrument import HealContext, HealRecord, handled_by_caller
 
@@ -123,6 +123,8 @@ class LiveResult:
     check_would_fail: str = ""                   # plain mode: a check the repair would not pass
     invalid_commit_changes: List[str] = field(default_factory=list)  # plain mode: in-place changes
     #                                              of a repair that was applied although a check fails
+    targets_missing: List[str] = field(default_factory=list)  # names the failing statement would
+    #                                              have bound that the repair did not bind
 
     @property
     def category(self) -> str:
@@ -169,6 +171,10 @@ class LiveHealer:
                         run: "off", "warn" (report a protected operation that uses a value
                         the repair introduced, in the log, but let it run; default) or
                         "block" (stop it; the program then sees an exception)
+    require_targets  -- completeness check: reject a repair that leaves unbound the names the
+                        failing statement would have bound (or, for `return`, never sets
+                        `_eh_rtn`). Without it such a repair is committed and the program
+                        crashes at the next use (an UnboundLocalError counts as the next crash)
     safe_paths       -- path prefixes that the guard does not police (for example a temp dir)
     meter_state      -- measure residual state: fingerprint the program before each attempt
                         and again after a rejection (`residue` in the result and the log;
@@ -181,7 +187,8 @@ class LiveHealer:
                  checks: Optional[list] = None, timeout: float = 60.0, max_heals: int = 50,
                  recurrence: str = "commit", allow_events=(), log_path: Optional[str] = None,
                  meter_state: bool = False, guard: bool = True, safe_paths=(),
-                 protected_events=None, post_commit: str = "warn"):
+                 protected_events=None, post_commit: str = "warn",
+                 require_targets: bool = False):
         assert recurrence in ("commit", "reject")
         assert post_commit in ("off", "warn", "block")
         self.propose = propose
@@ -196,6 +203,7 @@ class LiveHealer:
         self.safe_paths = tuple(safe_paths)
         self.protected_events = protected_events
         self.post_commit = post_commit
+        self.require_targets = require_targets
         self._lineage: set = set()                   # values introduced by committed repairs
         self._guard = None
         self.log: List[HealRecord] = []
@@ -298,6 +306,9 @@ class LiveHealer:
             self._reject_in_child("error", repr(e))
         if guard is not None:
             guard.finish(taint.state_roots(target, ctx.globals_), cl, cg)
+        missing = missing_targets(ctx.statement, ctx.locals_, ctx.globals_, env, code)
+        if missing and self.require_targets:
+            self._reject_in_child("check", "the repair does not bind " + ", ".join(missing))
         msg = checks_message(self.checks, env)
         if msg is not None:
             self._reject_in_child("check", msg)
@@ -306,6 +317,7 @@ class LiveHealer:
         atexit.register(self._at_exit)
         res = record.result
         res.bindings, res.globals_updates, res.changed = cl, cg, sorted({**cl, **cg})
+        res.targets_missing = missing
         self.log.append(record)
         return res                                   # the program goes on from the crash point
 
@@ -528,6 +540,7 @@ def write_log(path, rec: HealRecord):
                 external_residue=res.external_residue if res else [],
                 invalid_commit_changes=res.invalid_commit_changes if res else [],
                 check_would_fail=res.check_would_fail if res else "",
+                targets_missing=res.targets_missing if res else [],
                 category=res.category if res else "none")
     write_line(path, line)
 
