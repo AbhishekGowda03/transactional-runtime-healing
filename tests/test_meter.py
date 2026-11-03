@@ -207,3 +207,22 @@ def test_simplefilter_ignore_is_seen_although_the_meter_silences_its_own_warning
         before = snap({})
         warnings.simplefilter("ignore")
         assert "@setting:warnings.filters" in diff(before, snap({}))
+
+def test_importing_a_module_is_not_residue():
+    code = ("import sys\nfrom transactional_runtime_healing import meter\n"
+            "g = {}\nb = meter.snapshot(None, g)\nimport subprocess, fcntl\n"
+            "print(meter.diff(b, meter.snapshot(None, g)))\n")
+    import subprocess as sp, sys as _s, os as _o
+    env = dict(_o.environ, PYTHONPATH=_o.path.join(_o.path.dirname(__file__), "..", "src"))
+    out = sp.run([_s.executable, "-c", code], capture_output=True, text=True, env=env)
+    assert out.stdout.strip() == "[]", out.stdout + out.stderr
+
+
+def test_patching_a_freshly_imported_module_is_residue():
+    code = ("import sys\nfrom transactional_runtime_healing import meter\n"
+            "g = {}\nb = meter.snapshot(None, g)\nimport colorsys\ncolorsys.rgb_to_hsv = None\n"
+            "print(meter.diff(b, meter.snapshot(None, g)))\n")
+    import subprocess as sp, sys as _s, os as _o
+    env = dict(_o.environ, PYTHONPATH=_o.path.join(_o.path.dirname(__file__), "..", "src"))
+    out = sp.run([_s.executable, "-c", code], capture_output=True, text=True, env=env)
+    assert "module:colorsys.rgb_to_hsv" in out.stdout, out.stdout + out.stderr

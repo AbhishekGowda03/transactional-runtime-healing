@@ -160,6 +160,77 @@ def _own_name(name: str) -> bool:
     return name.startswith("__heal") or name.startswith("__eh") or name == "__builtins__"
 
 
+def _structural(v) -> str:
+    """Fingerprint that does not depend on object identity (so the same module imported in
+    two interpreters gives the same value): functions by name and bytecode, classes by name."""
+    if isinstance(v, _CALLABLE_TYPES):
+        code = getattr(v, "__code__", None)
+        body = hashlib.sha1(code.co_code).hexdigest() if code is not None else ""
+        return f"{type(v).__name__}:{getattr(v, '__qualname__', '')}:{body}"
+    if isinstance(v, type):
+        return f"class:{v.__qualname__}"
+    return _fingerprint(v)
+
+
+def module_structure(modname: str) -> Dict[str, str]:
+    """Identity-free fingerprint of the attributes of a loaded module (same attribute
+    filter as the snapshot)."""
+    mod = sys.modules.get(modname)
+    out: Dict[str, str] = {}
+    if mod is None:
+        return out
+    is_std = modname.split(".")[0] in sys.stdlib_module_names
+    try:
+        items = list(vars(mod).items())
+    except TypeError:
+        return out
+    for attr, value in items:
+        if attr in _SKIP_MODULE_ATTRS or isinstance(value, types.ModuleType):
+            continue
+        if is_std and not (isinstance(value, _CALLABLE_TYPES + (type,)) or
+                           isinstance(value, _PLAIN)):
+            continue
+        try:
+            out[attr] = _structural(value)
+        except Exception:
+            out[attr] = "unfingerprintable"
+    return out
+
+
+def _fresh_structures(names: List[str]) -> Dict[str, Dict[str, str]]:
+    """What a pristine interpreter has in these modules (one subprocess for all of them)."""
+    import json
+    import os
+    import subprocess
+    src = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    code = ("import sys, json\nsys.path.insert(0, %r)\n"
+            "from transactional_runtime_healing import meter\nout = {}\n"
+            "for n in %r:\n    try:\n        __import__(n)\n"
+            "        out[n] = meter.module_structure(n)\n    except BaseException:\n        pass\n"
+            "print(json.dumps(out))\n") % (src, list(names))
+    try:
+        p = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True,
+                           timeout=30)
+        return json.loads(p.stdout.strip().splitlines()[-1])
+    except Exception:
+        return {}
+
+
+def _new_module_changes(new_modules: List[str]) -> List[str]:
+    """Attributes of modules imported during the attempt that differ from a fresh import.
+    Importing a library is not a change, but patching one right after importing it is."""
+    fresh = _fresh_structures(new_modules)
+    changed: List[str] = []
+    for name in new_modules:
+        if name not in fresh:                    # could not be imported afresh: not judged
+            continue
+        now = module_structure(name)
+        for attr in set(now) | set(fresh[name]):
+            if now.get(attr) != fresh[name].get(attr):
+                changed.append(f"module:{name}.{attr}")
+    return changed
+
+
 def _module_snapshot(snap: Dict[str, str]):
     stdlib = sys.stdlib_module_names
     for modname, mod in list(sys.modules.items()):
@@ -170,6 +241,7 @@ def _module_snapshot(snap: Dict[str, str]):
         except TypeError:
             continue
         is_std = modname.split(".")[0] in stdlib
+        snap[f"@loaded:{modname}"] = "1"
         for attr, value in items:
             if attr in _SKIP_MODULE_ATTRS or isinstance(value, types.ModuleType):
                 continue
@@ -241,5 +313,17 @@ def _take(frame, globals_, environment, modules, filters) -> Dict[str, str]:
 
 
 def diff(before: Dict[str, str], after: Dict[str, str]) -> List[str]:
-    """Names whose fingerprint differs, or that appeared or disappeared."""
-    return sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
+    """Names whose fingerprint differs, or that appeared or disappeared.
+
+    A module that was imported between the two snapshots is compared with a fresh import
+    in a clean interpreter: importing a library is not a change, patching it is."""
+    loaded_before = {k for k in before if k.startswith("@loaded:")}
+    new_modules = [k[8:] for k in after if k.startswith("@loaded:") and k not in loaded_before] \
+        if loaded_before else []
+    prefixes = tuple(f"module:{m}." for m in new_modules)
+    out = [k for k in set(before) | set(after)
+           if not k.startswith("@loaded:") and before.get(k) != after.get(k)
+           and not (prefixes and k.startswith(prefixes))]
+    if new_modules:
+        out += _new_module_changes(new_modules)
+    return sorted(out)
