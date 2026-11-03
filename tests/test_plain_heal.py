@@ -69,7 +69,7 @@ def test_timeout_is_reported():
 
 
 # ---- the same program under both modes ----------------------------------------------------
-@pytest.mark.skipif(sys.version_info < (3, 12), reason="needs sys.monitoring")
+@pytest.mark.skipif(not hasattr(os, "fork"), reason="needs fork")
 def test_same_failing_repair_leaves_residue_in_plain_mode_and_none_in_live_mode(tmp_path):
     prog = tmp_path / "prog.py"
     prog.write_text(textwrap.dedent("""
@@ -121,7 +121,7 @@ def test_programs_own_timer_survives_a_plain_attempt():
     assert g["result"] == 0 and 0 < delay <= 30
 
 
-@pytest.mark.skipif(sys.version_info < (3, 12), reason="needs sys.monitoring")
+@pytest.mark.skipif(not hasattr(os, "fork"), reason="needs fork")
 def test_file_written_by_the_repair_is_stopped_in_live_mode_but_not_in_plain_mode(tmp_path):
     """Plain healing writes the file; the protocol's protected-operations check stops it."""
     cache = tmp_path / "cache.txt"
@@ -146,7 +146,7 @@ def test_file_written_by_the_repair_is_stopped_in_live_mode_but_not_in_plain_mod
     assert entry["inplace_changes"] is None                  # not measured in live mode
 
 
-@pytest.mark.skipif(sys.version_info < (3, 12), reason="needs sys.monitoring")
+@pytest.mark.skipif(not hasattr(os, "fork"), reason="needs fork")
 def test_file_written_by_the_program_during_a_rejected_trial_stays_on_disk(tmp_path):
     """The remaining gap (until the copy-on-write layer): the program's own writes."""
     out = tmp_path / "out.txt"
@@ -182,7 +182,7 @@ def test_plain_mode_records_and_carries_out_external_effects(tmp_path):
     assert "os.system" in healer.log[0].result.external_residue
 
 
-@pytest.mark.skipif(sys.version_info < (3, 12), reason="needs sys.monitoring")
+@pytest.mark.skipif(not hasattr(os, "fork"), reason="needs fork")
 def test_live_mode_blocks_the_same_effect_so_it_is_not_residue(tmp_path):
     marker = tmp_path / "marker"
     prog = tmp_path / "prog.py"

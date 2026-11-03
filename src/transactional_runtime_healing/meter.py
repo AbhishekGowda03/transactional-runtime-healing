@@ -51,6 +51,28 @@ from typing import Dict, List, Optional
 from transactional_runtime_healing import protocol as P
 from transactional_runtime_healing.instrument import HANDLER_TABLES
 
+
+def _stdlib_names():
+    """Names of the standard library's top-level modules (sys.stdlib_module_names exists from
+    Python 3.10; for 3.9 the names are read from the standard library folder)."""
+    names = getattr(sys, "stdlib_module_names", None)
+    if names is not None:
+        return names
+    import sysconfig
+    found = set(sys.builtin_module_names)
+    root = sysconfig.get_paths()["stdlib"]
+    try:
+        for entry in os.listdir(root):
+            if entry == "site-packages":
+                continue
+            found.add(entry[:-3] if entry.endswith(".py") else entry.split(".")[0])
+    except OSError:
+        pass
+    return frozenset(found)
+
+
+_STDLIB = _stdlib_names()
+
 _OWN = "transactional_runtime_healing"
 _CALLABLE_TYPES = (types.FunctionType, types.BuiltinFunctionType, types.MethodType,
                    types.MethodDescriptorType, types.WrapperDescriptorType)
@@ -179,7 +201,7 @@ def module_structure(modname: str) -> Dict[str, str]:
     out: Dict[str, str] = {}
     if mod is None:
         return out
-    is_std = modname.split(".")[0] in sys.stdlib_module_names
+    is_std = modname.split(".")[0] in _STDLIB
     try:
         items = list(vars(mod).items())
     except TypeError:
@@ -232,7 +254,7 @@ def _new_module_changes(new_modules: List[str]) -> List[str]:
 
 
 def _module_snapshot(snap: Dict[str, str]):
-    stdlib = sys.stdlib_module_names
+    stdlib = _STDLIB
     for modname, mod in list(sys.modules.items()):
         if mod is None or modname.split(".")[0] == _OWN or modname == "__main__":
             continue

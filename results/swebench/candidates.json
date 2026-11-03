@@ -1,0 +1,2892 @@
+[
+ {
+  "instance_id": "astropy__astropy-12907",
+  "repo": "astropy/astropy",
+  "version": "4.3",
+  "base_commit": "d16bfe05a744909de4b27f5875fe0d4ed41ce607",
+  "fail_to_pass": [
+   "astropy/modeling/tests/test_separable.py::test_separable[compound_model6-result6]",
+   "astropy/modeling/tests/test_separable.py::test_separable[compound_model9-result9]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "astropy__astropy-14182",
+  "repo": "astropy/astropy",
+  "version": "5.1",
+  "base_commit": "a5917978be39d13cd90b517e1de4e7a539ffaa48",
+  "fail_to_pass": [
+   "astropy/io/ascii/tests/test_rst.py::test_rst_with_header_rows"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "astropy__astropy-14365",
+  "repo": "astropy/astropy",
+  "version": "5.1",
+  "base_commit": "7269fa3e33e8d02485a647da91a5a2a60a06af61",
+  "fail_to_pass": [
+   "astropy/io/ascii/tests/test_qdp.py::test_roundtrip[True]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "astropy__astropy-14995",
+  "repo": "astropy/astropy",
+  "version": "5.2",
+  "base_commit": "b16c7d12ccbc7b2d20364b89fb44285bcbfede54",
+  "fail_to_pass": [
+   "astropy/nddata/mixins/tests/test_ndarithmetic.py::test_nddata_bitmask_arithmetic"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "astropy__astropy-6938",
+  "repo": "astropy/astropy",
+  "version": "1.3",
+  "base_commit": "c76af9ed6bb89bfba45b9f5bc1e635188278e2fa",
+  "fail_to_pass": [
+   "astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_ascii_table_data",
+   "astropy/io/fits/tests/test_table.py::TestTableFunctions::test_ascii_table"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "astropy__astropy-7746",
+  "repo": "astropy/astropy",
+  "version": "1.3",
+  "base_commit": "d5bd3f68bb6d5ce3a61bdce9883ee750d1afade5",
+  "fail_to_pass": [
+   "astropy/wcs/tests/test_wcs.py::test_zero_size_input"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-10914",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "e7fd69d051eaa67cb17f172a39b57253e9cb831a",
+  "fail_to_pass": [
+   "test_override_file_upload_permissions (test_utils.tests.OverrideSettingsTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-10924",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "bceadd2788dc2dad53eba0caae172bd8522fd483",
+  "fail_to_pass": [
+   "test_callable_path (model_fields.test_filepathfield.FilePathFieldTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11001",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "ef082ebb84f00e38af4e8880d04e8365c2766d34",
+  "fail_to_pass": [
+   "test_order_by_multiline_sql (expressions.tests.BasicExpressionsTests)",
+   "test_order_of_operations (expressions.tests.BasicExpressionsTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11039",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "d5276398046ce4a102776a1e67dcac2884d80dfe",
+  "fail_to_pass": [
+   "test_sqlmigrate_for_non_transactional_databases (migrations.test_commands.MigrateTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11049",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "17455e924e243e7a55e8a38f45966d8cbb27c273",
+  "fail_to_pass": [
+   "test_invalid_string (model_fields.test_durationfield.TestValidation)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11099",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "d26b2424437dabeeca94d7900b37d2df4410da0c",
+  "fail_to_pass": [
+   "test_ascii_validator (auth_tests.test_validators.UsernameValidatorsTests)",
+   "test_unicode_validator (auth_tests.test_validators.UsernameValidatorsTests)",
+   "test_help_text (auth_tests.test_validators.UserAttributeSimilarityValidatorTest)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11133",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "879cc3da6249e920b8d54518a0ae06de835d7373",
+  "fail_to_pass": [
+   "test_memoryview_content (httpwrappers.tests.HttpResponseTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11179",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "19fc6376ce67d01ca37a91ef2f55ef769f50513a",
+  "fail_to_pass": [
+   "test_fast_delete_instance_set_pk_none (delete.tests.FastDeleteTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11283",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "08a4ee06510ae45562c228eefbdcaac84bd38c7a",
+  "fail_to_pass": [
+   "test_migrate_with_existing_target_permission (auth_tests.test_migrations.ProxyModelWithSameAppLabelTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11422",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "df46b329e0900e9e4dc1d60816c1dce6dfc1094e",
+  "fail_to_pass": [
+   "test_main_module_is_resolved (utils_tests.test_autoreload.TestIterModulesAndFiles)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11564",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "580e644f24f1c5ae5b94784fb73a9953a178fd26",
+  "fail_to_pass": [
+   "test_add_script_name_prefix (settings_tests.tests.MediaURLStaticURLPrefixTest)",
+   "test_not_prefixed (settings_tests.tests.MediaURLStaticURLPrefixTest)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11583",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "60dc957a825232fdda9138e2f8878b2ca407a7c9",
+  "fail_to_pass": [
+   "test_path_with_embedded_null_bytes (utils_tests.test_autoreload.TestIterModulesAndFiles)",
+   "test_paths_are_pathlib_instances (utils_tests.test_autoreload.TestIterModulesAndFiles)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11620",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "514efa3129792ec2abb2444f3e7aeb3f21a38386",
+  "fail_to_pass": [
+   "test_technical_404_converter_raise_404 (view_tests.tests.test_debug.DebugViewTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11630",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "65e86948b80262574058a94ccaae3a9b59c3faea",
+  "fail_to_pass": [
+   "test_collision_across_apps_database_routers_installed (check_framework.test_model_checks.DuplicateDBTableTests)",
+   "test_collision_in_same_app_database_routers_installed (check_framework.test_model_checks.DuplicateDBTableTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11742",
+  "repo": "django/django",
+  "version": "3.0",
+  "base_commit": "fee75d2aed4e58ada6567c464cfd22e89dc65f4a",
+  "fail_to_pass": [
+   "test_choices_in_max_length (invalid_models_tests.test_ordinary_fields.CharFieldTests)",
+   "test_choices_named_group (invalid_models_tests.test_ordinary_fields.CharFieldTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11797",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "3346b78a8a872286a245d1e77ef4718fc5e6be1a",
+  "fail_to_pass": [
+   "test_exact_query_rhs_with_selected_columns (lookup.tests.LookupTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11815",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "e02f67ef2d03d48128e7a118bf75f0418e24e8ac",
+  "fail_to_pass": [
+   "test_serialize_class_based_validators (migrations.test_writer.WriterTests)",
+   "test_serialize_enums (migrations.test_writer.WriterTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11848",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "f0adf3b9b7a19cdee05368ff0c0c2d087f011180",
+  "fail_to_pass": [
+   "test_parsing_rfc850 (utils_tests.test_http.HttpDateProcessingTests)",
+   "test_parsing_year_less_than_70 (utils_tests.test_http.HttpDateProcessingTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11905",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "2f72480fbd27896c986c45193e1603e35c0b19a7",
+  "fail_to_pass": [
+   "test_isnull_non_boolean_value (lookup.tests.LookupTests)",
+   "test_iterator (lookup.tests.LookupTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11910",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "d232fd76a85870daf345fd8f8d617fe7802ae194",
+  "fail_to_pass": [
+   "test_rename_referenced_primary_key (migrations.test_autodetector.AutodetectorTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11964",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "fc2b1cc926e34041953738e58fa6ad3053059b22",
+  "fail_to_pass": [
+   "test_str (model_enums.tests.ChoicesTests)",
+   "test_textchoices (model_enums.tests.ChoicesTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-11999",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "84633905273fc916e3d17883810d9969c03f73c2",
+  "fail_to_pass": [
+   "test_overriding_FIELD_display (model_fields.tests.GetFieldDisplayTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12113",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "62254c5202e80a68f4fe6572a2be46a3d953de1a",
+  "fail_to_pass": [
+   "test_custom_test_name (backends.sqlite.test_creation.TestDbSignatureTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12125",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "89d41cba392b759732ba9f1db4ff29ed47da6a56",
+  "fail_to_pass": [
+   "test_serialize_nested_class (migrations.test_writer.WriterTests)",
+   "test_serialize_numbers (migrations.test_writer.WriterTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12184",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "5d674eac871a306405b0fbbaeb17bbeba9c68bf3",
+  "fail_to_pass": [
+   "test_re_path_with_missing_optional_parameter (urlpatterns.tests.SimplifiedURLTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12284",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "c5e373d48cbdd923575956fed477b63d66d9603f",
+  "fail_to_pass": [
+   "test_overriding_inherited_FIELD_display (model_fields.tests.GetFieldDisplayTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12286",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "979f61abd322507aafced9627702362e541ec34e",
+  "fail_to_pass": [
+   "test_valid_variant_consistent_language_settings (check_framework.test_translation.TranslationCheckTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12308",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "2e0f04507b17362239ba49830d26fec504d46978",
+  "fail_to_pass": [
+   "test_json_display_for_field (admin_utils.tests.UtilsTests)",
+   "test_label_for_field (admin_utils.tests.UtilsTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12453",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "b330b918e979ea39a21d47b61172d112caf432c3",
+  "fail_to_pass": [
+   "test_circular_reference (backends.base.test_creation.TestDeserializeDbFromString)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12470",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "142ab6846ac09d6d401e26fc8b6b988a583ac0f5",
+  "fail_to_pass": [
+   "test_inherited_ordering_pk_desc (model_inheritance.tests.ModelInheritanceTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12497",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "a4881f5e5d7ee38b7e83301331a0b4962845ef8a",
+  "fail_to_pass": [
+   "test_ambiguous_relationship_model_from (invalid_models_tests.test_relative_fields.RelativeFieldTests)",
+   "test_ambiguous_relationship_model_to (invalid_models_tests.test_relative_fields.RelativeFieldTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12589",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "895f28f9cbed817c00ab68770433170d83132d90",
+  "fail_to_pass": [
+   "test_aggregation_subquery_annotation_values_collision (aggregation.tests.AggregateTestCase)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12700",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "d51c50d836c5cf8db5566da17963f871be554615",
+  "fail_to_pass": [
+   "test_cleanse_setting_recurses_in_list_tuples (view_tests.tests.test_debug.ExceptionReporterFilterTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12708",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "447980e72ac01da1594dd3373a03ba40b7ee6f80",
+  "fail_to_pass": [
+   "test_alter_index_together_remove_with_unique_together (migrations.test_operations.OperationTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12747",
+  "repo": "django/django",
+  "version": "3.1",
+  "base_commit": "c86201b6ed4f8256b0a0520c08aa674f623d4127",
+  "fail_to_pass": [
+   "test_fast_delete_empty_no_update_can_self_select (delete.tests.FastDeleteTests)",
+   "test_model_delete_returns_num_rows (delete.tests.DeletionTests)",
+   "test_queryset_delete_returns_num_rows (delete.tests.DeletionTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12856",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "8328811f048fed0dd22573224def8c65410c9f2e",
+  "fail_to_pass": [
+   "test_unique_constraint_pointing_to_m2m_field (invalid_models_tests.test_models.ConstraintsTests)",
+   "test_unique_constraint_pointing_to_missing_field (invalid_models_tests.test_models.ConstraintsTests)",
+   "test_unique_constraint_pointing_to_non_local_field (invalid_models_tests.test_models.ConstraintsTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12908",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "49ae7ce50a874f8a04cd910882fb9571ff3a0d7a",
+  "fail_to_pass": [
+   "test_unsupported_operations_on_combined_qs (queries.test_qs_combinators.QuerySetSetOperationTests)",
+   "test_unsupported_ordering_slicing_raises_db_error (queries.test_qs_combinators.QuerySetSetOperationTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12915",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "4652f1f0aa459a7b980441d629648707c32e36bf",
+  "fail_to_pass": [
+   "test_get_async_response (staticfiles_tests.test_handlers.TestASGIStaticFilesHandler)",
+   "test_get_async_response_not_found (staticfiles_tests.test_handlers.TestASGIStaticFilesHandler)",
+   "test_static_file_response (asgi.tests.ASGITest)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-12983",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "3bc4240d979812bd11365ede04c028ea13fdc8c6",
+  "fail_to_pass": [
+   "test_slugify (utils_tests.test_text.TestUtilsText)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13028",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "78ad4b4b0201003792bfdbf1a7781cbc9ee03539",
+  "fail_to_pass": [
+   "test_field_with_filterable (queries.tests.Queries1Tests)",
+   "test_ticket8439 (queries.tests.Queries1Tests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13033",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "a59de6e89e8dc1f3e71c9a5a5bbceb373ea5247e",
+  "fail_to_pass": [
+   "test_order_by_self_referential_fk (ordering.tests.OrderingTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13158",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "7af8f4127397279d19ef7c7899e93018274e2f9b",
+  "fail_to_pass": [
+   "test_union_none (queries.test_qs_combinators.QuerySetSetOperationTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13230",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "184a6eebb0ef56d5f1b1315a8e666830e37f3f81",
+  "fail_to_pass": [
+   "test_rss2_feed (syndication_tests.tests.SyndicationFeedTest)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13315",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "36bc47069ce071e80c8129500de3b8664d2058a7",
+  "fail_to_pass": [
+   "test_limit_choices_to_no_duplicates (model_forms.tests.LimitChoicesToTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13401",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "453967477e3ddae704cd739eac2449c0e13d464c",
+  "fail_to_pass": [
+   "Field instances from abstract models are not equal."
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13447",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "0456d3e42795481a186db05719300691fe2a1029",
+  "fail_to_pass": [
+   "test_available_apps (admin_views.test_adminsite.SiteEachContextTest)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13448",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "7b9596b974fb0ad1868b10c8c2174e10b72be403",
+  "fail_to_pass": [
+   "test_migrate_test_setting_false (backends.base.test_creation.TestDbCreationTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13551",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "7f9e4524d6b23424cf44fbe1bf1f4e70f6bb066e",
+  "fail_to_pass": [
+   "Updating the user email address invalidates the token.",
+   "test_token_with_different_secret (auth_tests.test_tokens.TokenGeneratorTest)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13590",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "755dbf39fcdc491fe9b588358303e259c7750be4",
+  "fail_to_pass": [
+   "test_range_lookup_namedtuple (expressions.tests.IterableLookupInnerExpressionsTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13658",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "0773837e15bb632afffb6848a58c59a791008fa1",
+  "fail_to_pass": [
+   "test_program_name_from_argv (admin_scripts.tests.ExecuteFromCommandLine)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13660",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "50c3ac6fa9b7c8a94a6d1dc87edf775e3bc4d575",
+  "fail_to_pass": [
+   "test_command_option_inline_function_call (shell.tests.ShellCommandTestCase)",
+   "test_stdin_read_inline_function_call (shell.tests.ShellCommandTestCase)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13710",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "1bd6a7a0acc11e249fca11c017505ad39f15ebf6",
+  "fail_to_pass": [
+   "test_verbose_name_inline (admin_inlines.tests.TestVerboseNameInlineForms)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13757",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "3f140dde51c0fe6c350acb7727bbe489a99f0632",
+  "fail_to_pass": [
+   "test_isnull_key (model_fields.test_jsonfield.TestQuerying)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13768",
+  "repo": "django/django",
+  "version": "3.2",
+  "base_commit": "965d2d95c630939b53eb60d9c169f5dfc77ee0c6",
+  "fail_to_pass": [
+   "test_send_robust_fail (dispatch.tests.DispatcherTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13925",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "0c42cdf0d2422f4c080e93594d5d15381d6e955e",
+  "fail_to_pass": [
+   "test_auto_created_inherited_pk (check_framework.test_model_checks.ModelDefaultAutoFieldTests)",
+   "test_explicit_inherited_pk (check_framework.test_model_checks.ModelDefaultAutoFieldTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13933",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "42e8cf47c7ee2db238bf91197ea398126c546741",
+  "fail_to_pass": [
+   "test_modelchoicefield_value_placeholder (forms_tests.tests.test_error_messages.ModelChoiceFieldErrorMessagesTestCase)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-13964",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "f39634ff229887bf7790c069d0c411b38494ca38",
+  "fail_to_pass": [
+   "test_save_fk_after_parent_with_non_numeric_pk_set_on_child (many_to_one.tests.ManyToOneTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14016",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "1710cdbe79c90665046034fe1700933d038d90ad",
+  "fail_to_pass": [
+   "test_combine_and_empty (queries.test_q.QTests)",
+   "test_combine_or_empty (queries.test_q.QTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14017",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "466920f6d726eee90d5566e0a9948e92b33a122e",
+  "fail_to_pass": [
+   "test_boolean_expression_combined (expressions.tests.BasicExpressionsTests)",
+   "test_boolean_expression_combined_with_empty_Q (expressions.tests.BasicExpressionsTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14155",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "2f13c476abe4ba787b6cb71131818341911f43cc",
+  "fail_to_pass": [
+   "test_repr (urlpatterns_reverse.tests.ResolverMatchTests)",
+   "test_repr_functools_partial (urlpatterns_reverse.tests.ResolverMatchTests)",
+   "test_resolver_match_on_request (urlpatterns_reverse.tests.ResolverMatchTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14238",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "30e123ed351317b7527f632b3b7dc4e81e850449",
+  "fail_to_pass": [
+   "test_issubclass_of_autofield (model_fields.test_autofield.AutoFieldInheritanceTests)",
+   "test_default_auto_field_setting_bigautofield_subclass (model_options.test_default_pk.TestDefaultPK)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14382",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "29345aecf6e8d53ccb3577a3762bb0c263f7558d",
+  "fail_to_pass": [
+   "test_trailing_slash_in_target_app_directory_name (admin_scripts.tests.StartApp)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14411",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "fa4e963ee7e6876581b5432363603571839ba00c",
+  "fail_to_pass": [
+   "ReadOnlyPasswordHashWidget doesn't contain a for attribute in the"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14534",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "910ecd1b8df7678f45c3d507dde6bcb1faafa243",
+  "fail_to_pass": [
+   "If auto_id is provided when initializing the form, the generated ID in",
+   "test_iterable_boundfield_select (forms_tests.tests.test_forms.FormsTestCase)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14580",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "36fa071d6ebd18a61c4d7f1b5c9d17106134bd44",
+  "fail_to_pass": [
+   "test_serialize_type_model (migrations.test_writer.WriterTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14667",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "6a970a8b4600eb91be25f38caed0a52269d6303d",
+  "fail_to_pass": [
+   "test_defer_only_chaining (defer.tests.DeferTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14730",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "4fe3774c729f3fd5105b3001fe69a70bdca95ac3",
+  "fail_to_pass": [
+   "test_many_to_many_with_useless_related_name (invalid_models_tests.test_relative_fields.RelativeFieldTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14752",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "b64db05b9cedd96905d637a2d824cbbf428e40e7",
+  "fail_to_pass": [
+   "test_serialize_result (admin_views.test_autocomplete_view.AutocompleteJsonViewTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14787",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "004b4620f6f4ad87261e149898940f2dcd5757ef",
+  "fail_to_pass": [
+   "@method_decorator preserves wrapper assignments."
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14855",
+  "repo": "django/django",
+  "version": "4.0",
+  "base_commit": "475cffd1d64c690cdad16ede4d5e81985738ceb4",
+  "fail_to_pass": [
+   "test_readonly_foreignkey_links_custom_admin_site (admin_views.tests.ReadonlyTest)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14915",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "903aaa35e5ceaa33bfc9b19b7f6da65ce5a91dd4",
+  "fail_to_pass": [
+   "test_choice_value_hash (model_forms.test_modelchoicefield.ModelChoiceFieldTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14997",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "0d4e575c96d408e0efb4dfd0cbfc864219776950",
+  "fail_to_pass": [
+   "test_rename_table_references_without_alias (backends.test_ddl_references.ExpressionsTests)",
+   "test_alter_field_with_func_index (migrations.test_operations.OperationTests)",
+   "test_alter_field_with_func_unique_constraint (migrations.test_operations.OperationTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-14999",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "a754b82dac511475b6276039471ccd17cc64aeb8",
+  "fail_to_pass": [
+   "test_rename_model_with_db_table_noop (migrations.test_operations.OperationTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15061",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "2c01ebb4be5d53cbf6450f356c10e436025d6d07",
+  "fail_to_pass": [
+   "test_form_as_table (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)",
+   "test_form_as_table_data (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)",
+   "test_form_as_table (forms_tests.field_tests.test_splitdatetimefield.SplitDateTimeFieldTest)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15202",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "4fd3044ca0135da903a70dfb66992293f529ecf1",
+  "fail_to_pass": [
+   "test_urlfield_clean_invalid (forms_tests.field_tests.test_urlfield.URLFieldTest)",
+   "test_urlfield_clean_not_required (forms_tests.field_tests.test_urlfield.URLFieldTest)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15213",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "03cadb912c78b769d6bf4a943a2a35fc1d952960",
+  "fail_to_pass": [
+   "test_aggregate_over_full_expression_annotation (annotations.tests.NonAggregateAnnotationTestCase)",
+   "test_full_expression_annotation (annotations.tests.NonAggregateAnnotationTestCase)",
+   "test_full_expression_annotation_with_aggregation (annotations.tests.NonAggregateAnnotationTestCase)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15252",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "361bb8f786f112ee275be136795c0b1ecefff928",
+  "fail_to_pass": [
+   "test_migrate_test_setting_false_ensure_schema (backends.base.test_creation.TestDbCreationTests)",
+   "The django_migrations table is not created if there are no migrations"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15320",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "b55ebe32417e0884b6b8b3e1bc0379033aa221af",
+  "fail_to_pass": [
+   "test_subquery_sql (expressions.tests.BasicExpressionsTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15347",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "7c4f3965098baad2396e24501e09237425a7bd6f",
+  "fail_to_pass": [
+   "A message's extra_tags attribute is correctly preserved when retrieved"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15388",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "c5cd8783825b5f6384417dac5f3889b4210b7d08",
+  "fail_to_pass": [
+   "test_non_template_changed_in_template_directory (template_tests.test_autoreloader.TemplateReloadTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15400",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "4c76ffc2d6c77c850b4bef8d9acc197d11c47937",
+  "fail_to_pass": [
+   "test_add (utils_tests.test_lazyobject.SimpleLazyObjectTestCase)",
+   "test_radd (utils_tests.test_lazyobject.SimpleLazyObjectTestCase)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15498",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "d90e34c61b27fba2527834806639eebbcfab9631",
+  "fail_to_pass": [
+   "test_was_modified_since_empty_string (view_tests.tests.test_static.StaticUtilsTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15695",
+  "repo": "django/django",
+  "version": "4.1",
+  "base_commit": "647480166bfe7532e8c471fef0146e3a17e6c0c9",
+  "fail_to_pass": [
+   "test_rename_index_unnamed_index (migrations.test_operations.OperationTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15738",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "6f73eb9d90cfec684529aab48d517e3d6449ba8c",
+  "fail_to_pass": [
+   "test_alter_unique_together_fk_to_m2m (migrations.test_autodetector.AutodetectorTests)",
+   "#23938 - Changing a ManyToManyField into a concrete field"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15781",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "8d160f154f0240a423e83ffe0690e472f837373c",
+  "fail_to_pass": [
+   "BaseCommand.create_parser() passes kwargs to CommandParser."
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15789",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "d4d5427571b4bf3a21c902276c2a00215c2a37cc",
+  "fail_to_pass": [
+   "test_json_script_custom_encoder (utils_tests.test_html.TestUtilsHtml)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15790",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "c627226d05dd52aef59447dcfb29cec2c2b11b8a",
+  "fail_to_pass": [
+   "test_template_tags_same_library_in_installed_apps_libraries (check_framework.test_templates.CheckTemplateTagLibrariesWithSameName)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15814",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "5eb6a2b33d70b9889e1cafa12594ad6f80773d3a",
+  "fail_to_pass": [
+   "test_select_related_only (proxy_models.tests.ProxyModelTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15819",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "877c800f255ccaa7abde1fb944de45d1616f5cc9",
+  "fail_to_pass": [
+   "test_same_relations (inspectdb.tests.InspectDBTestCase)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15851",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "b4817d20b9e55df30be0b1b2ca8c8bb6d61aab07",
+  "fail_to_pass": [
+   "test_parameters (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15902",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "44c24bf02835323d5418512ebe8e76166739ebf8",
+  "fail_to_pass": [
+   "Management forms are already rendered with the new div template."
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-15996",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "b30c0081d4d8a31ab7dc7f72a4c7099af606ef29",
+  "fail_to_pass": [
+   "test_serialize_enum_flags (migrations.test_writer.WriterTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-16041",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "6df9398cce063874ae4d59db126d4adacb0fa8d3",
+  "fail_to_pass": [
+   "test_empty_permitted_ignored_empty_form (forms_tests.tests.test_formsets.FormsFormsetTestCase)",
+   "test_empty_permitted_ignored_empty_form (forms_tests.tests.test_formsets.Jinja2FormsFormsetTestCase)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-16046",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "ec13e801b820614ff374cb0046092caab8d67249",
+  "fail_to_pass": [
+   "test_empty (utils_tests.test_numberformat.TestNumberFormat)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-16139",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "d559cb02da30f74debbb1fc3a46de0df134d2d80",
+  "fail_to_pass": [
+   "test_link_to_password_reset_in_helptext_via_to_field (auth_tests.test_forms.UserChangeFormTest)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-16229",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "04b15022e8d1f49af69d8a1e6cd678f31f1280ff",
+  "fail_to_pass": [
+   "test_callable_default_hidden_widget_value_not_overridden (forms_tests.tests.tests.ModelFormCallableModelDefault)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-16255",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "444b6da7cc229a58a2c476a52e45233001dc7073",
+  "fail_to_pass": [
+   "test_callable_sitemod_no_items (sitemaps_tests.test_http.HTTPSitemapTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-16379",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "1d0fa848e084cad62d0bb6bde3b51e4862558e57",
+  "fail_to_pass": [
+   "test_has_key_race_handling (cache.tests.FileBasedCachePathLibTests)",
+   "test_has_key_race_handling (cache.tests.FileBasedCacheTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-16400",
+  "repo": "django/django",
+  "version": "4.2",
+  "base_commit": "0bd2c0c9015b53c41394a1c0989afbfd94dc2830",
+  "fail_to_pass": [
+   "test_set_permissions_fk_to_using_parameter (auth_tests.test_management.CreatePermissionsMultipleDatabasesTests)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-16408",
+  "repo": "django/django",
+  "version": "5.0",
+  "base_commit": "ef85b6bf0bc5a8b194f0724cf5bbedbcee402b96",
+  "fail_to_pass": [
+   "test_multilevel_reverse_fk_cyclic_select_related (known_related_objects.tests.ExistingRelatedInstancesTests.test_multilevel_reverse_fk_cyclic_select_related)",
+   "test_multilevel_reverse_fk_select_related (known_related_objects.tests.ExistingRelatedInstancesTests.test_multilevel_reverse_fk_select_related)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-16527",
+  "repo": "django/django",
+  "version": "5.0",
+  "base_commit": "bd366ca2aeffa869b7dbc0b0aa01caea75e6dc31",
+  "fail_to_pass": [
+   "test_submit_row_save_as_new_add_permission_required (admin_views.test_templatetags.AdminTemplateTagsTest.test_submit_row_save_as_new_add_permission_required)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-16595",
+  "repo": "django/django",
+  "version": "5.0",
+  "base_commit": "f9fe062de5fc0896d6bbbf3f260b5c44473b3c77",
+  "fail_to_pass": [
+   "test_alter_alter_field (migrations.test_optimizer.OptimizerTests.test_alter_alter_field)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-16816",
+  "repo": "django/django",
+  "version": "5.0",
+  "base_commit": "191f6a9a4586b5e5f79f4f42f190e7ad4bbacc84",
+  "fail_to_pass": [
+   "test_invalid_m2m_related_name (modeladmin.test_checks.ListDisplayTests.test_invalid_m2m_related_name)",
+   "test_invalid_related_field (modeladmin.test_checks.ListDisplayTests.test_invalid_related_field)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-16873",
+  "repo": "django/django",
+  "version": "5.0",
+  "base_commit": "fce90950bef348803fa7cc3e6bc65f4bce429b82",
+  "fail_to_pass": [
+   "test_autoescape_off (template_tests.filter_tests.test_join.FunctionTests.test_autoescape_off)",
+   "test_join_autoescape_off (template_tests.filter_tests.test_join.JoinTests.test_join_autoescape_off)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-16910",
+  "repo": "django/django",
+  "version": "5.0",
+  "base_commit": "4142739af1cda53581af4169dbe16d6cd5e26948",
+  "fail_to_pass": [
+   "test_inheritance_deferred2 (select_related_onetoone.tests.ReverseSelectRelatedTestCase.test_inheritance_deferred2)",
+   "test_reverse_one_to_one_relations (defer_regress.tests.DeferRegressionTest.test_reverse_one_to_one_relations)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "django__django-17087",
+  "repo": "django/django",
+  "version": "5.0",
+  "base_commit": "4a72da71001f154ea60906a2f74898d32b7322a7",
+  "fail_to_pass": [
+   "test_serialize_nested_class_method (migrations.test_writer.WriterTests.test_serialize_nested_class_method)"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-22711",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.5",
+  "base_commit": "f670fe78795b18eb1118707721852209cd77ad51",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_widgets.py::test_range_slider[horizontal]",
+   "lib/matplotlib/tests/test_widgets.py::test_range_slider[vertical]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-22835",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.5",
+  "base_commit": "c33557d120eefe3148ebfcf2e758ff2357966000",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_artist.py::test_format_cursor_data_BoundaryNorm"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-23299",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.5",
+  "base_commit": "3eadeacc06c9f2ddcdac6ae39819faa9fbee9e39",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_rcparams.py::test_no_backend_reset_rccontext"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-23314",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.5",
+  "base_commit": "97fc1154992f64cfb2f86321155a7404efeb2d8a",
+  "fail_to_pass": [
+   "lib/mpl_toolkits/tests/test_mplot3d.py::test_invisible_axes[png]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-23476",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.5",
+  "base_commit": "33a0599711d26dc2b79f851c6daed4947df7c167",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_figure.py::test_unpickle_with_device_pixel_ratio"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-23562",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.5",
+  "base_commit": "29a86636a9c45ab5ac4d80ac76eaee497f460dce",
+  "fail_to_pass": [
+   "lib/mpl_toolkits/tests/test_mplot3d.py::test_Poly3DCollection_get_facecolor",
+   "lib/mpl_toolkits/tests/test_mplot3d.py::test_Poly3DCollection_get_edgecolor"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-23563",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.5",
+  "base_commit": "149a0398b391cfc4eddb5e659f50b3c66f32ea65",
+  "fail_to_pass": [
+   "lib/mpl_toolkits/tests/test_mplot3d.py::test_draw_single_lines_from_Nx1"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-23913",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.6",
+  "base_commit": "5c4595267ccd3daf78f5fd05693b7ecbcd575c1e",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_legend.py::test_legend_draggable[True]",
+   "lib/matplotlib/tests/test_legend.py::test_legend_draggable[False]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-23964",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.6",
+  "base_commit": "269c0b94b4fcf8b1135011c1556eac29dc09de15",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_backend_ps.py::test_empty_line"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-23987",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.6",
+  "base_commit": "e98d8d085e8f53ec0467422b326f7738a2dd695e",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_constrainedlayout.py::test_set_constrained_layout[False-False]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-24149",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.6",
+  "base_commit": "af39f1edffcd828f05cfdd04f2e59506bb4a27bc",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_axes.py::test_bar_all_nan[png]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-24265",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.6",
+  "base_commit": "e148998d9bed9d1b53a91587ad48f9bb43c7737f",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_style.py::test_deprecated_seaborn_styles"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-24334",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.6",
+  "base_commit": "332937997d03e0c173be6d9fc1841e9186e857df",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_axes.py::test_set_ticks_kwargs_raise_error_without_labels"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-24970",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.6",
+  "base_commit": "a3011dfd1aaa2487cce8aa7369475533133ef777",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_colors.py::test_index_dtype[uint8]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-25079",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.6",
+  "base_commit": "66f7956984cbfc3647e867c6e5fde889a89c64ef",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_colors.py::test_norm_callback"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-25311",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.7",
+  "base_commit": "430fb1db88843300fb4baae3edc499bbfe073b0c",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_pickle.py::test_complete[png]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-25332",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.7",
+  "base_commit": "66ba515e671638971bd11a34cff12c107a437e0b",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_pickle.py::test_complete[png]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-25433",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.7",
+  "base_commit": "7eafdd8af3c523c1c77b027d378fb337dd489f18",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_backend_bases.py::test_grab_clear"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-25442",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.7",
+  "base_commit": "73394f2b11321e03a5df199ec0196f27a728b0b0",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_offsetbox.py::test_remove_draggable"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-25498",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.7",
+  "base_commit": "78bf53caacbb5ce0dc7aa73f07a74c99f1ed919b",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_colorbar.py::test_colorbar_scale_reset"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-26011",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.7",
+  "base_commit": "00afcc0c6d4d2e4390338127f05b8f4fdb4e7087",
+  "fail_to_pass": [
+   "lib/matplotlib/tests/test_axes.py::test_xylim_changed_shared"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "matplotlib__matplotlib-26020",
+  "repo": "matplotlib/matplotlib",
+  "version": "3.7",
+  "base_commit": "f6a781f77f5ddf1204c60ca7c544809407d4a807",
+  "fail_to_pass": [
+   "lib/mpl_toolkits/axes_grid1/tests/test_axes_grid1.py::test_grid_with_axes_class_not_overriding_axis"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "mwaskom__seaborn-2848",
+  "repo": "mwaskom/seaborn",
+  "version": "0.12",
+  "base_commit": "94621cef29f80282436d73e8d2c0aa76dab81273",
+  "fail_to_pass": [
+   "tests/test_relational.py::TestScatterPlotter::test_hue_order"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "mwaskom__seaborn-3010",
+  "repo": "mwaskom/seaborn",
+  "version": "0.12",
+  "base_commit": "0f5a013e2cf43562deec3b879458e59a73853813",
+  "fail_to_pass": [
+   "tests/_stats/test_regression.py::TestPolyFit::test_missing_data"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "mwaskom__seaborn-3190",
+  "repo": "mwaskom/seaborn",
+  "version": "0.12",
+  "base_commit": "4a9e54962a29c12a8b103d75f838e0e795a6974d",
+  "fail_to_pass": [
+   "tests/_core/test_scales.py::TestContinuous::test_interval_with_bools"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "mwaskom__seaborn-3407",
+  "repo": "mwaskom/seaborn",
+  "version": "0.13",
+  "base_commit": "515286e02be3e4c0ff2ef4addb34a53c4a676ee4",
+  "fail_to_pass": [
+   "tests/test_axisgrid.py::TestPairGrid::test_pairplot_column_multiindex"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pallets__flask-4045",
+  "repo": "pallets/flask",
+  "version": "2.0",
+  "base_commit": "d8c37f43724cd9fb0870f77877b7c4c7e38a19e0",
+  "fail_to_pass": [
+   "tests/test_blueprints.py::test_dotted_name_not_allowed",
+   "tests/test_blueprints.py::test_route_decorator_custom_endpoint_with_dots"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pallets__flask-4992",
+  "repo": "pallets/flask",
+  "version": "2.3",
+  "base_commit": "4c288bc97ea371817199908d0d9b12de9dae327e",
+  "fail_to_pass": [
+   "tests/test_config.py::test_config_from_file_toml"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pallets__flask-5063",
+  "repo": "pallets/flask",
+  "version": "2.3",
+  "base_commit": "182ce3dd15dfa3537391c3efaf9c3ff407d134d4",
+  "fail_to_pass": [
+   "tests/test_cli.py::TestRoutes::test_subdomain",
+   "tests/test_cli.py::TestRoutes::test_host"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "psf__requests-3362",
+  "repo": "psf/requests",
+  "version": "2.10",
+  "base_commit": "36453b95b13079296776d11b09cab2567ea3e703",
+  "fail_to_pass": [
+   "tests/test_requests.py::TestRequests::test_response_decode_unicode"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pydata__xarray-3364",
+  "repo": "pydata/xarray",
+  "version": "0.12",
+  "base_commit": "863e49066ca4d61c9adfe62aca3bf21b90e1af8c",
+  "fail_to_pass": [
+   "xarray/tests/test_combine.py::TestAutoCombineOldAPI::test_auto_combine_with_new_variables",
+   "xarray/tests/test_concat.py::TestConcatDataset::test_concat_merge_variables_present_in_some_datasets"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pydata__xarray-4094",
+  "repo": "pydata/xarray",
+  "version": "0.12",
+  "base_commit": "a64cf2d5476e7bbda099b34c40b7be1880dbd39a",
+  "fail_to_pass": [
+   "xarray/tests/test_dataset.py::TestDataset::test_to_stacked_array_to_unstacked_dataset"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pydata__xarray-4248",
+  "repo": "pydata/xarray",
+  "version": "0.12",
+  "base_commit": "98dc1f4ea18738492e074e9e51ddfed5cd30ab94",
+  "fail_to_pass": [
+   "xarray/tests/test_formatting.py::test_inline_variable_array_repr_custom_repr"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pydata__xarray-4493",
+  "repo": "pydata/xarray",
+  "version": "0.12",
+  "base_commit": "a5f53e203c52a7605d5db799864046471115d04f",
+  "fail_to_pass": [
+   "xarray/tests/test_variable.py::TestVariable::test_as_variable"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pylint-dev__pylint-5859",
+  "repo": "pylint-dev/pylint",
+  "version": "2.13",
+  "base_commit": "182cc539b8154c0710fcea7e522267e42eba8899",
+  "fail_to_pass": [
+   "tests/checkers/unittest_misc.py::TestFixme::test_non_alphanumeric_codetag"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pylint-dev__pylint-6506",
+  "repo": "pylint-dev/pylint",
+  "version": "2.14",
+  "base_commit": "0a4204fd7555cfedd43f43017c94d24ef48244a5",
+  "fail_to_pass": [
+   "tests/config/test_config.py::test_unknown_option_name",
+   "tests/config/test_config.py::test_unknown_short_option_name"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pylint-dev__pylint-7080",
+  "repo": "pylint-dev/pylint",
+  "version": "2.15",
+  "base_commit": "3c5eca2ded3dd2b59ebaf23eb289453b5d2930f0",
+  "fail_to_pass": [
+   "tests/test_self.py::TestRunTC::test_ignore_path_recursive_current_dir"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pylint-dev__pylint-7114",
+  "repo": "pylint-dev/pylint",
+  "version": "2.15",
+  "base_commit": "397c1703e8ae6349d33f7b99f45b2ccaf581e666",
+  "fail_to_pass": [
+   "tests/lint/unittest_lint.py::test_identically_named_nested_module"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pylint-dev__pylint-7228",
+  "repo": "pylint-dev/pylint",
+  "version": "2.15",
+  "base_commit": "d597f252915ddcaaa15ccdfcb35670152cb83587",
+  "fail_to_pass": [
+   "tests/config/test_config.py::test_regex_error",
+   "tests/config/test_config.py::test_csv_regex_error"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pylint-dev__pylint-7993",
+  "repo": "pylint-dev/pylint",
+  "version": "2.15",
+  "base_commit": "e90702074e68e20dc8e5df5013ee3ecf22139c3e",
+  "fail_to_pass": [
+   "tests/reporters/unittest_reporting.py::test_template_option_with_header"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-11143",
+  "repo": "pytest-dev/pytest",
+  "version": "8.0",
+  "base_commit": "6995257cf470d2143ad1683824962de4071c0eb7",
+  "fail_to_pass": [
+   "testing/test_assertrewrite.py::TestIssue11140::test_constant_not_picked_as_module_docstring"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-11148",
+  "repo": "pytest-dev/pytest",
+  "version": "8.0",
+  "base_commit": "2f7415cfbc4b6ca62f9013f1abd27136f46b9653",
+  "fail_to_pass": [
+   "testing/test_pathlib.py::TestImportPath::test_remembers_previous_imports",
+   "testing/acceptance_test.py::test_doctest_and_normal_imports_with_importlib"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-5103",
+  "repo": "pytest-dev/pytest",
+  "version": "4.5",
+  "base_commit": "10ca84ffc56c2dd2d9dc4bd71b7b898e083500cd",
+  "fail_to_pass": [
+   "testing/test_assertrewrite.py::TestAssertionRewrite::test_unroll_expression"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-5221",
+  "repo": "pytest-dev/pytest",
+  "version": "4.4",
+  "base_commit": "4a2fdce62b73944030cff9b3e52862868ca9584d",
+  "fail_to_pass": [
+   "testing/python/fixtures.py::TestShowFixtures::test_show_fixtures",
+   "testing/python/fixtures.py::TestShowFixtures::test_show_fixtures_verbose"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-5227",
+  "repo": "pytest-dev/pytest",
+  "version": "4.4",
+  "base_commit": "2051e30b9b596e944524ccb787ed20f9f5be93e3",
+  "fail_to_pass": [
+   "testing/logging/test_reporting.py::test_log_cli_enabled_disabled[True]",
+   "testing/logging/test_reporting.py::test_log_cli_default_level",
+   "testing/logging/test_reporting.py::test_sections_single_new_line_after_test_outcome"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-5413",
+  "repo": "pytest-dev/pytest",
+  "version": "4.6",
+  "base_commit": "450d2646233c670654744d3d24330b69895bb9d2",
+  "fail_to_pass": [
+   "testing/code/test_excinfo.py::test_excinfo_repr_str"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-5495",
+  "repo": "pytest-dev/pytest",
+  "version": "4.6",
+  "base_commit": "1aefb24b37c30fba8fd79a744829ca16e252f340",
+  "fail_to_pass": [
+   "testing/test_assertion.py::TestAssert_reprcompare::test_bytes_diff_normal",
+   "testing/test_assertion.py::TestAssert_reprcompare::test_bytes_diff_verbose"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-5692",
+  "repo": "pytest-dev/pytest",
+  "version": "5.0",
+  "base_commit": "29e336bd9bf87eaef8e2683196ee1975f1ad4088",
+  "fail_to_pass": [
+   "testing/test_junitxml.py::TestPython::test_hostname_in_xml",
+   "testing/test_junitxml.py::TestPython::test_timestamp_in_xml"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-6116",
+  "repo": "pytest-dev/pytest",
+  "version": "5.2",
+  "base_commit": "e670ff76cbad80108bde9bab616b66771b8653cf",
+  "fail_to_pass": [
+   "testing/test_collection.py::TestCustomConftests::test_pytest_fs_collect_hooks_are_seen",
+   "testing/test_collection.py::TestCustomConftests::test_pytest_collect_file_from_sister_dir"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-7220",
+  "repo": "pytest-dev/pytest",
+  "version": "5.4",
+  "base_commit": "56bf819c2f4eaf8b36bd8c42c06bb59d5a3bfc0f",
+  "fail_to_pass": [
+   "testing/test_nodes.py::test_failure_with_changed_cwd"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-7373",
+  "repo": "pytest-dev/pytest",
+  "version": "5.4",
+  "base_commit": "7b77fc086aab8b3a8ebc890200371884555eea1e",
+  "fail_to_pass": [
+   "testing/test_mark.py::TestFunctional::test_reevaluate_dynamic_expr"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-7432",
+  "repo": "pytest-dev/pytest",
+  "version": "5.4",
+  "base_commit": "e6e300e729dd33956e5448d8be9a0b1540b4e53a",
+  "fail_to_pass": [
+   "testing/test_skipping.py::TestXFail::test_xfail_run_with_skip_mark[test_input1-expected1]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-7490",
+  "repo": "pytest-dev/pytest",
+  "version": "6.0",
+  "base_commit": "7f7a36478abe7dd1fa993b115d22606aa0e35e88",
+  "fail_to_pass": [
+   "testing/test_skipping.py::TestXFail::test_dynamic_xfail_set_during_runtest_failed",
+   "testing/test_skipping.py::TestXFail::test_dynamic_xfail_set_during_runtest_passed_strict"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-8365",
+  "repo": "pytest-dev/pytest",
+  "version": "6.3",
+  "base_commit": "4964b468c83c06971eb743fbc57cc404f760c573",
+  "fail_to_pass": [
+   "testing/test_tmpdir.py::test_tmp_path_factory_handles_invalid_dir_characters"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-8906",
+  "repo": "pytest-dev/pytest",
+  "version": "7.0",
+  "base_commit": "69356d20cfee9a81972dcbf93d8caf9eabe113e8",
+  "fail_to_pass": [
+   "testing/test_skipping.py::test_module_level_skip_error"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "pytest-dev__pytest-9359",
+  "repo": "pytest-dev/pytest",
+  "version": "7.0",
+  "base_commit": "e2ee3144ed6e241dea8d96215fcdca18b3892551",
+  "fail_to_pass": [
+   "testing/code/test_source.py::test_decorator"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-10297",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.20",
+  "base_commit": "b90661d6a46aa3619d3eec94d5281f5888add501",
+  "fail_to_pass": [
+   "sklearn/linear_model/tests/test_ridge.py::test_ridge_classifier_cv_store_cv_values"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-10508",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.20",
+  "base_commit": "c753b77ac49e72ebc0fe5e3c2369fe628f975017",
+  "fail_to_pass": [
+   "sklearn/preprocessing/tests/test_label.py::test_label_encoder_errors",
+   "sklearn/preprocessing/tests/test_label.py::test_label_encoder_empty_array"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-10949",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.20",
+  "base_commit": "3b5abf76597ce6aff76192869f92647c1b5259e7",
+  "fail_to_pass": [
+   "sklearn/utils/tests/test_validation.py::test_check_dataframe_warns_on_dtype"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-11040",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.20",
+  "base_commit": "96a02f3934952d486589dddd3f00b40d5a5ab5f2",
+  "fail_to_pass": [
+   "sklearn/neighbors/tests/test_neighbors.py::test_n_neighbors_datatype"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-11281",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.20",
+  "base_commit": "4143356c3c51831300789e4fdf795d83716dbab6",
+  "fail_to_pass": [
+   "sklearn/mixture/tests/test_bayesian_mixture.py::test_bayesian_mixture_fit_predict",
+   "sklearn/mixture/tests/test_gaussian_mixture.py::test_gaussian_mixture_fit_predict"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-12471",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.21",
+  "base_commit": "02dc9ed680e7f53f1b0d410dcdd37341c7958eb1",
+  "fail_to_pass": [
+   "sklearn/preprocessing/tests/test_encoders.py::test_one_hot_encoder_handle_unknown_strings"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-13142",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.21",
+  "base_commit": "1c8668b0a021832386470ddf740d834e02c66f69",
+  "fail_to_pass": [
+   "sklearn/mixture/tests/test_bayesian_mixture.py::test_bayesian_mixture_fit_predict_n_init",
+   "sklearn/mixture/tests/test_gaussian_mixture.py::test_gaussian_mixture_fit_predict_n_init"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-13241",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.21",
+  "base_commit": "f8b108d0c6f2f82b2dc4e32a6793f9d9ac9cf2f4",
+  "fail_to_pass": [
+   "sklearn/decomposition/tests/test_kernel_pca.py::test_kernel_pca_deterministic_output"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-13439",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.21",
+  "base_commit": "a62775e99f2a5ea3d51db7160fad783f6cd8a4c5",
+  "fail_to_pass": [
+   "sklearn/tests/test_pipeline.py::test_make_pipeline_memory"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-13496",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.21",
+  "base_commit": "3aefc834dce72e850bff48689bea3c7dff5f3fad",
+  "fail_to_pass": [
+   "sklearn/ensemble/tests/test_iforest.py::test_iforest_warm_start"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-13497",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.21",
+  "base_commit": "26f690961a52946dd2f53bf0fdd4264b2ae5be90",
+  "fail_to_pass": [
+   "sklearn/feature_selection/tests/test_mutual_info.py::test_mutual_info_options"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-13779",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.22",
+  "base_commit": "b34751b7ed02b2cfcc36037fb729d4360480a299",
+  "fail_to_pass": [
+   "sklearn/ensemble/tests/test_voting.py::test_none_estimator_with_weights[X0-y0-voter0]",
+   "sklearn/ensemble/tests/test_voting.py::test_none_estimator_with_weights[X1-y1-voter1]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-14087",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.22",
+  "base_commit": "a5743ed36fbd3fbc8e351bdab16561fbfca7dfa1",
+  "fail_to_pass": [
+   "sklearn/linear_model/tests/test_logistic.py::test_LogisticRegressionCV_no_refit[ovr-l2]",
+   "sklearn/linear_model/tests/test_logistic.py::test_LogisticRegressionCV_no_refit[multinomial-l2]",
+   "sklearn/linear_model/tests/test_logistic.py::test_LogisticRegressionCV_no_refit[auto-l2]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-14092",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.22",
+  "base_commit": "df7dd8391148a873d157328a4f0328528a0c4ed9",
+  "fail_to_pass": [
+   "sklearn/neighbors/tests/test_nca.py::test_parameters_valid_types[n_components-value0]",
+   "sklearn/neighbors/tests/test_nca.py::test_parameters_valid_types[max_iter-value1]",
+   "sklearn/neighbors/tests/test_nca.py::test_parameters_valid_types[tol-value2]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-14894",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.22",
+  "base_commit": "fdbaa58acbead5a254f2e6d597dc1ab3b947f4c6",
+  "fail_to_pass": [
+   "sklearn/svm/tests/test_svm.py::test_sparse_fit_support_vectors_empty"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-14983",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.22",
+  "base_commit": "06632c0d185128a53c57ccc73b25b6408e90bb89",
+  "fail_to_pass": [
+   "sklearn/model_selection/tests/test_split.py::test_repeated_cv_repr[RepeatedKFold]",
+   "sklearn/model_selection/tests/test_split.py::test_repeated_cv_repr[RepeatedStratifiedKFold]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-15512",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "0.22",
+  "base_commit": "b8a4da8baa1137f173e7035f104067c7d2ffde22",
+  "fail_to_pass": [
+   "sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_non_convergence_regressiontest"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-25500",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "1.3",
+  "base_commit": "4db04923a754b6a2defa1b172f55d492b85d165e",
+  "fail_to_pass": [
+   "sklearn/tests/test_isotonic.py::test_isotonic_regression_output_predict"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-25570",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "1.3",
+  "base_commit": "cd25abee0ad0ac95225d4a9be8948eff69f49690",
+  "fail_to_pass": [
+   "sklearn/compose/tests/test_column_transformer.py::test_empty_selection_pandas_output[list]",
+   "sklearn/compose/tests/test_column_transformer.py::test_empty_selection_pandas_output[bool]",
+   "sklearn/compose/tests/test_column_transformer.py::test_empty_selection_pandas_output[bool_int]"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "scikit-learn__scikit-learn-25747",
+  "repo": "scikit-learn/scikit-learn",
+  "version": "1.3",
+  "base_commit": "2c867b8f822eb7a684f0d5c4359e4426e1c9cfe0",
+  "fail_to_pass": [
+   "sklearn/utils/tests/test_set_output.py::test_set_output_pandas_keep_index"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-10325",
+  "repo": "sphinx-doc/sphinx",
+  "version": "5.0",
+  "base_commit": "7bdc11e87c7d86dcc2a087eccb7a7c129a473415",
+  "fail_to_pass": [
+   "tests/test_ext_autodoc_automodule.py::test_automodule_inherited_members"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-10451",
+  "repo": "sphinx-doc/sphinx",
+  "version": "5.1",
+  "base_commit": "195e911f1dab04b8ddeacbe04b7d214aaf81bb0b",
+  "fail_to_pass": [
+   "tests/test_ext_napoleon_docstring.py::test_napoleon_and_autodoc_typehints_description_all",
+   "tests/test_ext_napoleon_docstring.py::test_napoleon_and_autodoc_typehints_description_documented_params"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-11445",
+  "repo": "sphinx-doc/sphinx",
+  "version": "7.1",
+  "base_commit": "71db08c05197545944949d5aa76cd340e7143627",
+  "fail_to_pass": [
+   "tests/test_util_rst.py::test_prepend_prolog_with_roles_in_sections_with_newline",
+   "tests/test_util_rst.py::test_prepend_prolog_with_roles_in_sections_without_newline"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-7686",
+  "repo": "sphinx-doc/sphinx",
+  "version": "3.1",
+  "base_commit": "752d3285d250bbaf673cff25e83f03f247502021",
+  "fail_to_pass": [
+   "tests/test_ext_autosummary.py::test_autosummary_generate_content_for_module",
+   "tests/test_ext_autosummary.py::test_autosummary_generate_content_for_module_skipped"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-7738",
+  "repo": "sphinx-doc/sphinx",
+  "version": "3.1",
+  "base_commit": "c087d717f6ed183dd422359bf91210dc59689d63",
+  "fail_to_pass": [
+   "tests/test_ext_napoleon_docstring.py::NumpyDocstringTest::test_underscore_in_attribute"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-7975",
+  "repo": "sphinx-doc/sphinx",
+  "version": "3.2",
+  "base_commit": "4ec6cbe341fd84468c448e20082c778043bbea4b",
+  "fail_to_pass": [
+   "tests/test_environment_indexentries.py::test_create_single_index"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-8273",
+  "repo": "sphinx-doc/sphinx",
+  "version": "3.3",
+  "base_commit": "88b81a06eb635a1596617f8971fa97a84c069e93",
+  "fail_to_pass": [
+   "tests/test_build_manpage.py::test_man_make_section_directory"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-8282",
+  "repo": "sphinx-doc/sphinx",
+  "version": "3.3",
+  "base_commit": "2c2335bbb8af99fa132e1573bbf45dc91584d5a2",
+  "fail_to_pass": [
+   "tests/test_ext_autodoc_configs.py::test_autodoc_typehints_none_for_overload"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-8435",
+  "repo": "sphinx-doc/sphinx",
+  "version": "3.4",
+  "base_commit": "5d8d6275a54f2c5fb72b82383b5712c22d337634",
+  "fail_to_pass": [
+   "tests/test_ext_autodoc_configs.py::test_autodoc_type_aliases"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-8506",
+  "repo": "sphinx-doc/sphinx",
+  "version": "3.4",
+  "base_commit": "e4bd3bd3ddd42c6642ff779a4f7381f219655c2c",
+  "fail_to_pass": [
+   "tests/test_domain_std.py::test_cmd_option_starting_with_bracket"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-8595",
+  "repo": "sphinx-doc/sphinx",
+  "version": "3.5",
+  "base_commit": "b19bce971e82f2497d67fdacdeca8db08ae0ba56",
+  "fail_to_pass": [
+   "tests/test_ext_autodoc_automodule.py::test_empty_all"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-8627",
+  "repo": "sphinx-doc/sphinx",
+  "version": "3.5",
+  "base_commit": "332d80ba8433aea41c3709fa52737ede4405072b",
+  "fail_to_pass": [
+   "tests/test_util_typing.py::test_restify",
+   "tests/test_util_typing.py::test_stringify"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-8713",
+  "repo": "sphinx-doc/sphinx",
+  "version": "4.0",
+  "base_commit": "3ed7590ed411bd93b26098faab4f23619cdb2267",
+  "fail_to_pass": [
+   "tests/test_ext_napoleon_docstring.py::NumpyDocstringTest::test_parameters_with_class_reference"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-8721",
+  "repo": "sphinx-doc/sphinx",
+  "version": "3.5",
+  "base_commit": "82ef497a8c88f0f6e50d84520e7276bfbf65025d",
+  "fail_to_pass": [
+   "tests/test_ext_viewcode.py::test_viewcode_epub_default"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sphinx-doc__sphinx-8801",
+  "repo": "sphinx-doc/sphinx",
+  "version": "3.5",
+  "base_commit": "7ca279e33aebb60168d35e6be4ed059f4a68f2c1",
+  "fail_to_pass": [
+   "tests/test_ext_autodoc_autoclass.py::test_uninitialized_attributes"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-11400",
+  "repo": "sympy/sympy",
+  "version": "1.0",
+  "base_commit": "8dcb12a6cf500e8738d6729ab954a261758f49ca",
+  "fail_to_pass": [
+   "test_ccode_Relational",
+   "test_ccode_sinc"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-11870",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "5c2e1f96a7ff562d4a778f4ca9ffc9c81557197e",
+  "fail_to_pass": [
+   "test_sinc"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-11897",
+  "repo": "sympy/sympy",
+  "version": "1.0",
+  "base_commit": "e2918c1205c47345eb73c9be68b14c0f15fdeb17",
+  "fail_to_pass": [
+   "test_latex_Piecewise"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-12171",
+  "repo": "sympy/sympy",
+  "version": "1.0",
+  "base_commit": "ca6ef27272be31c9dc3753ede9232c39df9a75d8",
+  "fail_to_pass": [
+   "test_Derivative"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-12236",
+  "repo": "sympy/sympy",
+  "version": "1.0",
+  "base_commit": "d60497958f6dea7f5e25bc41e9107a6a63694d01",
+  "fail_to_pass": [
+   "test_div"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-12419",
+  "repo": "sympy/sympy",
+  "version": "1.0",
+  "base_commit": "479939f8c65c8c2908bbedc959549a257a7c0b0b",
+  "fail_to_pass": [
+   "test_Identity"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-12454",
+  "repo": "sympy/sympy",
+  "version": "1.0",
+  "base_commit": "d3fcdb72bfcbb560eb45264ac1c03f359436edef",
+  "fail_to_pass": [
+   "test_is_upper",
+   "test_hessenberg"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-12481",
+  "repo": "sympy/sympy",
+  "version": "1.0",
+  "base_commit": "c807dfe7569692cad24f02a08477b70c1679a4dd",
+  "fail_to_pass": [
+   "test_args"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-13031",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "2dfa7457f20ee187fbb09b5b6a1631da4458388c",
+  "fail_to_pass": [
+   "test_sparse_matrix"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-13043",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "a3389a25ec84d36f5cf04a4f2562d820f131db64",
+  "fail_to_pass": [
+   "test_decompose"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-13146",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "b678d8103e48fdb1af335dbf0080b3d5366f2d17",
+  "fail_to_pass": [
+   "test_evalf_bugs"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-13177",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "662cfb818e865f580e18b59efbb3540c34232beb",
+  "fail_to_pass": [
+   "test_mod",
+   "test_mod_inverse"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-13437",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "674afc619d7f5c519b6a5393a8b0532a131e57e0",
+  "fail_to_pass": [
+   "test_bell"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-13471",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "3546ac7ed78e1780c1a76929864bb33330055740",
+  "fail_to_pass": [
+   "test_Float_from_tuple"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-13480",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "f57fe3f4b3f2cab225749e1b3b38ae1bf80b62f0",
+  "fail_to_pass": [
+   "test_coth"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-13647",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "67e3c956083d0128a621f65ee86a7dacd4f9f19f",
+  "fail_to_pass": [
+   "test_col_insert"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-13773",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "7121bdf1facdd90d05b6994b4c2e5b2865a4638a",
+  "fail_to_pass": [
+   "test_matmul"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-13895",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "4da0b64558e9551a11a99bccc63557ba34f50c58",
+  "fail_to_pass": [
+   "test_powers_Integer",
+   "test_issue_13890"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-13915",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "5c1644ff85e15752f9f8721bc142bfbf975e7805",
+  "fail_to_pass": [
+   "test_Mul_does_not_cancel_infinities"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-13971",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "84c125972ad535b2dfb245f8d311d347b45e5b8a",
+  "fail_to_pass": [
+   "test_latex_sequences"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-14024",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "b17abcb09cbcee80a90f6750e0f9b53f0247656c",
+  "fail_to_pass": [
+   "test_powers_Integer",
+   "test_powers_Rational"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-14308",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "fb536869fb7aa28b2695ad7a3b70949926b291c4",
+  "fail_to_pass": [
+   "test_issue_12675",
+   "test_pretty_print_unicode"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-14317",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "fb536869fb7aa28b2695ad7a3b70949926b291c4",
+  "fail_to_pass": [
+   "test_latex_Poly",
+   "test_latex_Poly_order"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-14396",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "f35ad6411f86a15dd78db39c29d1e5291f66f9b5",
+  "fail_to_pass": [
+   "test_Domain_preprocess"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-14774",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "8fc63c2d71752389a44367b8ef4aba8a91af6a45",
+  "fail_to_pass": [
+   "test_latex_functions"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-14817",
+  "repo": "sympy/sympy",
+  "version": "1.1",
+  "base_commit": "0dbdc0ea83d339936da175f8c3a97d0d6bafb9f8",
+  "fail_to_pass": [
+   "test_MatrixSymbol_printing"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-15011",
+  "repo": "sympy/sympy",
+  "version": "1.2",
+  "base_commit": "b7c5ba2bf3ffd5cf453b25af7c8ddd9a639800cb",
+  "fail_to_pass": [
+   "test_curly_matrix_symbol"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-15308",
+  "repo": "sympy/sympy",
+  "version": "1.4",
+  "base_commit": "fb59d703e6863ed803c98177b59197b5513332e9",
+  "fail_to_pass": [
+   "test_trace"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-15345",
+  "repo": "sympy/sympy",
+  "version": "1.4",
+  "base_commit": "9ef28fba5b4d6d0168237c9c005a550e6dc27d81",
+  "fail_to_pass": [
+   "test_Function"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-15346",
+  "repo": "sympy/sympy",
+  "version": "1.4",
+  "base_commit": "9ef28fba5b4d6d0168237c9c005a550e6dc27d81",
+  "fail_to_pass": [
+   "test_issue_15129_trigsimp_methods"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-15609",
+  "repo": "sympy/sympy",
+  "version": "1.4",
+  "base_commit": "15f56f3b0006d2ed2c29bde3c43e91618012c849",
+  "fail_to_pass": [
+   "test_MatrixElement_printing"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-15678",
+  "repo": "sympy/sympy",
+  "version": "1.4",
+  "base_commit": "31c68eef3ffef39e2e792b0ec92cd92b7010eb2a",
+  "fail_to_pass": [
+   "test_idiff"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-16106",
+  "repo": "sympy/sympy",
+  "version": "1.4",
+  "base_commit": "0e987498b00167fdd4a08a41c852a97cb70ce8f2",
+  "fail_to_pass": [
+   "test_print_IndexedBase"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-16281",
+  "repo": "sympy/sympy",
+  "version": "1.4",
+  "base_commit": "41490b75f3621408e0468b0e7b6dc409601fc6ff",
+  "fail_to_pass": [
+   "test_pretty_product",
+   "test_issue_6359"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-16503",
+  "repo": "sympy/sympy",
+  "version": "1.5",
+  "base_commit": "a7e6f093c98a3c4783848a19fce646e32b6e0161",
+  "fail_to_pass": [
+   "test_pretty_sum"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-16792",
+  "repo": "sympy/sympy",
+  "version": "1.5",
+  "base_commit": "09786a173e7a0a488f46dd6000177c23e5d24eed",
+  "fail_to_pass": [
+   "test_ccode_unused_array_arg"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-16988",
+  "repo": "sympy/sympy",
+  "version": "1.5",
+  "base_commit": "e727339af6dc22321b00f52d971cda39e4ce89fb",
+  "fail_to_pass": [
+   "test_imageset",
+   "test_intersection"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-17022",
+  "repo": "sympy/sympy",
+  "version": "1.5",
+  "base_commit": "f91de695585c1fbc7d4f49ee061f64fcb1c2c4d8",
+  "fail_to_pass": [
+   "test_NumPyPrinter"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-17139",
+  "repo": "sympy/sympy",
+  "version": "1.5",
+  "base_commit": "1d3327b8e90a186df6972991963a5ae87053259d",
+  "fail_to_pass": [
+   "test__TR56",
+   "test_issue_17137"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-17630",
+  "repo": "sympy/sympy",
+  "version": "1.5",
+  "base_commit": "58e78209c8577b9890e957b624466e5beed7eb08",
+  "fail_to_pass": [
+   "test_issue_17624",
+   "test_zero_matrix_add"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-17655",
+  "repo": "sympy/sympy",
+  "version": "1.5",
+  "base_commit": "f5e965947af2410ded92cfad987aaf45262ea434",
+  "fail_to_pass": [
+   "test_point",
+   "test_point3D"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-18057",
+  "repo": "sympy/sympy",
+  "version": "1.6",
+  "base_commit": "62000f37b8821573ba00280524ffb4ac4a380875",
+  "fail_to_pass": [
+   "test_var"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-18087",
+  "repo": "sympy/sympy",
+  "version": "1.6",
+  "base_commit": "9da013ad0ddc3cd96fe505f2e47c63e372040916",
+  "fail_to_pass": [
+   "test_Factors",
+   "test_fu"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-18189",
+  "repo": "sympy/sympy",
+  "version": "1.6",
+  "base_commit": "1923822ddf8265199dbd9ef9ce09641d3fd042b9",
+  "fail_to_pass": [
+   "test_diophantine"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-18199",
+  "repo": "sympy/sympy",
+  "version": "1.6",
+  "base_commit": "ba80d1e493f21431b4bf729b3e0452cd47eb9566",
+  "fail_to_pass": [
+   "test_solve_modular"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-18532",
+  "repo": "sympy/sympy",
+  "version": "1.6",
+  "base_commit": "74227f900b05009d4eed62e34a166228788a32ca",
+  "fail_to_pass": [
+   "test_sizeof",
+   "test_atoms"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-18621",
+  "repo": "sympy/sympy",
+  "version": "1.6",
+  "base_commit": "b17ef6effe278d5b861d65896cc53442a6370d8f",
+  "fail_to_pass": [
+   "test_issue_18618"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-18698",
+  "repo": "sympy/sympy",
+  "version": "1.6",
+  "base_commit": "3dff1b98a78f28c953ae2140b69356b8391e399c",
+  "fail_to_pass": [
+   "test_factor_terms"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-18835",
+  "repo": "sympy/sympy",
+  "version": "1.6",
+  "base_commit": "516fa83e69caf1e68306cfc912a13f36c434d51c",
+  "fail_to_pass": [
+   "test_uniq"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-19007",
+  "repo": "sympy/sympy",
+  "version": "1.6",
+  "base_commit": "f9e030b57623bebdc2efa7f297c1b5ede08fcebf",
+  "fail_to_pass": [
+   "test_block_index_symbolic",
+   "test_block_index_symbolic_nonzero",
+   "test_block_index_large"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-19254",
+  "repo": "sympy/sympy",
+  "version": "1.7",
+  "base_commit": "e0ef1da13e2ab2a77866c05246f73c871ca9388c",
+  "fail_to_pass": [
+   "test_dup_zz_mignotte_bound"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-19487",
+  "repo": "sympy/sympy",
+  "version": "1.7",
+  "base_commit": "25fbcce5b1a4c7e3956e6062930f4a44ce95a632",
+  "fail_to_pass": [
+   "test_sign"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-20154",
+  "repo": "sympy/sympy",
+  "version": "1.7",
+  "base_commit": "bdb49c4abfb35554a3c8ce761696ffff3bb837fe",
+  "fail_to_pass": [
+   "test_partitions",
+   "test_uniq"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-20212",
+  "repo": "sympy/sympy",
+  "version": "1.7",
+  "base_commit": "a106f4782a9dbe7f8fd16030f15401d977e03ae9",
+  "fail_to_pass": [
+   "test_zero"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-20322",
+  "repo": "sympy/sympy",
+  "version": "1.8",
+  "base_commit": "ab864967e71c950a15771bb6c3723636026ba876",
+  "fail_to_pass": [
+   "test_Mul_is_integer"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-20442",
+  "repo": "sympy/sympy",
+  "version": "1.8",
+  "base_commit": "1abbc0ac3e552cb184317194e5d5c5b9dd8fb640",
+  "fail_to_pass": [
+   "test_convert_to"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-20590",
+  "repo": "sympy/sympy",
+  "version": "1.7",
+  "base_commit": "cffd4e0f86fefd4802349a9f9b19ed70934ea354",
+  "fail_to_pass": [
+   "test_immutable"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-20639",
+  "repo": "sympy/sympy",
+  "version": "1.8",
+  "base_commit": "eb926a1d0c1158bf43f01eaf673dc84416b5ebb1",
+  "fail_to_pass": [
+   "test_issue_6285",
+   "test_issue_17616"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-21055",
+  "repo": "sympy/sympy",
+  "version": "1.8",
+  "base_commit": "748ce73479ee2cd5c861431091001cc18943c735",
+  "fail_to_pass": [
+   "test_arg"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-21171",
+  "repo": "sympy/sympy",
+  "version": "1.8",
+  "base_commit": "aa22709cb7df2d7503803d4b2c0baa7aa21440b6",
+  "fail_to_pass": [
+   "test_latex_SingularityFunction"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-21379",
+  "repo": "sympy/sympy",
+  "version": "1.9",
+  "base_commit": "624217179aaf8d094e6ff75b7493ad1ee47599b0",
+  "fail_to_pass": [
+   "test_Mod"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-21612",
+  "repo": "sympy/sympy",
+  "version": "1.9",
+  "base_commit": "b4777fdcef467b7132c055f8ac2c9a5059e6a145",
+  "fail_to_pass": [
+   "test_Mul"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-21614",
+  "repo": "sympy/sympy",
+  "version": "1.9",
+  "base_commit": "b4777fdcef467b7132c055f8ac2c9a5059e6a145",
+  "fail_to_pass": [
+   "test_Derivative_kind"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-21627",
+  "repo": "sympy/sympy",
+  "version": "1.9",
+  "base_commit": "126f80578140e752ad5135aac77b8ff887eede3e",
+  "fail_to_pass": [
+   "test_Abs"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-21847",
+  "repo": "sympy/sympy",
+  "version": "1.9",
+  "base_commit": "d9b18c518d64d0ebe8e35a98c2fb519938b9b151",
+  "fail_to_pass": [
+   "test_monomials"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-22005",
+  "repo": "sympy/sympy",
+  "version": "1.9",
+  "base_commit": "2c83657ff1c62fc2761b639469fdac7f7561a72a",
+  "fail_to_pass": [
+   "test_solve_poly_system"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-22714",
+  "repo": "sympy/sympy",
+  "version": "1.10",
+  "base_commit": "3ff4717b6aef6086e78f01cdfa06f64ae23aed7e",
+  "fail_to_pass": [
+   "test_issue_22684"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-22840",
+  "repo": "sympy/sympy",
+  "version": "1.10",
+  "base_commit": "d822fcba181155b85ff2b29fe525adbafb22b448",
+  "fail_to_pass": [
+   "test_cse_MatrixSymbol",
+   "test_multidim_c_argument_cse"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-23117",
+  "repo": "sympy/sympy",
+  "version": "1.11",
+  "base_commit": "c5cef2499d6eed024b0db5c792d6ec7c53baa470",
+  "fail_to_pass": [
+   "test_issue_17851"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-23191",
+  "repo": "sympy/sympy",
+  "version": "1.11",
+  "base_commit": "fa9b4b140ec0eaf75a62c1111131626ef0f6f524",
+  "fail_to_pass": [
+   "test_issue_23058"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-23262",
+  "repo": "sympy/sympy",
+  "version": "1.11",
+  "base_commit": "fdc707f73a65a429935c01532cd3970d3355eab6",
+  "fail_to_pass": [
+   "test_issue_14941"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-24066",
+  "repo": "sympy/sympy",
+  "version": "1.12",
+  "base_commit": "514579c655bf22e2af14f0743376ae1d7befe345",
+  "fail_to_pass": [
+   "test_issue_24062"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-24102",
+  "repo": "sympy/sympy",
+  "version": "1.12",
+  "base_commit": "58598660a3f6ab3d918781c4988c2e4b2bdd9297",
+  "fail_to_pass": [
+   "test_mathematica",
+   "test_parser_mathematica_tokenizer"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-24152",
+  "repo": "sympy/sympy",
+  "version": "1.12",
+  "base_commit": "b9af885473ad7e34b5b0826cb424dd26d8934670",
+  "fail_to_pass": [
+   "test_tensor_product_expand"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-24213",
+  "repo": "sympy/sympy",
+  "version": "1.12",
+  "base_commit": "e8c22f6eac7314be8d92590bfff92ced79ee03e2",
+  "fail_to_pass": [
+   "test_issue_24211"
+  ],
+  "patch_files": 1
+ },
+ {
+  "instance_id": "sympy__sympy-24909",
+  "repo": "sympy/sympy",
+  "version": "1.13",
+  "base_commit": "d3b4158dea271485e3daa11bf82e69b8dab348ce",
+  "fail_to_pass": [
+   "test_prefix_operations"
+  ],
+  "patch_files": 1
+ }
+]

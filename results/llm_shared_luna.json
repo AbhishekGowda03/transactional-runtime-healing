@@ -1,0 +1,707 @@
+{
+ "model": "gpt-6-luna",
+ "prompt": "rules",
+ "temperature": 0.0,
+ "runs": 1,
+ "rows": [
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "shared_config",
+   "state": "(('x', 80), ['host'])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 4.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "shared_queue",
+   "state": "([2, 1, None], [])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 5.0,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "shared_object",
+   "state": "((5, 12), {'total': 12})",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 2.5,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "log_dir_missing",
+   "state": "1",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 2.0,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "env_missing",
+   "state": "(None, False)",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 1,
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 4.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "chdir_missing",
+   "state": "(True, True)",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 1,
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 5.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "tool_missing",
+   "state": "''",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 2.2,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "iterator_exhausted",
+   "state": "(1, 2, None)",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 1.7,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "record_two_fields",
+   "state": "('Ada unknown unknown', ['name'])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED",
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 2
+   },
+   "model_error": false,
+   "seconds": 3.7,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "totals_type_error",
+   "state": "((1, 3), [('a', 3)])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 2.0,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "shared_config",
+   "state": "(('x', 80), ['host'])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "shared_queue",
+   "state": "([2, 1, None], [])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "shared_object",
+   "state": "((5, 12), {'total': 12})",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "log_dir_missing",
+   "state": "1",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "env_missing",
+   "state": "(None, False)",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 1,
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "chdir_missing",
+   "state": "(True, True)",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 1,
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "tool_missing",
+   "state": "''",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "iterator_exhausted",
+   "state": "(1, 2, None)",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "record_two_fields",
+   "state": "('Ada unknown unknown', ['name'])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED",
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 2
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "totals_type_error",
+   "state": "((1, 3), [('a', 3)])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "shared_config",
+   "state": "(('x', 80), ['host'])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "shared_queue",
+   "state": "([2, 1, None], [])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "shared_object",
+   "state": "((5, 12), {'total': 12})",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "log_dir_missing",
+   "state": "1",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "env_missing",
+   "state": "(None, False)",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 1,
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "chdir_missing",
+   "state": "(True, True)",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 1,
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "tool_missing",
+   "state": "''",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "iterator_exhausted",
+   "state": "(1, 2, None)",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "record_two_fields",
+   "state": "('Ada unknown unknown', ['name'])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED",
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 2
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "totals_type_error",
+   "state": "((1, 3), [('a', 3)])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "damage": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  }
+ ]
+}

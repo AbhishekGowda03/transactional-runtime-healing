@@ -102,6 +102,9 @@ def _is_docstring(stmt) -> bool:
 
 
 # ----------------------------------------------------------------------
+_MATCH = getattr(ast, "Match", ())          # match statements exist from Python 3.10
+
+
 class _Instrumenter:
     def __init__(self, source: str, filename: str):
         self.source = source
@@ -137,7 +140,7 @@ class _Instrumenter:
             return [stmt]
         if isinstance(stmt, ast.ImportFrom) and stmt.module == "__future__":
             return [stmt]
-        if isinstance(stmt, ast.Match):
+        if isinstance(stmt, _MATCH):
             return [stmt]
         if isinstance(stmt, ast.Return) and stmt.value is None:
             return [stmt]
@@ -160,7 +163,7 @@ class _Instrumenter:
             stmt.orelse = self.block(stmt.orelse, names, expected, func)
             stmt.finalbody = self.block(stmt.finalbody, names, expected, func)
             return
-        if isinstance(stmt, ast.Match):
+        if isinstance(stmt, _MATCH):
             for case in stmt.cases:
                 case.body = self.block(case.body, names, expected, func)
             return

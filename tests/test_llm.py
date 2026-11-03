@@ -279,4 +279,10 @@ def test_prompt_variants_differ_and_are_part_of_the_cache_key(tmp_path, fake):
     assert len(f.requests) == 2
     assert "Do not read or write files" in llm.PROMPTS["rules"]
     assert "Do not read or write files" not in llm.PROMPTS["minimal"]
-    assert "left side of the failing statement" in llm.PROMPTS["minimal"]
+    assert "left side of the failing statement" in llm.system_prompt("minimal", "r = a / b")
+
+
+def test_return_name_is_only_mentioned_for_a_return():
+    assert "_eh_rtn" not in llm.system_prompt("rules", "r = a / b")
+    assert "_eh_rtn" in llm.system_prompt("rules", "return a / b")
+    assert "_eh_rtn" in llm.system_prompt("minimal", "    return x")

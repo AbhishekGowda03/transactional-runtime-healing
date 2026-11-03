@@ -23,6 +23,8 @@ Per setting:
   wrong result   it proceeded but printed a state that is not accepted (NOT the same as the
                  "harm" of StateLeak, which means state left behind by a failed repair)
   files changed  the run directory differs from the run without any repair
+  damage         the program did NOT get through, yet its printed state or its directory differs
+                 from the run without any repair: what a failed or rejected repair left behind
   residue        failed attempts that left state behind (plain mode with the meter; the live
                  protocol cannot, by construction)
   attempts       heal attempts and their outcomes; "no-op" = committed but did not bind the
@@ -40,7 +42,17 @@ import tempfile
 import time
 
 sys.path.insert(0, os.path.dirname(__file__))
-from programs import PROGRAMS  # noqa: E402
+import programs as core_programs  # noqa: E402
+import programs_shared  # noqa: E402
+
+SETS = {"core": core_programs.PROGRAMS, "shared": programs_shared.PROGRAMS}
+
+
+def accepted(p, state):
+    """`ok` is a list of accepted printed states, or a function of the printed state."""
+    if state is None:
+        return False
+    return p["ok"](state) if callable(p["ok"]) else state in p["ok"]
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "src"))
@@ -74,10 +86,12 @@ def dir_hash(d):
     for root, dirs, files in os.walk(d):
         dirs[:] = sorted(x for x in dirs if x != "__pycache__")
         rel = os.path.relpath(root, d)
+        if rel != ".":                                    # empty folders count too
+            h.update(f"D:{rel}\n".encode())
         for name in sorted(files):
             if rel == "." and name in OWN:
                 continue
-            h.update(os.path.join(rel, name).encode())
+            h.update(f"F:{os.path.join(rel, name)}\n".encode())
             with open(os.path.join(root, name), "rb") as f:
                 h.update(f.read())
     return h.hexdigest()[:12]
@@ -139,6 +153,9 @@ def main():
     ap.add_argument("--prompt", choices=("rules", "minimal"), default="rules")
     ap.add_argument("--max-calls", type=int, default=300,
                     help="hard cap on real model calls, counted across all processes")
+    ap.add_argument("--set", choices=sorted(SETS), default="core",
+                    help="core = simple local repairs; shared = repairs that touch shared state, "
+                         "the environment, files or other processes")
     ap.add_argument("--only")
     ns = ap.parse_args()
     temp = ns.temperature if ns.temperature is not None else (0.0 if ns.runs == 1 else 0.7)
@@ -148,7 +165,7 @@ def main():
     for n in names:
         if n not in SETTINGS:
             ap.error(f"unknown setting {n!r}")
-    progs = [p for p in PROGRAMS if not ns.only or ns.only in p["id"]]
+    progs = [p for p in SETS[ns.set] if not ns.only or ns.only in p["id"]]
 
     os.makedirs(ns.cache_dir, exist_ok=True)
     budget = os.path.join(ns.cache_dir, ".budget")
@@ -156,7 +173,7 @@ def main():
         f.write("0")
     ENV["TXH_BUDGET_FILE"] = budget
     ENV["TXH_MAX_CALLS"] = str(ns.max_calls)
-    print(f"model {ENV.get('TXH_MODEL', '(default)')}  prompt {ns.prompt}  temperature {temp}  "
+    print(f"set {ns.set}  model {ENV.get('TXH_MODEL', '(default)')}  prompt {ns.prompt}  temperature {temp}  "
           f"runs {ns.runs}  call cap {ns.max_calls}")
 
     clean = {}
@@ -175,9 +192,13 @@ def main():
                 outcomes = [e["status"] for e in r["entries"]]
                 noop = sum(1 for e in r["entries"]
                            if e["status"] == "COMMITTED" and e.get("targets_missing"))
-                correct = r["proceeded"] and r["state"] in p["ok"]
+                correct = r["proceeded"] and accepted(p, r["state"])
                 files_changed = r["dirhash"] != clean[p["id"]][1]
                 wrong = r["proceeded"] and not correct
+                # damage after a failure: the program did not get through, yet its state or its
+                # directory differs from the run without any repair (what a rejected or failed
+                # repair left behind). This is the StateLeak meaning of "harm".
+                damage = (not r["proceeded"]) and ((r["state"], r["dirhash"]) != clean[p["id"]])
                 residue = sorted({x for e in r["entries"] if e["status"] != "COMMITTED"
                                   for x in (e.get("residue") or []) + (e.get("external_residue") or [])})
                 rep = {}
@@ -188,7 +209,7 @@ def main():
                            else "proceeded, wrong" if r["proceeded"] else "failed")
                 rows.append(dict(run=k + 1, setting=name, program=p["id"], state=r["state"],
                                  proceeded=r["proceeded"], correct=correct,
-                                 accident=bool(correct and noop), wrong=wrong,
+                                 accident=bool(correct and noop), wrong=wrong, damage=damage,
                                  files_changed=files_changed, outcomes=outcomes, noop=noop,
                                  residue=residue, replies=rep, model_error=model_error,
                                  seconds=round(r["secs"], 1), stderr=r["err"]))
@@ -196,16 +217,16 @@ def main():
                       f"{','.join(o.replace('REJECTED_', 'rej:').lower() for o in outcomes) or 'no repair':32}"
                       f" state={r['state']}{'  NO-OP x%d' % noop if noop else ''}"
                       f"{'  RESIDUE ' + str(residue) if residue else ''}"
-                      f"{'  FILES' if files_changed else ''}{'  MODEL ERROR' if model_error else ''}")
+                      f"{'  FILES' if files_changed else ''}{'  DAMAGE' if damage else ''}{'  MODEL ERROR' if model_error else ''}")
 
     os.makedirs(os.path.dirname(os.path.abspath(ns.out)), exist_ok=True)
     with open(ns.out + ".json", "w") as f:
         json.dump(dict(model=ENV.get("TXH_MODEL", "(default)"), prompt=ns.prompt, temperature=temp,
                        runs=ns.runs, rows=rows), f, indent=1)
     lines = ["| setting | proceeded | correct | by accident | wrong result | files changed | "
-             "failed attempts that left residue | attempts (rejected, no-op) | "
+             "damage after failure | failed attempts that left residue | attempts (rejected, no-op) | "
              "model replies ok/declined/not code/cut off/error |",
-             "|---|---|---|---|---|---|---|---|---|"]
+             "|---|---|---|---|---|---|---|---|---|---|"]
     for name in names:
         rs = [r for r in rows if r["setting"] == name]
         n = len(rs)
@@ -216,6 +237,7 @@ def main():
         lines.append(f"| {name} | {sum(r['proceeded'] for r in rs)}/{n} | {sum(r['correct'] for r in rs)}/{n} "
                      f"| {sum(r['accident'] for r in rs)} | {sum(r['wrong'] for r in rs)}/{n} "
                      f"| {sum(r['files_changed'] for r in rs)}/{n} "
+                     f"| {sum(r['damage'] for r in rs)}/{n} "
                      f"| {sum(1 for r in rs if r['residue'])} programs "
                      f"| {att} ({rej} rejected, {sum(r['noop'] for r in rs)} no-op) "
                      f"| {rp('ok')}/{rp('decline')}/{rp('invalid')}/{rp('truncated')}/{err} |")

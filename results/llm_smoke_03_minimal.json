@@ -1,0 +1,778 @@
+{
+ "model": "qwen2.5-coder:7b",
+ "prompt": "minimal",
+ "temperature": 0.0,
+ "runs": 1,
+ "rows": [
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "key_missing",
+   "state": "0",
+   "proceeded": true,
+   "correct": false,
+   "accident": false,
+   "wrong": true,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2,
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 5.9,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "zero_division",
+   "state": "None",
+   "proceeded": true,
+   "correct": true,
+   "accident": true,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED",
+    "COMMITTED"
+   ],
+   "noop": 2,
+   "residue": [],
+   "replies": {
+    "ok": 2
+   },
+   "model_error": false,
+   "seconds": 0.6,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "none_attribute",
+   "state": "None",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.3,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "index_empty",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.5,
+   "stderr": "ntime_healing/instrument.py\", line 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmpnmvk5fv1/prog.py\", line 7, in <module>\n    result = last([])\n             ^^^^^^^^\n  File \"/tmp/tmpnmvk5fv1/prog.py\", line 5, in last\n    x = items[-1]\n        ~~~~~^^^^\nIndexError: list index out of range\n"
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "type_mismatch",
+   "state": "3",
+   "proceeded": true,
+   "correct": false,
+   "accident": false,
+   "wrong": true,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.4,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "bad_int",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.5,
+   "stderr": " line 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmprzp3kryi/prog.py\", line 7, in <module>\n    result = parse('abc')\n             ^^^^^^^^^^^^\n  File \"/tmp/tmprzp3kryi/prog.py\", line 5, in parse\n    n = int(raw)\n        ^^^^^^^^\nValueError: invalid literal for int() with base 10: 'abc'\n"
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "missing_attribute",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.6,
+   "stderr": "ne 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmpzm2m8zms/prog.py\", line 10, in <module>\n    result = timeout(cfg)\n             ^^^^^^^^^^^^\n  File \"/tmp/tmpzm2m8zms/prog.py\", line 8, in timeout\n    t = c.timeout\n        ^^^^^^^^^\nAttributeError: 'Cfg' object has no attribute 'timeout'\n"
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "file_missing",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.6,
+   "stderr": " exec(code, g)\n  File \"/tmp/tmp0i51ajbs/prog.py\", line 7, in <module>\n    result = load()\n             ^^^^^^\n  File \"/tmp/tmp0i51ajbs/prog.py\", line 5, in load\n    text = open('config.json').read()\n           ^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: 'config.json'\n"
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "unpack_short",
+   "state": "None",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.4,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "cache_miss",
+   "state": "(None, ['a'])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 1,
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.6,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "empty_average",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.5,
+   "stderr": ", line 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmp3jxjulhd/prog.py\", line 7, in <module>\n    result = mean([])\n             ^^^^^^^^\n  File \"/tmp/tmp3jxjulhd/prog.py\", line 5, in mean\n    avg = sum(vals) / len(vals)\n          ~~~~~~~~~~^~~~~~~~~~~\nZeroDivisionError: division by zero\n"
+  },
+  {
+   "run": 1,
+   "setting": "plain",
+   "program": "same_error_twice",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "REJECTED_REPAIR_ERROR"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.5,
+   "stderr": "ument.py\", line 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmppig13tr0/prog.py\", line 8, in <module>\n    result = [ratio(a, b) for a, b in rows]\n              ^^^^^^^^^^^\n  File \"/tmp/tmppig13tr0/prog.py\", line 5, in ratio\n    r = a / b\n        ~~^~~\nZeroDivisionError: division by zero\n"
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "key_missing",
+   "state": "0",
+   "proceeded": true,
+   "correct": false,
+   "accident": false,
+   "wrong": true,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2,
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "zero_division",
+   "state": "None",
+   "proceeded": true,
+   "correct": true,
+   "accident": true,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED",
+    "COMMITTED"
+   ],
+   "noop": 2,
+   "residue": [],
+   "replies": {
+    "ok": 2
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "none_attribute",
+   "state": "None",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "index_empty",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.0,
+   "stderr": "ntime_healing/instrument.py\", line 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmpr4qcjxn6/prog.py\", line 7, in <module>\n    result = last([])\n             ^^^^^^^^\n  File \"/tmp/tmpr4qcjxn6/prog.py\", line 5, in last\n    x = items[-1]\n        ~~~~~^^^^\nIndexError: list index out of range\n"
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "type_mismatch",
+   "state": "3",
+   "proceeded": true,
+   "correct": false,
+   "accident": false,
+   "wrong": true,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "bad_int",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": " line 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmphp1il7h4/prog.py\", line 7, in <module>\n    result = parse('abc')\n             ^^^^^^^^^^^^\n  File \"/tmp/tmphp1il7h4/prog.py\", line 5, in parse\n    n = int(raw)\n        ^^^^^^^^\nValueError: invalid literal for int() with base 10: 'abc'\n"
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "missing_attribute",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": "ne 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmpe_7hjakd/prog.py\", line 10, in <module>\n    result = timeout(cfg)\n             ^^^^^^^^^^^^\n  File \"/tmp/tmpe_7hjakd/prog.py\", line 8, in timeout\n    t = c.timeout\n        ^^^^^^^^^\nAttributeError: 'Cfg' object has no attribute 'timeout'\n"
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "file_missing",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": " exec(code, g)\n  File \"/tmp/tmpszbmg009/prog.py\", line 7, in <module>\n    result = load()\n             ^^^^^^\n  File \"/tmp/tmpszbmg009/prog.py\", line 5, in load\n    text = open('config.json').read()\n           ^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: 'config.json'\n"
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "unpack_short",
+   "state": "None",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "cache_miss",
+   "state": "(None, ['a'])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 1,
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "empty_average",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.0,
+   "stderr": ", line 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmpc09k4yvz/prog.py\", line 7, in <module>\n    result = mean([])\n             ^^^^^^^^\n  File \"/tmp/tmpc09k4yvz/prog.py\", line 5, in mean\n    avg = sum(vals) / len(vals)\n          ~~~~~~~~~~^~~~~~~~~~~\nZeroDivisionError: division by zero\n"
+  },
+  {
+   "run": 1,
+   "setting": "full",
+   "program": "same_error_twice",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "REJECTED_REPAIR_ERROR"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": "ument.py\", line 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmpjwhpa2xp/prog.py\", line 8, in <module>\n    result = [ratio(a, b) for a, b in rows]\n              ^^^^^^^^^^^\n  File \"/tmp/tmpjwhpa2xp/prog.py\", line 5, in ratio\n    r = a / b\n        ~~^~~\nZeroDivisionError: division by zero\n"
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "key_missing",
+   "state": "0",
+   "proceeded": true,
+   "correct": false,
+   "accident": false,
+   "wrong": true,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2,
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "zero_division",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "REJECTED_CHECK"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": "ing/instrument.py\", line 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmpp3ln65g4/prog.py\", line 7, in <module>\n    result = rate(5, 0)\n             ^^^^^^^^^^\n  File \"/tmp/tmpp3ln65g4/prog.py\", line 5, in rate\n    r = hits / total\n        ~~~~~^~~~~~~\nZeroDivisionError: division by zero\n"
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "none_attribute",
+   "state": "None",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "index_empty",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.0,
+   "stderr": "ntime_healing/instrument.py\", line 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmpvtbewjvl/prog.py\", line 7, in <module>\n    result = last([])\n             ^^^^^^^^\n  File \"/tmp/tmpvtbewjvl/prog.py\", line 5, in last\n    x = items[-1]\n        ~~~~~^^^^\nIndexError: list index out of range\n"
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "type_mismatch",
+   "state": "3",
+   "proceeded": true,
+   "correct": false,
+   "accident": false,
+   "wrong": true,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "bad_int",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.0,
+   "stderr": " line 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmpg9pj51sp/prog.py\", line 7, in <module>\n    result = parse('abc')\n             ^^^^^^^^^^^^\n  File \"/tmp/tmpg9pj51sp/prog.py\", line 5, in parse\n    n = int(raw)\n        ^^^^^^^^\nValueError: invalid literal for int() with base 10: 'abc'\n"
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "missing_attribute",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.0,
+   "stderr": "ne 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmpzpa9cb2t/prog.py\", line 10, in <module>\n    result = timeout(cfg)\n             ^^^^^^^^^^^^\n  File \"/tmp/tmpzpa9cb2t/prog.py\", line 8, in timeout\n    t = c.timeout\n        ^^^^^^^^^\nAttributeError: 'Cfg' object has no attribute 'timeout'\n"
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "file_missing",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.0,
+   "stderr": " exec(code, g)\n  File \"/tmp/tmpj7s8hmmz/prog.py\", line 7, in <module>\n    result = load()\n             ^^^^^^\n  File \"/tmp/tmpj7s8hmmz/prog.py\", line 5, in load\n    text = open('config.json').read()\n           ^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: 'config.json'\n"
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "unpack_short",
+   "state": "None",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "cache_miss",
+   "state": "(None, ['a'])",
+   "proceeded": true,
+   "correct": true,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "COMMITTED"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 1,
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ""
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "empty_average",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "decline": 2
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": ", line 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmp1oqt1d6p/prog.py\", line 7, in <module>\n    result = mean([])\n             ^^^^^^^^\n  File \"/tmp/tmp1oqt1d6p/prog.py\", line 5, in mean\n    avg = sum(vals) / len(vals)\n          ~~~~~~~~~~^~~~~~~~~~~\nZeroDivisionError: division by zero\n"
+  },
+  {
+   "run": 1,
+   "setting": "full+targets",
+   "program": "same_error_twice",
+   "state": null,
+   "proceeded": false,
+   "correct": false,
+   "accident": false,
+   "wrong": false,
+   "files_changed": false,
+   "outcomes": [
+    "REJECTED_REPAIR_ERROR"
+   ],
+   "noop": 0,
+   "residue": [],
+   "replies": {
+    "ok": 1
+   },
+   "model_error": false,
+   "seconds": 0.1,
+   "stderr": "ument.py\", line 317, in run_instrumented\n    exec(code, g)\n  File \"/tmp/tmpd3po1v9r/prog.py\", line 8, in <module>\n    result = [ratio(a, b) for a, b in rows]\n              ^^^^^^^^^^^\n  File \"/tmp/tmpd3po1v9r/prog.py\", line 5, in ratio\n    r = a / b\n        ~~^~~\nZeroDivisionError: division by zero\n"
+  }
+ ]
+}

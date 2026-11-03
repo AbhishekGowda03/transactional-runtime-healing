@@ -26,7 +26,12 @@ twice, so there is no replay divergence, and the repair is judged together with 
 code that runs after it.
 
 Limits (stated, not hidden):
-  * Linux, Python 3.12 (uses sys.monitoring for the end-of-function point).
+  * Linux. Python 3.12 or newer uses sys.monitoring for the end-of-function point; Python
+    3.9 to 3.11 use sys.setprofile instead (SWE-bench environments often pin older versions).
+    The profile hook does not see the exception that leaves a function. An exit by an
+    exception is told from a normal return by the opcode that was executing (RETURN_VALUE or
+    YIELD_VALUE), so on those versions the log's `continuation_error` is empty for that case
+    and `recurrence="reject"` only checks the next crash, not the exit by an exception.
   * The child has only the forking thread. If other threads exist, no healing is done.
   * Output is held back until the validation point, so it appears late.
   * Effects on inherited sockets/pipes, native code, and filesystem writes are not
@@ -60,6 +65,7 @@ Limits (stated, not hidden):
     "operational" ones (timeout, child died) - report them separately.
 """
 import atexit
+import dis
 import json
 import os
 import select
@@ -76,6 +82,7 @@ from transactional_runtime_healing.heal_point import checks_message, missing_tar
 from transactional_runtime_healing import meter, taint
 from transactional_runtime_healing.instrument import HealContext, HealRecord, handled_by_caller
 
+_RETURN_OPCODES = {dis.opmap[n] for n in ("RETURN_VALUE", "YIELD_VALUE") if n in dis.opmap}
 _TOOL_ID = 3                                      # sys.monitoring tool id
 _FORWARD = [signal.SIGTERM, signal.SIGHUP, signal.SIGQUIT, signal.SIGUSR1, signal.SIGUSR2]
 
@@ -259,8 +266,8 @@ class LiveHealer:
             return "other threads exist; the forked child would not have them"
         if threading.current_thread() is not threading.main_thread():
             return "not in the main thread"
-        if not hasattr(sys, "monitoring"):
-            return "Python 3.12 or newer is required"
+        if sys.version_info < (3, 8):
+            return "Python 3.8 or newer is required"
         return ""
 
     # ------------------------------------------------------------------
@@ -353,6 +360,10 @@ class LiveHealer:
         os._exit(0)                                  # held-back output is dropped with it
 
     def _start_monitoring(self, frame) -> bool:
+        if not hasattr(sys, "monitoring"):           # Python < 3.12: profile hook
+            self._saved_profile = sys.getprofile()
+            sys.setprofile(self._on_profile)
+            return True
         mon = sys.monitoring
         try:
             mon.use_tool_id(_TOOL_ID, "transactional-healing")
@@ -366,7 +377,26 @@ class LiveHealer:
         mon.set_events(_TOOL_ID, ev.PY_UNWIND)       # unwinding cannot be set per code object
         return True
 
+    def _on_profile(self, frame, event, arg):
+        """Python < 3.12: a 'return' event of the repaired frame is the validation point. It is
+        also sent when a generator yields and when the function is left by an exception (arg is
+        None then; the exception itself is not visible here)."""
+        p = self._pending
+        if p is not None and event == "return" and frame is p.frame:
+            code = frame.f_code
+            normal = code.co_code[frame.f_lasti] in _RETURN_OPCODES
+            gen = code.co_flags & 0x2A0              # generator, coroutine, async generator
+            self._commit("function left by an exception" if not normal else
+                         "generator yielded" if gen else "end of function")
+        saved = getattr(self, "_saved_profile", None)
+        if saved is not None:
+            saved(frame, event, arg)
+
     def _stop_monitoring(self, code):
+        if not hasattr(sys, "monitoring"):
+            sys.setprofile(getattr(self, "_saved_profile", None))
+            self._saved_profile = None
+            return
         mon = sys.monitoring
         try:
             mon.set_local_events(_TOOL_ID, code, 0)

@@ -12,7 +12,7 @@ from transactional_runtime_healing.plain_heal import PlainHealer
 from transactional_runtime_healing.taint import TaintGuard, leaves
 
 SRC = os.path.join(os.path.dirname(__file__), "..", "src")
-needs312 = pytest.mark.skipif(sys.version_info < (3, 12), reason="needs sys.monitoring")
+needs312 = pytest.mark.skipif(not hasattr(os, "fork"), reason="needs fork")
 
 
 # ---- the guard on its own ---------------------------------------------------------------

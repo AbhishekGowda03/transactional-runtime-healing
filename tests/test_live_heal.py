@@ -11,7 +11,7 @@ import textwrap
 
 import pytest
 
-pytestmark = pytest.mark.skipif(sys.version_info < (3, 12), reason="needs sys.monitoring")
+pytestmark = pytest.mark.skipif(not hasattr(os, "fork"), reason="needs fork")
 SRC = os.path.join(os.path.dirname(__file__), "..", "src")
 
 
