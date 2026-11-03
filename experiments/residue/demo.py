@@ -55,6 +55,32 @@ CASES = [
             v = 1 / 0
         f()
      """, "", "import warnings, random\nwarnings.simplefilter('ignore')\nrandom.seed(0)\nraise ValueError('bad')", []),
+    ("repair deletes a file, then raises", """
+        import os
+        open('victim.txt', 'w').write('important')
+        sys.excepthook = lambda *a: print('original error; victim.txt exists:', os.path.exists('victim.txt'))
+        def f():
+            v = 1 / 0
+        f()
+     """, "", "import os\nos.remove('victim.txt')\nraise ValueError('bad')", []),
+    ("repair supplies a path that the program then deletes (a good-looking repair)", """
+        import os
+        open('victim.txt', 'w').write('important')
+        sys.excepthook = lambda *a: print('original error; victim.txt exists:', os.path.exists('victim.txt'))
+        def f(cfg):
+            target = cfg['file']
+            os.remove(target)
+        f({})
+        print('program finished; victim.txt exists:', os.path.exists('victim.txt'))
+     """, "", "target = 'victim.txt'", []),
+    ("program writes its own file, then the trial is rejected (remaining gap)", """
+        import os
+        def f():
+            v = 1 / 0
+            open('program_output.txt', 'w').write('x')
+            os.system('true')
+        f()
+     """, "", "v = 0", []),
     ("good repair that also changes a shared list", """
         log = []
         def f():
@@ -65,15 +91,15 @@ CASES = [
 ]
 
 
-def run(mode, program, code, extra, env, cwd):
-    prog, rul, log = (os.path.join(cwd, n) for n in (f"{mode}.py", f"{mode}.json", f"{mode}.jsonl"))
+def run(label, mode, program, rule_match, code, extra, env, cwd):
+    prog, rul, log = (os.path.join(cwd, f"{label}.{ext}") for ext in ("py", "json", "jsonl"))
     open(prog, "w").write(HOOK + textwrap.dedent(program))
-    json.dump([{"match": "1 / 0", "code": code}], open(rul, "w"))
+    json.dump([{"match": rule_match, "code": code}], open(rul, "w"))
     p = subprocess.run([sys.executable, "-m", "transactional_runtime_healing.live_run", prog, rul,
                         "--mode", mode, "--meter", "--log", log, *extra],
                        capture_output=True, text=True, env=env, cwd=cwd)
     entries = [json.loads(l) for l in open(log)]
-    entry = [e for e in entries if e["status"] != "NO_PROPOSAL"][0]
+    entry = [e for e in entries if e["status"] not in ("NO_PROPOSAL", "SKIPPED")][0]
     return p.stdout.strip().splitlines(), entry
 
 
@@ -82,14 +108,22 @@ def main():
     env = dict(os.environ, PYTHONPATH=os.path.join(os.path.dirname(__file__), "..", "..", "src"))
     for title, program, _, code, extra in CASES:
         print(f"=== {title}")
+        match = "cfg['file']" if "cfg['file']" in program else "1 / 0"
         with tempfile.TemporaryDirectory() as d:
-            for mode in ("plain", "live"):
-                out, e = run(mode, program, code, extra, env, d)
+            for label, mode, flags in (("plain", "plain", []),
+                                       ("plain+heal-phase-stop", "plain", ["--guard", "heal-phase"]),
+                                       ("plain+taint", "plain", ["--guard", "taint"]),
+                                       ("live", "live", [])):
+                for leftover in ("victim.txt", "program_output.txt", "heal_cache.txt"):
+                    if os.path.exists(os.path.join(d, leftover)):
+                        os.remove(os.path.join(d, leftover))
+                out, e = run(label.replace("+", "_"), mode, program, match, code, extra + flags,
+                             env, d)
                 inplace = "n/a" if e["inplace_changes"] is None else e["inplace_changes"]
-                print(f"  {mode:5}: {e['status']:24} residue={e['residue']}  "
+                print(f"  {label:22}: {e['status']:28} residue={e['residue']}  "
                       f"external residue={e['external_residue']}  in-place changes={inplace}")
                 for line in out:
-                    print("         stdout:", line)
+                    print("                       stdout:", line)
         print()
 
 

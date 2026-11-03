@@ -122,7 +122,8 @@ def test_programs_own_timer_survives_a_plain_attempt():
 
 
 @pytest.mark.skipif(sys.version_info < (3, 12), reason="needs sys.monitoring")
-def test_file_written_by_a_rejected_live_trial_is_external_residue_although_memory_is_clean(tmp_path):
+def test_file_written_by_the_repair_is_stopped_in_live_mode_but_not_in_plain_mode(tmp_path):
+    """Plain healing writes the file; the protocol's protected-operations check stops it."""
     cache = tmp_path / "cache.txt"
     prog = tmp_path / "prog.py"
     prog.write_text(textwrap.dedent("""
@@ -140,9 +141,34 @@ def test_file_written_by_a_rejected_live_trial_is_external_residue_although_memo
                     str(rules), "--meter", "--log", str(log)], capture_output=True, text=True,
                    env=dict(os.environ, PYTHONPATH=SRC), cwd=tmp_path, timeout=60)
     entry = [json.loads(l) for l in log.read_text().splitlines() if "REJECTED" in l][0]
-    assert cache.exists()
-    assert entry["residue"] == [] and entry["external_residue"] == [f"open-write:{cache}"]
+    assert not cache.exists()
+    assert entry["status"] == "REJECTED_PROTECTED_OPERATION" and entry["residue"] == []
     assert entry["inplace_changes"] is None                  # not measured in live mode
+
+
+@pytest.mark.skipif(sys.version_info < (3, 12), reason="needs sys.monitoring")
+def test_file_written_by_the_program_during_a_rejected_trial_stays_on_disk(tmp_path):
+    """The remaining gap (until the copy-on-write layer): the program's own writes."""
+    out = tmp_path / "out.txt"
+    prog = tmp_path / "prog.py"
+    prog.write_text(textwrap.dedent(f"""
+        import os, sys
+        sys.excepthook = lambda *a: print('original error')
+        def f():
+            v = 1 / 0
+            open({str(out)!r}, 'w').write('program output')
+            os.system('true')
+        f()
+    """))
+    rules = tmp_path / "rules.json"
+    rules.write_text(json.dumps([{"match": "1 / 0", "code": "v = 0"}]))
+    log = tmp_path / "live.jsonl"
+    subprocess.run([sys.executable, "-m", "transactional_runtime_healing.live_run", str(prog),
+                    str(rules), "--log", str(log)], capture_output=True, text=True,
+                   env=dict(os.environ, PYTHONPATH=SRC), cwd=tmp_path, timeout=60)
+    entry = [json.loads(l) for l in log.read_text().splitlines() if "REJECTED" in l][0]
+    assert entry["status"] == "REJECTED_EXTERNAL_EFFECT"
+    assert out.exists() and entry["external_residue"] == [f"open-write:{out}"]
 
 
 def test_plain_mode_records_and_carries_out_external_effects(tmp_path):
@@ -172,3 +198,27 @@ def test_live_mode_blocks_the_same_effect_so_it_is_not_residue(tmp_path):
     entry = [json.loads(l) for l in log.read_text().splitlines() if "REJECTED" in l][0]
     assert not marker.exists()
     assert entry["status"] == "REJECTED_EXTERNAL_EFFECT" and entry["external_residue"] == []
+
+
+def test_plain_taint_stops_a_later_delete_of_the_repairs_value(tmp_path):
+    victim = tmp_path / "victim.txt"
+    victim.write_text("keep")
+    src = ("import os\ndef g(c):\n    v = c['name']\n    return v\n"
+           f"r = g({{}})\nos.remove(r)\n")
+    code = f"v = {str(victim)!r}"
+    healer = PlainHealer(lambda ctx: code if "c['name']" in ctx.statement else None, guard="taint")
+    with pytest.raises(Exception):
+        run_instrumented(src, healer)
+    assert victim.exists()
+
+
+def test_plain_heal_phase_stop_does_not_follow_the_value(tmp_path):
+    victim = tmp_path / "victim.txt"
+    victim.write_text("keep")
+    src = ("import os\ndef g(c):\n    v = c['name']\n    return v\n"
+           f"r = g({{}})\nos.remove(r)\n")
+    code = f"v = {str(victim)!r}"
+    healer = PlainHealer(lambda ctx: code if "c['name']" in ctx.statement else None,
+                         guard="heal-phase")
+    run_instrumented(src, healer)
+    assert not victim.exists()

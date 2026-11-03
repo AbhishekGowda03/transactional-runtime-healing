@@ -37,6 +37,8 @@ Limits (stated, not hidden):
     forwards SIGTERM, SIGHUP, SIGQUIT, SIGUSR1, SIGUSR2.
   * If the child ends without a verdict (for example os._exit before the validation
     point) the repair is rejected.
+  * The protected-operations check (taint.py) is an approximation by value matching; see
+    that module for what it misses and where it can reject wrongly.
   * "The same error again" means: same exception type raised at the same place (file and
     line), as in protocol.py. By default this is just the next crash (a loop over bad
     inputs hits it once per item); the log's `repeat_count` says how often it happened
@@ -71,7 +73,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from transactional_runtime_healing import protocol as P
 from transactional_runtime_healing.heal_point import checks_message, run_healing_code
-from transactional_runtime_healing import meter
+from transactional_runtime_healing import meter, taint
 from transactional_runtime_healing.instrument import HealContext, HealRecord, handled_by_caller
 
 _TOOL_ID = 3                                      # sys.monitoring tool id
@@ -84,6 +86,7 @@ class LiveStatus(Enum):
     REJECTED_REPAIR_ERROR = "rejected: healing code raised an exception"
     REJECTED_CHECK = "rejected: a check failed"
     REJECTED_EXTERNAL_EFFECT = "rejected: external effect attempted"
+    REJECTED_PROTECTED_OPERATION = "rejected: a protected operation was healing-influenced"
     REJECTED_RECURRENCE = "rejected: the original error happened again"
     REJECTED_TIMEOUT = "rejected: no verdict in time"
     REJECTED_CHILD_DIED = "rejected: child ended without a verdict"
@@ -95,6 +98,7 @@ class LiveStatus(Enum):
 _CATEGORY = {"COMMITTED": "committed", "TRIAL_ACCEPTED": "pending",
              "REJECTED_REPAIR_ERROR": "safety", "REJECTED_CHECK": "safety",
              "REJECTED_EXTERNAL_EFFECT": "safety", "REJECTED_RECURRENCE": "safety",
+             "REJECTED_PROTECTED_OPERATION": "safety",
              "REJECTED_TIMEOUT": "operational", "REJECTED_CHILD_DIED": "operational",
              "SKIPPED": "skipped"}
 
@@ -156,6 +160,16 @@ class LiveHealer:
                         own (a loop over bad inputs is normal). "reject": strict reading of
                         proposal check 4, the repair is rejected
     allow_events     -- audit events that are not blocked during the trial
+    guard            -- protected-operations check (proposal check 2, taint.py): a protected
+                        operation performed by the healing code, or whose arguments contain a
+                        value the healing code introduced, rejects the trial
+    protected_events -- audit events the guard polices (default protocol.PROTECTED_EVENTS;
+                        HealGuard uses a list declared per repository)
+    post_commit      -- what the guard does after the validation point, for the rest of the
+                        run: "off", "warn" (report a protected operation that uses a value
+                        the repair introduced, in the log, but let it run; default) or
+                        "block" (stop it; the program then sees an exception)
+    safe_paths       -- path prefixes that the guard does not police (for example a temp dir)
     meter_state      -- measure residual state: fingerprint the program before each attempt
                         and again after a rejection (`residue` in the result and the log;
                         it must be empty - this checks the restore guarantee)
@@ -166,8 +180,10 @@ class LiveHealer:
     def __init__(self, propose: Callable[[HealContext], Optional[str]],
                  checks: Optional[list] = None, timeout: float = 60.0, max_heals: int = 50,
                  recurrence: str = "commit", allow_events=(), log_path: Optional[str] = None,
-                 meter_state: bool = False):
+                 meter_state: bool = False, guard: bool = True, safe_paths=(),
+                 protected_events=None, post_commit: str = "warn"):
         assert recurrence in ("commit", "reject")
+        assert post_commit in ("off", "warn", "block")
         self.propose = propose
         self.checks = checks or []
         self.timeout = timeout
@@ -176,6 +192,12 @@ class LiveHealer:
         self.allow_events = frozenset(allow_events)
         self.log_path = log_path
         self.meter_state = meter_state
+        self.guard = guard
+        self.safe_paths = tuple(safe_paths)
+        self.protected_events = protected_events
+        self.post_commit = post_commit
+        self._lineage: set = set()                   # values introduced by committed repairs
+        self._guard = None
         self.log: List[HealRecord] = []
         self._seen: Dict[tuple, int] = {}
         self._pending: Optional[_Pending] = None
@@ -261,11 +283,21 @@ class LiveHealer:
                                                   repeat_count=self._repeat))
         cap = P._FdCapture().start()
         self._pending = _Pending(target, ctx, record, w, cap, _signature(ctx.exception))
-        P.begin_watch(allow=self.allow_events, on_effect=self._effect_in_child)
+        guard = None
+        if self.guard:
+            roots = taint.state_roots(target, ctx.globals_)
+            guard = taint.TaintGuard(safe_paths=self.safe_paths, events=self.protected_events,
+                                     inherit=self._lineage)
+            guard.start(roots)
+            self._guard = guard
+        P.begin_watch(allow=self.allow_events, on_effect=self._effect_in_child,
+                      guard=guard, on_protected=self._protected_in_child)
         try:
             env, cl, cg, _ = run_healing_code(code, ctx.locals_, ctx.globals_)
         except BaseException as e:
             self._reject_in_child("error", repr(e))
+        if guard is not None:
+            guard.finish(taint.state_roots(target, ctx.globals_), cl, cg)
         msg = checks_message(self.checks, env)
         if msg is not None:
             self._reject_in_child("check", msg)
@@ -276,6 +308,28 @@ class LiveHealer:
         res.bindings, res.globals_updates, res.changed = cl, cg, sorted({**cl, **cg})
         self.log.append(record)
         return res                                   # the program goes on from the crash point
+
+    def _watch_after_commit(self, p):
+        """The repair is part of the program now. Keep policing protected operations that use
+        values the repair introduced (lineage), unless post_commit is "off". Blocked-effect
+        events are allowed again: the program is live."""
+        g = self._guard
+        if g is None or self.post_commit == "off":
+            return
+        self._lineage = set(g.tainted)
+
+        def report(event, reason):
+            rec = dict(time=time.time(), pid=os.getpid(), mode="live", status="post-commit protected operation",
+                       category="safety", reason=f"{event}: {reason}",
+                       action="blocked" if self.post_commit == "block" else "warned",
+                       validated_at="after commit")
+            if self.log_path:
+                write_line(self.log_path, rec)
+        P.begin_watch(allow=P._BLOCKED_EVENTS, guard=g, on_protected=report, quiet=True,
+                      guard_warn=self.post_commit == "warn")
+
+    def _protected_in_child(self, event, reason):
+        self._reject_in_child("protected", f"{event}: {reason}", effects=[f"protected:{event}"])
 
     def _effect_in_child(self, event):
         self._reject_in_child("effect", f"attempted {event}", effects=[event])
@@ -345,6 +399,7 @@ class LiveHealer:
         P.write_all(1, p.cap.out)                    # held-back output, now released
         P.write_all(2, p.cap.err)
         effects, fs = P.end_watch()
+        self._watch_after_commit(p)
         res = p.record.result
         res.status, res.validated_at, res.fs_effects = LiveStatus.COMMITTED, where, fs
         res.continuation_error = error
@@ -411,6 +466,7 @@ class LiveHealer:
         info = verdict[1]
         status = {"error": LiveStatus.REJECTED_REPAIR_ERROR, "check": LiveStatus.REJECTED_CHECK,
                   "effect": LiveStatus.REJECTED_EXTERNAL_EFFECT,
+                  "protected": LiveStatus.REJECTED_PROTECTED_OPERATION,
                   "recurrence": LiveStatus.REJECTED_RECURRENCE,
                   "timeout": LiveStatus.REJECTED_TIMEOUT,
                   "died": LiveStatus.REJECTED_CHILD_DIED}[info["verdict"]]
@@ -473,6 +529,10 @@ def write_log(path, rec: HealRecord):
                 invalid_commit_changes=res.invalid_commit_changes if res else [],
                 check_would_fail=res.check_would_fail if res else "",
                 category=res.category if res else "none")
+    write_line(path, line)
+
+
+def write_line(path, line: dict):
     fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
     try:
         os.write(fd, (json.dumps(line) + "\n").encode())

@@ -442,3 +442,42 @@ def test_failed_check_rejects(tmp_path):
     assert p.stdout.strip() == "original error"
     entry = json.loads((tmp_path / "check.jsonl").read_text().splitlines()[0])
     assert entry["status"] == "REJECTED_CHECK" and "v must be an int" in entry["reason"]
+
+
+# ---- protected operations after the validation point ----------------------------------
+def _late_program(tmp_path):
+    (tmp_path / "victim_late.txt").write_text("keep me")
+    return """
+        import os
+        def g(c):
+            v = c['name']
+            return v
+        r = g({})
+        os.remove(r)
+        print('after remove')
+        """
+
+
+def test_post_commit_block_stops_a_delete_of_the_repairs_value(tmp_path):
+    prog = _late_program(tmp_path)
+    p, log = run_live(tmp_path, prog, [{"match": "c['name']", "code": "v = 'victim_late.txt'"}],
+                      "--post-commit", "block", hook=True)
+    assert (tmp_path / "victim_late.txt").exists()
+    assert any(e["status"] == "post-commit protected operation" and e["action"] == "blocked"
+               for e in log)
+
+
+def test_post_commit_warn_lets_it_run_but_logs_it(tmp_path):
+    prog = _late_program(tmp_path)
+    p, log = run_live(tmp_path, prog, [{"match": "c['name']", "code": "v = 'victim_late.txt'"}])
+    assert not (tmp_path / "victim_late.txt").exists()
+    assert any(e["status"] == "post-commit protected operation" and e["action"] == "warned"
+               for e in log)
+
+
+def test_post_commit_off_is_silent(tmp_path):
+    prog = _late_program(tmp_path)
+    p, log = run_live(tmp_path, prog, [{"match": "c['name']", "code": "v = 'victim_late.txt'"}],
+                      "--post-commit", "off")
+    assert not (tmp_path / "victim_late.txt").exists()
+    assert not any(e["status"] == "post-commit protected operation" for e in log)

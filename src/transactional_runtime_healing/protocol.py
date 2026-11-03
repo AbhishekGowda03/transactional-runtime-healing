@@ -7,7 +7,7 @@ This module holds (a) `transactional_heal`, where the child continues the
 program, and (b) the trial machinery shared with `heal_point` (trial in a child,
 commit by replay in the live process).
 
-Design decisions (to be stated in the methodology chapter):
+Design decisions:
 
 * Commit in `transactional_heal` = the child continues the program (`resume`)
   and reports the result to the parent through a pipe; the parent returns it.
@@ -107,20 +107,55 @@ _BLOCKED_EVENTS = {
 _FS_EVENTS = {"os.remove", "os.rename", "os.mkdir", "os.rmdir", "os.truncate",
               "shutil.rmtree", "shutil.move", "os.chmod", "os.chown", "os.utime",
               "os.link", "os.symlink"}
+# Protected operations (proposal check 2, see taint.py): the audit events a guard may police.
+# "open" means opening a file for writing. This is the default list; a guard can be given
+# another one (HealGuard uses a list declared per repository).
+PROTECTED_EVENTS = frozenset({
+    "open", "os.remove", "os.rename", "os.rmdir", "os.truncate", "shutil.rmtree", "shutil.move",
+    "os.chmod", "os.chown", "os.link", "os.symlink", "os.mkdir", "sqlite3.connect",
+    "socket.connect", "socket.sendto", "subprocess.Popen", "os.system", "os.posix_spawn",
+})
 _WRITE_FLAGS = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
+_LIST_CAP = 10_000                                # recorded events kept per watch
 
 _trial = {"active": False, "effects": [], "fs": [], "allow": frozenset(), "on_effect": None,
-          "record_only": False}
+          "record_only": False, "guard": None, "on_protected": None, "protected": [],
+          "guard_warn": False, "quiet": False, "busy": False}
 _hook_installed = False
 
 
-def _audit_hook(event, args):
-    if not _trial["active"]:
+def _protected_check(guard, event, args):
+    reason = guard(event, args)
+    if not reason:
         return
+    if len(_trial["protected"]) < _LIST_CAP:
+        _trial["protected"].append(f"{event}: {reason}")   # flag: cannot be swallowed
+    if _trial["on_protected"] is not None:
+        _trial["busy"] = True                     # the callback may open files (the log)
+        try:
+            _trial["on_protected"](event, reason)
+        finally:
+            _trial["busy"] = False
+    if not _trial["guard_warn"]:
+        raise ExternalEffectBlocked(event)        # stop the operation (warn mode lets it run)
+
+
+def _record(kind, text):
+    if not _trial["quiet"] and len(_trial[kind]) < _LIST_CAP:
+        _trial[kind].append(text)
+
+
+def _audit_hook(event, args):
+    if not _trial["active"] or _trial["busy"]:
+        return
+    guard = _trial["guard"]
     if event in _BLOCKED_EVENTS and event not in _trial["allow"]:
+        if _trial["record_only"]:                # plain healing: record the effect, do not stop
+            if guard is not None and event in guard.events:       # it, unless it is a
+                _protected_check(guard, event, args)             # protected operation
+            _record("effects", event)            # (a stopped operation did not happen)
+            return
         _trial["effects"].append(event)          # flag: cannot be swallowed
-        if _trial["record_only"]:
-            return                               # plain healing: record the effect, do not stop it
         if _trial["on_effect"] is not None:
             _trial["on_effect"](event)           # e.g. reject the trial at once
         raise ExternalEffectBlocked(event)       # and stop the effect
@@ -129,9 +164,14 @@ def _audit_hook(event, args):
         writes = (isinstance(mode, str) and any(c in mode for c in "wax+")) or \
                  (isinstance(flags, int) and flags & _WRITE_FLAGS)
         if writes and "__pycache__" not in str(path):
-            _trial["fs"].append(f"open-write:{path}")
-    elif event in _FS_EVENTS:
-        _trial["fs"].append(f"{event}:{args[0] if args else ''}")
+            if guard is not None and "open" in guard.events:
+                _protected_check(guard, event, args)
+            _record("fs", f"open-write:{path}")
+    else:
+        if guard is not None and event in guard.events:
+            _protected_check(guard, event, args)
+        if event in _FS_EVENTS:
+            _record("fs", f"{event}:{args[0] if args else ''}")
 
 
 def install_hook():
@@ -141,19 +181,27 @@ def install_hook():
         _hook_installed = True
 
 
-def begin_watch(allow=frozenset(), on_effect=None, record_only=False):
+def begin_watch(allow=frozenset(), on_effect=None, record_only=False, guard=None,
+                on_protected=None, guard_warn=False, quiet=False):
     """Switch effect detection on (clears earlier records).
 
     allow     -- audit events that are NOT blocked (for example "ctypes.dlopen" when
                  the program imports libraries that use ctypes)
     on_effect -- called with the event name when an external effect is attempted,
                  before the exception is raised (the live trial uses it to reject at once)
+    guard     -- callable(event, args) -> reason or None; when it returns a reason the
+                 protected operation is stopped and listed in `protected_events()`
+                 (taint.TaintGuard, proposal check 2)
+    on_protected -- called with (event, reason) before the exception is raised
+    guard_warn -- report protected operations but do not stop them (after a commit)
+    quiet     -- do not keep lists of effects and file writes (long-running watch)
     record_only -- list external effects in the result but let them happen (plain healing:
                  the baseline has no protection, the log still says what it did)
     """
     install_hook()
     _trial.update(active=True, effects=[], fs=[], allow=frozenset(allow), on_effect=on_effect,
-                  record_only=record_only)
+                  record_only=record_only, guard=guard, on_protected=on_protected, protected=[],
+                  guard_warn=guard_warn, quiet=quiet)
 
 
 def end_watch() -> Tuple[List[str], List[str]]:
@@ -161,7 +209,16 @@ def end_watch() -> Tuple[List[str], List[str]]:
     _trial["active"] = False
     _trial["on_effect"] = None
     _trial["record_only"] = False
+    _trial["guard"] = None
+    _trial["on_protected"] = None
+    _trial["guard_warn"] = False
+    _trial["quiet"] = False
     return list(_trial["effects"]), list(_trial["fs"])
+
+
+def protected_events() -> List[str]:
+    """Protected operations stopped by the guard since begin_watch (survives end_watch)."""
+    return list(_trial["protected"])
 
 
 def fd_offsets():

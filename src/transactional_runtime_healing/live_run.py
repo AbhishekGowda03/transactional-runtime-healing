@@ -41,6 +41,13 @@ def main(argv=None):
     ap.add_argument("--log")
     ap.add_argument("--mode", choices=("live", "plain"), default="live")
     ap.add_argument("--meter", action="store_true")
+    ap.add_argument("--guard", choices=("heal-phase", "taint"), nargs="?", const="taint",
+                    help="plain mode: heal-phase = stop protected operations of the healing "
+                         "code only; taint = also follow values it introduced (HealGuard-style)")
+    ap.add_argument("--post-commit", choices=("off", "warn", "block"), default="warn",
+                    help="live mode: guard behaviour after the validation point")
+    ap.add_argument("--no-guard", action="store_true",
+                    help="live mode: switch the protected-operations check off")
     ap.add_argument("--timeout", type=float, default=60.0)
     ap.add_argument("--recurrence", choices=("commit", "reject"), default="commit")
     ap.add_argument("--allow", action="append", default=[])
@@ -56,10 +63,11 @@ def main(argv=None):
         return 0
     if ns.mode == "plain":
         healer = PlainHealer(rules_propose(rules), timeout=ns.timeout, log_path=ns.log,
-                             meter_state=ns.meter)
+                             meter_state=ns.meter, guard=ns.guard or False)
     else:
         healer = LiveHealer(rules_propose(rules), timeout=ns.timeout, recurrence=ns.recurrence,
-                            allow_events=ns.allow, log_path=ns.log, meter_state=ns.meter)
+                            allow_events=ns.allow, log_path=ns.log, meter_state=ns.meter,
+                            guard=not ns.no_guard, post_commit=ns.post_commit)
     sys.argv = [ns.program]
     run_instrumented(source, healer, filename=ns.program,
                      globals_={"__name__": "__main__", "__file__": ns.program})
