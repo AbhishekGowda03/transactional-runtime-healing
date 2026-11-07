@@ -1,0 +1,3 @@
+{"nodeid": "sympy/functions/elementary/tests/test_hyperbolic.py::test_coth", "name": "test_coth", "when": "call", "outcome": "failed", "exc_type": "NameError", "exc_msg": "name 'cotm' is not defined", "raised_at": "sympy/functions/elementary/hyperbolic.py:590", "raised_in_repo_code": true, "repo_frames": 5}
+{"nodeid": "sympy/functions/elementary/tests/test_hyperbolic.py::test_coth_series", "name": "test_coth_series", "when": "call", "outcome": "passed"}
+{"nodeid": "sympy/functions/elementary/tests/test_hyperbolic.py::test_coth_rewrite", "name": "test_coth_rewrite", "when": "call", "outcome": "passed"}

@@ -317,3 +317,52 @@ def test_handler_expression_with_a_call_is_not_evaluated():
            "result = main()\n")
     g, h = run(src, by_statement({"d['x']": "_eh_rtn = 1"}))
     assert g["result"] == 1
+
+def test_function_with_parameters_named_like_builtins_still_works():
+    src = ("def f(locals=None, globals=None, dict=None):\n"
+           "    x = 1 / 0\n"
+           "    return x\n"
+           "result = f()\n")
+    g, _ = run(src, by_statement({"1 / 0": "x = 5"}))
+    assert g["result"] == 5
+
+
+def test_failing_if_condition_is_repaired_by_supplying_its_truth_value():
+    src = ("def f(x):\n"
+           "    if undefined_name > x:\n"
+           "        return 'big'\n"
+           "    else:\n"
+           "        return 'small'\n"
+           "result = f(1)\n")
+    seen = []
+
+    def propose(ctx):
+        seen.append(ctx.statement)
+        return "_eh_cond = False"
+    g, _ = run(src, propose)
+    assert g["result"] == "small" and seen == ["if undefined_name > x:"]
+
+
+def test_if_condition_repair_that_sets_nothing_is_falsy_and_elif_chains_work():
+    src = ("def f(x):\n"
+           "    if x == 1:\n"
+           "        return 'one'\n"
+           "    elif bad_name:\n"
+           "        return 'bad'\n"
+           "    else:\n"
+           "        return 'other'\n"
+           "result = (f(1), f(2))\n")
+    g, _ = run(src, lambda ctx: "_eh_cond = True")
+    assert g["result"] == ("one", "bad")
+
+
+def test_global_declarations_do_not_stop_instrumentation():
+    src = ("counter = 0\n"
+           "def bump():\n"
+           "    global counter\n"
+           "    counter = counter + 1\n"
+           "    y = 1 / 0\n"
+           "    return y\n"
+           "result = bump()\n")
+    g, _ = run(src, by_statement({"1 / 0": "y = 7"}))
+    assert g["result"] == 7 and g["counter"] == 1

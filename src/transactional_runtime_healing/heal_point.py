@@ -171,6 +171,14 @@ def missing_targets(statement: str, locals_: dict, globals_: dict, env: dict, co
     healing code never assigns `_eh_rtn`, so the function would return None. Statements of
     other kinds, and statements that cannot be parsed, require nothing. This is a
     completeness check: the repair has to supply what the statement would have produced."""
+    if statement.lstrip().startswith("if ") and statement.rstrip().endswith(":"):
+        try:                    # an `if` condition (instrumented as `_eh_cond = COND`)
+            tree = ast.parse(code)
+        except SyntaxError:
+            return []
+        stored = any(isinstance(n, ast.Name) and n.id == "_eh_cond"
+                     and isinstance(n.ctx, ast.Store) for n in ast.walk(tree))
+        return [] if stored else ["_eh_cond"]
     try:
         node = ast.parse(textwrap.dedent(statement.strip())).body[0]
         tree = ast.parse(code)

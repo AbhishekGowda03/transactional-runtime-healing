@@ -46,11 +46,15 @@ def test_runs_need_a_temperature_and_a_dead_model_is_reported_as_an_error(tmp_pa
     finally:
         f.close()
     other = Fake(["x"])
-    try:                                              # nothing listens on port 9
+    import socket
+    dead = socket.socket()                            # bound but not listening: connections are
+    dead.bind(("127.0.0.1", 0))                       # refused at once (a fixed port can hang)
+    try:
         data, md, _ = run_runner(tmp_path, other, "--settings", "plain",
-                                 env_extra=dict(TXH_API_BASE="http://127.0.0.1:9/v1"))
+                                 env_extra=dict(TXH_API_BASE=f"http://127.0.0.1:{dead.getsockname()[1]}/v1"))
     finally:
         other.close()
+        dead.close()
     assert data["rows"][0]["model_error"] and "WARNING" in md
 
 

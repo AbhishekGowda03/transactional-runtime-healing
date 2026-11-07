@@ -176,6 +176,7 @@ def test_dotenv_is_read_but_the_environment_wins(tmp_path, monkeypatch):
                                    "OTHER=ignored\nTXH_MAX_CALLS=7\n")
     sub = tmp_path / "a" / "b"
     sub.mkdir(parents=True)
+    monkeypatch.delenv("TXH_IGNORE_DOTENV")
     for k in ("TXH_MODEL", "TXH_API_BASE", "TXH_MAX_CALLS", "OTHER"):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("TXH_MAX_CALLS", "99")
@@ -286,3 +287,81 @@ def test_return_name_is_only_mentioned_for_a_return():
     assert "_eh_rtn" not in llm.system_prompt("rules", "r = a / b")
     assert "_eh_rtn" in llm.system_prompt("rules", "return a / b")
     assert "_eh_rtn" in llm.system_prompt("minimal", "    return x")
+
+
+def test_request_options_for_reasoning_models(tmp_path, fake, monkeypatch):
+    f = fake()
+    monkeypatch.setenv("TXH_TOKEN_PARAM", "max_completion_tokens")
+    monkeypatch.setenv("TXH_MAX_TOKENS", "2000")
+    monkeypatch.setenv("TXH_SEND_TEMPERATURE", "0")
+    monkeypatch.setenv("TXH_EXTRA_BODY", '{"reasoning_effort": "low"}')
+    p = llm.LLMPropose(model="m", api_base=f.url, cache_dir=str(tmp_path / "c"))
+    assert p(ctx(tmp_path)) == "v = 0"
+    body = f.requests[0]
+    assert body["max_completion_tokens"] == 2000 and "max_tokens" not in body
+    assert "temperature" not in body and body["reasoning_effort"] == "low"
+    # the default request is unchanged, and has its own cache entry
+    for k in ("TXH_TOKEN_PARAM", "TXH_MAX_TOKENS", "TXH_SEND_TEMPERATURE", "TXH_EXTRA_BODY"):
+        monkeypatch.delenv(k)
+    q = llm.LLMPropose(model="m", api_base=f.url, cache_dir=str(tmp_path / "c"))
+    q(ctx(tmp_path))
+    assert f.requests[1]["max_tokens"] == 400 and f.requests[1]["temperature"] == 0.0
+    monkeypatch.setenv("TXH_EXTRA_BODY", "[1]")
+    with pytest.raises(ValueError):
+        llm.LLMPropose(model="m", api_base=f.url)
+
+
+def test_http_error_shows_the_apis_message_but_not_for_key_errors(tmp_path):
+    class H(BaseHTTPRequestHandler):
+        def do_POST(self):
+            self.rfile.read(int(self.headers["Content-Length"]))
+            code = 401 if "bad-key" in (self.headers.get("Authorization") or "") else 400
+            msg = "Incorrect API key provided: sk-...abcd" if code == 401 else \
+                "Unsupported parameter: 'max_tokens'. Use 'max_completion_tokens' instead."
+            out = json.dumps(dict(error=dict(message=msg))).encode()
+            self.send_response(code)
+            self.send_header("Content-Length", str(len(out)))
+            self.end_headers()
+            self.wfile.write(out)
+
+        def log_message(self, *a):
+            pass
+    srv = HTTPServer(("127.0.0.1", 0), H)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    url = f"http://127.0.0.1:{srv.server_port}/v1"
+    try:
+        p = llm.LLMPropose(model="m", api_base=url, cache_dir=str(tmp_path / "c"))
+        with pytest.raises(llm.LLMError, match="max_completion_tokens"):
+            p._chat([dict(role="user", content="x")])
+        p2 = llm.LLMPropose(model="m", api_base=url, api_key="bad-key", cache_dir=str(tmp_path / "d"))
+        with pytest.raises(llm.LLMError) as e:
+            p2._chat([dict(role="user", content="x")])
+        assert "HTTP 401" in str(e.value) and "sk-" not in str(e.value)
+    finally:
+        srv.shutdown()
+
+
+def test_transient_errors_are_retried_and_permanent_ones_are_not(tmp_path):
+    from transactional_runtime_healing.llm import LLMError, LLMPropose
+    p = LLMPropose(model="m", api_base="http://127.0.0.1:9/v1", cache_dir=str(tmp_path))
+    calls = []
+
+    def flaky(messages):
+        calls.append(1)
+        if len(calls) < 3:
+            e = LLMError("HTTP 503")
+            e.transient = True
+            raise e
+        return "ok", {}
+    p._chat_once = flaky
+    assert p._chat([]) == ("ok", {}) and len(calls) == 3
+
+    calls.clear()
+
+    def refused(messages):
+        calls.append(1)
+        raise LLMError("HTTP 400")
+    p._chat_once = refused
+    with pytest.raises(LLMError):
+        p._chat([])
+    assert len(calls) == 1

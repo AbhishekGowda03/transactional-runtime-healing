@@ -1,0 +1,1 @@
+{"calls": 0, "cache_hits": 2, "misses": 0, "declined": 0, "invalid": 0, "truncated": 0, "errors": 0, "unavailable": false, "prompt_tokens": 1524, "completion_tokens": 116, "budget_exhausted": false, "model": "gpt-6-luna", "run_id": "1", "prompt": "rules", "temperature": 0.0}

@@ -36,6 +36,7 @@ their own; a crash inside them is caught by the statement around them. Only
 `Exception` is caught.
 """
 import ast
+import os
 from dataclasses import dataclass, field
 import sys
 from typing import Any, Callable, Dict, List, Optional
@@ -57,6 +58,21 @@ _SOURCE_LIMIT = 4000
 # ----------------------------------------------------------------------
 # Names that are local to a function (these can be assigned by the handler)
 # ----------------------------------------------------------------------
+def _declared_global(fn) -> set:
+    """Names the function declares `global` or `nonlocal` (not its own scope's locals)."""
+    out = set()
+
+    def walk(node):
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)):
+                continue
+            if isinstance(child, (ast.Global, ast.Nonlocal)):
+                out.update(child.names)
+            walk(child)
+    walk(fn)
+    return out
+
+
 def _local_names(fn) -> List[str]:
     names = set()
     a = fn.args
@@ -92,6 +108,9 @@ def _local_names(fn) -> List[str]:
                     names.add((alias.asname or alias.name).split(".")[0])
             walk(ast.Module(body=[stmt], type_ignores=[]))
     names.add("_eh_rtn")
+    names.add("_eh_cond")
+    # `global x` / `nonlocal x`: the handler must not assign them (a SyntaxError otherwise)
+    names -= _declared_global(fn)
     # names starting with "__" would be mangled inside classes; the handler's own names
     return sorted(n for n in names if not n.startswith("__"))
 
@@ -149,6 +168,10 @@ class _Instrumenter:
 
         if isinstance(stmt, ast.Return):
             return self.wrap_return(stmt, names, expected, func)
+        if isinstance(stmt, ast.If) and not any(
+                isinstance(n, (ast.NamedExpr, ast.Await, ast.Yield, ast.YieldFrom))
+                for n in ast.walk(stmt.test)):
+            return self.wrap_condition(stmt, names, expected, func)
         return [self.wrap(stmt, names, expected, func)]
 
     def recurse(self, stmt, names, expected, func):
@@ -184,20 +207,28 @@ class _Instrumenter:
 
     # -- wrapping --------------------------------------------------------
     def handler_body(self, stmt, names, expected, func, lineno):
-        segment = ast.get_source_segment(self.source, stmt) or ""
+        segment = getattr(stmt, "_eh_segment", None) or ast.get_source_segment(self.source, stmt) or ""
         site = (self.filename, lineno, func, segment[:_SOURCE_LIMIT])
         lines = []
         types = [e for e in expected if e]
         if types:
             lines.append(f"if isinstance(__eh_e, ({', '.join(types)},)): raise")
-        loc = "dict(locals())" if names is not None else "{}"
-        lines.append(f"__eh_r = __heal__(__eh_e, {loc}, globals(), {site!r})")
+        # no builtin names here: a function may have a parameter called `locals` or `dict`
+        frame = "__import__('sys')._getframe()"
+        loc = f"{frame}.f_locals.copy()" if names is not None else "{}"
+        lines.append(f"__eh_r = __heal__(__eh_e, {loc}, {frame}.f_globals, {site!r})")
         lines.append("if __eh_r is None: raise")
         for n in (names or []):
             lines.append(f"if {n!r} in __eh_r.bindings: {n} = __eh_r.bindings[{n!r}]")
-        lines.append(f"__heal_apply__(__eh_r, globals(), "
+        lines.append(f"__heal_apply__(__eh_r, {frame}.f_globals, "
                      f"{tuple(names) if names is not None else None!r}, {self.filename!r})")
-        return ast.parse("\n".join(lines)).body
+        body = ast.parse("\n".join(lines)).body
+        for top in body:                                   # tracebacks must point at the statement
+            for n in ast.walk(top):
+                if hasattr(n, "lineno"):
+                    n.lineno = n.end_lineno = lineno
+                    n.col_offset, n.end_col_offset = 0, 0
+        return body
 
     def wrap(self, stmt, names, expected, func):
         node = ast.Try(
@@ -208,6 +239,22 @@ class _Instrumenter:
                                                                stmt.lineno))],
             orelse=[], finalbody=[])
         return ast.copy_location(node, stmt)
+
+    def wrap_condition(self, stmt, names, expected, func):
+        """`if COND:` becomes `_eh_cond = COND` (a heal point of its own, so a failure in the
+        condition can be repaired by supplying its truth value) followed by `if _eh_cond:`.
+        The whole `if` is still a heal point for failures inside its branches."""
+        text = ast.get_source_segment(self.source, stmt.test) or ast.unparse(stmt.test)
+        init = ast.parse("_eh_cond = None").body[0]
+        assign = ast.Assign(targets=[ast.Name(id="_eh_cond", ctx=ast.Store())], value=stmt.test)
+        ast.copy_location(assign, stmt.test)
+        assign._eh_segment = f"if {text}:"
+        new_if = ast.If(test=ast.Name(id="_eh_cond", ctx=ast.Load()), body=stmt.body,
+                        orelse=stmt.orelse)
+        ast.copy_location(new_if, stmt)
+        ast.copy_location(init, stmt)
+        return [init, self.wrap(assign, names, expected, func),
+                self.wrap(new_if, names, expected, func)]
 
     def wrap_return(self, stmt, names, expected, func):
         init = ast.parse("_eh_rtn = None").body[0]
@@ -257,6 +304,36 @@ def _plain_names(expr: str) -> bool:
                for n in ast.walk(tree))
 
 
+# Off by default; the pytest plugin switches it on, because there the test code is the program's caller.
+EXPECT_FROM_TESTS = False
+_EXPECT_WORDS = ("raises(", "assertRaises", "pytest.raises", "assertRaisesRegex")
+
+
+def _test_expects_exception(f) -> bool:
+    """Is the test function frame `f` inside `with raises(...)` / `raises(E, lambda: ...)` /
+    `assertRaises` at its current line? Test code is not instrumented, so this is read from
+    its source text: the current line, or an enclosing `with` line with less indentation."""
+    import linecache
+    name = f.f_code.co_filename
+    base = os.path.basename(name)
+    if not (base.startswith("test_") or base.endswith("_test.py") or "tests" in name.split(os.sep)):
+        return False
+    line = linecache.getline(name, f.f_lineno)
+    if any(w in line for w in _EXPECT_WORDS):
+        return True
+    indent = len(line) - len(line.lstrip())
+    for n in range(f.f_lineno - 1, max(f.f_lineno - 40, 0), -1):
+        prev = linecache.getline(name, n)
+        if not prev.strip():
+            continue
+        pind = len(prev) - len(prev.lstrip())
+        if pind < indent:
+            if prev.lstrip().startswith("with ") and any(w in prev for w in _EXPECT_WORDS):
+                return True
+            indent = pind
+    return False
+
+
 def handled_by_caller(exc, frame, globals_=None, filename=None) -> bool:
     """True if a function further up the stack is inside a `try` whose handler catches `exc`.
     Healing there would change what the program does, because the program expects and
@@ -282,6 +359,8 @@ def handled_by_caller(exc, frame, globals_=None, filename=None) -> bool:
                         return True
                 except Exception:
                     pass
+        elif EXPECT_FROM_TESTS and _test_expects_exception(f):          # the test asserts that this exception is raised
+            return True
         f = f.f_back
     return False
 

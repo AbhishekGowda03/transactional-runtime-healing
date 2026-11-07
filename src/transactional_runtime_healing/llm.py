@@ -63,7 +63,11 @@ from typing import Optional
 
 def load_dotenv(start=None) -> Optional[str]:
     """Read TXH_* settings from the nearest `.env` file (this folder or a parent). Values
-    already in the environment are kept. Returns the path that was read, if any."""
+    already in the environment are kept. Returns the path that was read, if any.
+    TXH_IGNORE_DOTENV=1 turns it off (the test suite sets it, so a developer's own `.env`
+    cannot change what the tests see)."""
+    if os.environ.get("TXH_IGNORE_DOTENV"):
+        return None
     d = os.path.abspath(start or os.getcwd())
     while True:
         path = os.path.join(d, ".env")
@@ -99,6 +103,9 @@ names on the left side of the failing statement (for `r = a / b` assign `r`) and
 value."""
 _TARGET_RETURN = """- The failing statement is a `return`. Assign the value that should be returned to the \
 variable `_eh_rtn` and to nothing else."""
+_TARGET_COND = """- The failing statement is the condition of an `if`. Assign the truth value the condition \
+should have (True or False) to the variable `_eh_cond` and to nothing else. The program then \
+runs the matching branch of the `if`."""
 _SAFETY_RULE = """- Keep the code minimal. Do not print. Do not read or write files, start processes, use the \
 network, or change global settings. Do not modify objects that are shared with the rest of the \
 program unless that is the only way to repair the failure."""
@@ -121,7 +128,13 @@ PROMPTS = {
 
 def system_prompt(name: str, statement: str) -> str:
     """The system message for a prompt variant and the failing statement."""
-    target = _TARGET_RETURN if statement.lstrip().startswith("return") else _TARGET_ASSIGN
+    st = statement.lstrip()
+    if st.startswith("return"):
+        target = _TARGET_RETURN
+    elif st.startswith("if ") and st.rstrip().endswith(":"):
+        target = _TARGET_COND
+    else:
+        target = _TARGET_ASSIGN
     return PROMPTS[name].replace("{target}", target)
 
 
@@ -177,7 +190,7 @@ def build_prompt(ctx) -> str:
     exc = ctx.exception
     tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__)[-6:])
     tb = _stable(re.sub(r'File "([^"]*[/\\])?([^"/\\]+)"', r'File "\2"', tb))
-    names = [n for n in ctx.locals_ if not n.startswith("__") and n != "_eh_rtn"][:30]
+    names = [n for n in ctx.locals_ if not n.startswith("__") and n not in ("_eh_rtn", "_eh_cond")][:30]
     local_lines = "\n".join(f"  {n} = {_short(ctx.locals_[n])}  # {type(ctx.locals_[n]).__name__}"
                             for n in names) or "  (none)"
     src = _function_source(ctx.filename, ctx.lineno)
@@ -302,6 +315,18 @@ class LLMPropose:
 
     # -- the call ---------------------------------------------------------------------
     def _chat(self, messages):
+        """One request, retried a few times when the failure is transient (network error,
+        timeout, HTTP 429 or 5xx): an unreachable model must not look like 'no repair'."""
+        delays = [float(x) for x in os.environ.get("TXH_RETRY_DELAYS", "2,6,15").split(",") if x.strip()]
+        for delay in [*delays, None]:
+            try:
+                return self._chat_once(messages)
+            except LLMError as e:
+                if delay is None or not getattr(e, "transient", False):
+                    raise
+                time.sleep(delay)
+
+    def _chat_once(self, messages):
         headers = {"Content-Type": "application/json"}
         if self.style == "anthropic":                      # Anthropic Messages API
             system = "\n".join(m["content"] for m in messages if m["role"] == "system")
@@ -337,9 +362,13 @@ class LLMPropose:
                     detail = ": " + str(err.get("message", err) if isinstance(err, dict) else err)[:300]
                 except Exception:
                     pass
-            raise LLMError(f"HTTP {e.code} from {self.api_base}{detail}") from None
+            err = LLMError(f"HTTP {e.code} from {self.api_base}{detail}")
+            err.transient = e.code == 429 or e.code >= 500
+            raise err from None
         except (urllib.error.URLError, OSError, ValueError) as e:
-            raise LLMError(f"cannot reach {self.api_base}: {type(e).__name__}") from None
+            err = LLMError(f"cannot reach {self.api_base}: {type(e).__name__}")
+            err.transient = True
+            raise err from None
         try:
             if self.style == "anthropic":
                 reply = "".join(b.get("text", "") for b in data["content"])

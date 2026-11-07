@@ -1,0 +1,39 @@
+F
+=================================== FAILURES ===================================
+________________________ test_latex_SingularityFunction ________________________
+
+    def test_latex_SingularityFunction():
+        assert latex(SingularityFunction(x, 4, 5)) == \
+            r"{\left\langle x - 4 \right\rangle}^{5}"
+        assert latex(SingularityFunction(x, -3, 4)) == \
+            r"{\left\langle x + 3 \right\rangle}^{4}"
+        assert latex(SingularityFunction(x, 0, 4)) == \
+            r"{\left\langle x \right\rangle}^{4}"
+        assert latex(SingularityFunction(x, a, n)) == \
+            r"{\left\langle - a + x \right\rangle}^{n}"
+        assert latex(SingularityFunction(x, 4, -2)) == \
+            r"{\left\langle x - 4 \right\rangle}^{-2}"
+        assert latex(SingularityFunction(x, 4, -1)) == \
+            r"{\left\langle x - 4 \right\rangle}^{-1}"
+    
+>       assert latex(SingularityFunction(x, 4, 5)**3) == \
+            r"{\left({\langle x - 4 \rangle}^{5}\right)}^{3}"
+E       AssertionError: assert '{\\left\\lan...ngle}^{5}^{3}' == '{\\left({\\l...\\right)}^{3}'
+E         - {\left({\langle x - 4 \rangle}^{5}\right)}^{3}
+E         ?       --                          --------
+E         + {\left\langle x - 4 \right\rangle}^{5}^{3}
+E         ?                     ++++++
+
+sympy/printing/tests/test_latex.py:217: AssertionError
+=============================== warnings summary ===============================
+../../venvs/py3.9-pytest-mpmath/lib/python3.9/site-packages/_pytest/config/__init__.py:1233
+  /home/abhis/swe_work/venvs/py3.9-pytest-mpmath/lib/python3.9/site-packages/_pytest/config/__init__.py:1233: PytestConfigWarning: Unknown config option: doctestplus
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/warnings.html
+                                DO *NOT* COMMIT!                                
+runtime healing: 448 modules instrumented, 0 left unchanged
+=========================== short test summary info ============================
+FAILED sympy/printing/tests/test_latex.py::test_latex_SingularityFunction - A...
+1 failed, 155 deselected, 1 warning in 90.26s (0:01:30)

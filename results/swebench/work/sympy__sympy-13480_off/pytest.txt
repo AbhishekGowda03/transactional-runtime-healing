@@ -1,0 +1,142 @@
+F..
+=================================== FAILURES ===================================
+__________________________________ test_coth ___________________________________
+
+    def test_coth():
+        x, y = symbols('x,y')
+    
+        k = Symbol('k', integer=True)
+    
+        assert coth(nan) == nan
+        assert coth(zoo) == nan
+    
+        assert coth(oo) == 1
+        assert coth(-oo) == -1
+    
+        assert coth(0) == coth(0)
+        assert coth(0) == zoo
+        assert coth(1) == coth(1)
+        assert coth(-1) == -coth(1)
+    
+        assert coth(x) == coth(x)
+        assert coth(-x) == -coth(x)
+    
+        assert coth(pi*I) == -I*cot(pi)
+        assert coth(-pi*I) == cot(pi)*I
+    
+        assert coth(2**1024 * E) == coth(2**1024 * E)
+        assert coth(-2**1024 * E) == -coth(2**1024 * E)
+    
+        assert coth(pi*I) == -I*cot(pi)
+        assert coth(-pi*I) == I*cot(pi)
+        assert coth(2*pi*I) == -I*cot(2*pi)
+        assert coth(-2*pi*I) == I*cot(2*pi)
+        assert coth(-3*10**73*pi*I) == I*cot(3*10**73*pi)
+        assert coth(7*10**103*pi*I) == -I*cot(7*10**103*pi)
+    
+        assert coth(pi*I/2) == 0
+        assert coth(-pi*I/2) == 0
+        assert coth(5*pi*I/2) == 0
+        assert coth(7*pi*I/2) == 0
+    
+        assert coth(pi*I/3) == -I/sqrt(3)
+        assert coth(-2*pi*I/3) == -I/sqrt(3)
+    
+        assert coth(pi*I/4) == -I
+        assert coth(-pi*I/4) == I
+        assert coth(17*pi*I/4) == -I
+        assert coth(-3*pi*I/4) == -I
+    
+        assert coth(pi*I/6) == -sqrt(3)*I
+        assert coth(-pi*I/6) == sqrt(3)*I
+        assert coth(7*pi*I/6) == -sqrt(3)*I
+        assert coth(-5*pi*I/6) == -sqrt(3)*I
+    
+        assert coth(pi*I/105) == -cot(pi/105)*I
+        assert coth(-pi*I/105) == cot(pi/105)*I
+    
+        assert coth(2 + 3*I) == coth(2 + 3*I)
+    
+        assert coth(x*I) == -cot(x)*I
+    
+        assert coth(k*pi*I) == -cot(k*pi)*I
+        assert coth(17*k*pi*I) == -cot(17*k*pi)*I
+    
+        assert coth(k*pi*I) == -cot(k*pi)*I
+    
+>       assert coth(log(tan(2))) == coth(log(-tan(2)))
+
+sympy/functions/elementary/tests/test_hyperbolic.py:275: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+sympy/core/cache.py:93: in wrapper
+    retval = cfunc(*args, **kwargs)
+sympy/core/function.py:439: in __new__
+    result = super(Function, cls).__new__(cls, *args, **options)
+sympy/core/cache.py:93: in wrapper
+    retval = cfunc(*args, **kwargs)
+sympy/core/function.py:250: in __new__
+    evaluated = cls.eval(*args)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = coth, arg = log(-tan(2)) + I*pi
+
+    @classmethod
+    def eval(cls, arg):
+        from sympy import cot
+        arg = sympify(arg)
+    
+        if arg.is_Number:
+            if arg is S.NaN:
+                return S.NaN
+            elif arg is S.Infinity:
+                return S.One
+            elif arg is S.NegativeInfinity:
+                return S.NegativeOne
+            elif arg is S.Zero:
+                return S.ComplexInfinity
+            elif arg.is_negative:
+                return -cls(-arg)
+        else:
+            if arg is S.ComplexInfinity:
+                return S.NaN
+    
+            i_coeff = arg.as_coefficient(S.ImaginaryUnit)
+    
+            if i_coeff is not None:
+                if _coeff_isneg(i_coeff):
+                    return S.ImaginaryUnit * cot(-i_coeff)
+                return -S.ImaginaryUnit * cot(i_coeff)
+            else:
+                if _coeff_isneg(arg):
+                    return -cls(-arg)
+    
+            if arg.is_Add:
+                x, m = _peeloff_ipi(arg)
+                if m:
+                    cothm = coth(m)
+>                   if cotm is S.ComplexInfinity:
+E                   NameError: name 'cotm' is not defined
+
+sympy/functions/elementary/hyperbolic.py:590: NameError
+=============================== warnings summary ===============================
+sympy/core/basic.py:3
+  /home/abhis/swe_work/repos/sympy__sympy/sympy/core/basic.py:3: DeprecationWarning: Using or importing the ABCs from 'collections' instead of from 'collections.abc' is deprecated since Python 3.3, and in 3.10 it will stop working
+    from collections import Mapping, defaultdict
+
+sympy/core/containers.py:271
+  /home/abhis/swe_work/repos/sympy__sympy/sympy/core/containers.py:271: DeprecationWarning: Using or importing the ABCs from 'collections' instead of from 'collections.abc' is deprecated since Python 3.3, and in 3.10 it will stop working
+    class OrderedSet(collections.MutableSet):
+
+sympy/solvers/diophantine.py:3188
+  /home/abhis/swe_work/repos/sympy__sympy/sympy/solvers/diophantine.py:3188: SyntaxWarning: "is" with a literal. Did you mean "=="?
+    if feasible is 1:  # it's prime and k == 2
+
+sympy/plotting/plot.py:28
+  /home/abhis/swe_work/repos/sympy__sympy/sympy/plotting/plot.py:28: DeprecationWarning: Using or importing the ABCs from 'collections' instead of from 'collections.abc' is deprecated since Python 3.3, and in 3.10 it will stop working
+    from collections import Callable
+
+-- Docs: https://docs.pytest.org/en/stable/warnings.html
+                                DO *NOT* COMMIT!                                
+=========================== short test summary info ============================
+FAILED sympy/functions/elementary/tests/test_hyperbolic.py::test_coth - NameE...
+1 failed, 2 passed, 42 deselected, 4 warnings in 0.37s

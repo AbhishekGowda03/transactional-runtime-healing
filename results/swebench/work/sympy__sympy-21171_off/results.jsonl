@@ -1,0 +1,1 @@
+{"nodeid": "sympy/printing/tests/test_latex.py::test_latex_SingularityFunction", "name": "test_latex_SingularityFunction", "when": "call", "outcome": "failed", "exc_type": "TypeError", "exc_msg": "_print_SingularityFunction() got an unexpected keyword argument 'exp'", "raised_at": "sympy/printing/printer.py:329", "raised_in_repo_code": true, "repo_frames": 7}

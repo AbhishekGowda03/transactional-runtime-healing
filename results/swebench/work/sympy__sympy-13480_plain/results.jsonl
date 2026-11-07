@@ -1,0 +1,3 @@
+{"nodeid": "sympy/functions/elementary/tests/test_hyperbolic.py::test_coth", "name": "test_coth", "when": "call", "outcome": "passed"}
+{"nodeid": "sympy/functions/elementary/tests/test_hyperbolic.py::test_coth_series", "name": "test_coth_series", "when": "call", "outcome": "passed"}
+{"nodeid": "sympy/functions/elementary/tests/test_hyperbolic.py::test_coth_rewrite", "name": "test_coth_rewrite", "when": "call", "outcome": "passed"}

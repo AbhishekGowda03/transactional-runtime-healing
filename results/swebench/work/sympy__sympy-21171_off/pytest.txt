@@ -1,0 +1,92 @@
+F
+=================================== FAILURES ===================================
+________________________ test_latex_SingularityFunction ________________________
+
+    def test_latex_SingularityFunction():
+        assert latex(SingularityFunction(x, 4, 5)) == \
+            r"{\left\langle x - 4 \right\rangle}^{5}"
+        assert latex(SingularityFunction(x, -3, 4)) == \
+            r"{\left\langle x + 3 \right\rangle}^{4}"
+        assert latex(SingularityFunction(x, 0, 4)) == \
+            r"{\left\langle x \right\rangle}^{4}"
+        assert latex(SingularityFunction(x, a, n)) == \
+            r"{\left\langle - a + x \right\rangle}^{n}"
+        assert latex(SingularityFunction(x, 4, -2)) == \
+            r"{\left\langle x - 4 \right\rangle}^{-2}"
+        assert latex(SingularityFunction(x, 4, -1)) == \
+            r"{\left\langle x - 4 \right\rangle}^{-1}"
+    
+>       assert latex(SingularityFunction(x, 4, 5)**3) == \
+            r"{\left({\langle x - 4 \rangle}^{5}\right)}^{3}"
+
+sympy/printing/tests/test_latex.py:217: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+sympy/printing/printer.py:373: in __call__
+    return self.__wrapped__(*args, **kwargs)
+sympy/printing/latex.py:2949: in latex
+    return LatexPrinter(settings).doprint(expr)
+sympy/printing/latex.py:254: in doprint
+    tex = Printer.doprint(self, expr)
+sympy/printing/printer.py:291: in doprint
+    return self._str(self._print(expr))
+sympy/printing/printer.py:329: in _print
+    return getattr(self, printmethod)(expr, **kwargs)
+sympy/printing/latex.py:651: in _print_Pow
+    return self._print(expr.base, exp=self._print(expr.exp))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sympy.printing.latex.LatexPrinter object at 0x7e2e8fd3edf0>
+expr = SingularityFunction(x, 4, 5), kwargs = {'exp': '3'}, i = 1
+cls = SingularityFunction, printmethod = '_print_SingularityFunction'
+
+    def _print(self, expr, **kwargs):
+        """Internal dispatcher
+    
+        Tries the following concepts to print an expression:
+            1. Let the object print itself if it knows how.
+            2. Take the best fitting method defined in the printer.
+            3. As fall-back use the emptyPrinter method for the printer.
+        """
+        self._print_level += 1
+        try:
+            # If the printer defines a name for a printing method
+            # (Printer.printmethod) and the object knows for itself how it
+            # should be printed, use that method.
+            if (self.printmethod and hasattr(expr, self.printmethod)
+                    and not isinstance(expr, BasicMeta)):
+                return getattr(expr, self.printmethod)(self, **kwargs)
+    
+            # See if the class of expr is known, or if one of its super
+            # classes is known, and use that print function
+            # Exception: ignore the subclasses of Undefined, so that, e.g.,
+            # Function('gamma') does not get dispatched to _print_gamma
+            classes = type(expr).__mro__
+            if AppliedUndef in classes:
+                classes = classes[classes.index(AppliedUndef):]
+            if UndefinedFunction in classes:
+                classes = classes[classes.index(UndefinedFunction):]
+            # Another exception: if someone subclasses a known function, e.g.,
+            # gamma, and changes the name, then ignore _print_gamma
+            if Function in classes:
+                i = classes.index(Function)
+                classes = tuple(c for c in classes[:i] if \
+                    c.__name__ == classes[0].__name__ or \
+                    c.__name__.endswith("Base")) + classes[i:]
+            for cls in classes:
+                printmethod = '_print_' + cls.__name__
+                if hasattr(self, printmethod):
+>                   return getattr(self, printmethod)(expr, **kwargs)
+E                   TypeError: _print_SingularityFunction() got an unexpected keyword argument 'exp'
+
+sympy/printing/printer.py:329: TypeError
+=============================== warnings summary ===============================
+../../venvs/py3.9-pytest-mpmath/lib/python3.9/site-packages/_pytest/config/__init__.py:1233
+  /home/abhis/swe_work/venvs/py3.9-pytest-mpmath/lib/python3.9/site-packages/_pytest/config/__init__.py:1233: PytestConfigWarning: Unknown config option: doctestplus
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/warnings.html
+                                DO *NOT* COMMIT!                                
+=========================== short test summary info ============================
+FAILED sympy/printing/tests/test_latex.py::test_latex_SingularityFunction - T...
+1 failed, 155 deselected, 1 warning in 0.74s

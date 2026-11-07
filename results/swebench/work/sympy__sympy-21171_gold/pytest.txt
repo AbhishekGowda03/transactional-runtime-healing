@@ -1,0 +1,9 @@
+.
+=============================== warnings summary ===============================
+../../venvs/py3.9-pytest-mpmath/lib/python3.9/site-packages/_pytest/config/__init__.py:1233
+  /home/abhis/swe_work/venvs/py3.9-pytest-mpmath/lib/python3.9/site-packages/_pytest/config/__init__.py:1233: PytestConfigWarning: Unknown config option: doctestplus
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/warnings.html
+1 passed, 155 deselected, 1 warning in 0.62s
