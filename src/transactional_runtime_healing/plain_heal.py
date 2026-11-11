@@ -18,7 +18,7 @@ detection and no validation. To compare it with the protocol, it still
   * reports separately, as `invalid_commit_changes`, the in-place changes of a repair that
     was applied although a check fails (the protocol would have rejected it).
 
-With `guard=True` it is the "HealGuard-style" scenario: protected operations performed by
+With `guard=True` it is the "HealGuard-inspired value-matching" scenario: protected operations performed by
 the healing code are stopped (taint.py, healing phase only; there is no validation point in
 plain mode to follow the continuation). State the attempt had already changed is still not
 undone.
@@ -59,7 +59,7 @@ class PlainHealer:
         self.meter_state = meter_state
         # guard: False | "heal-phase" (True) | "taint". "heal-phase" stops only protected
         # operations of the healing code itself; "taint" also follows values the repair
-        # introduced through the rest of the run (the fair HealGuard-style baseline).
+        # introduced through the rest of the run (the value-matching baseline, HealGuard-inspired).
         assert guard in (False, True, "heal-phase", "taint")
         self.guard = "heal-phase" if guard is True else guard
         self.protected_events = protected_events
@@ -110,7 +110,7 @@ class PlainHealer:
             old_handler = signal.signal(signal.SIGALRM, _alarm)
             signal.setitimer(signal.ITIMER_REAL, self.timeout)
         guard = None
-        if self.guard:                               # "HealGuard-style": protected operations of
+        if self.guard:                               # "HealGuard-inspired": protected operations of
             guard = taint.TaintGuard(safe_paths=self.safe_paths, events=self.protected_events,
                                      inherit=self._lineage)        # the healing code are stopped
             guard.start(taint.state_roots(target, ctx.globals_))

@@ -32,10 +32,15 @@ Limits (stated, not hidden):
     exception is told from a normal return by the opcode that was executing (RETURN_VALUE or
     YIELD_VALUE), so on those versions the log's `continuation_error` is empty for that case
     and `recurrence="reject"` only checks the next crash, not the exit by an exception.
-  * The child has only the forking thread. If other threads exist, no healing is done.
+  * The child has only the forking thread. If other threads exist, no healing is done,
+    except with `pool_threads=True` when they are all idle workers of thread pools (the pools
+    are reset in the child; experimental, off by default).
   * Output is held back until the validation point, so it appears late.
-  * Effects on inherited sockets/pipes, native code, and filesystem writes are not
-    undone (writes are recorded in `fs_effects`; a copy-on-write layer is future work).
+  * File changes of a rejected repair ARE undone (`fs_isolation`, fs_journal.py): a journal of
+    before-images, replayed by the parent. Limits (see fs_journal.py): a file larger than the
+    journal limit, a special file, or an unseen write (C extension, mmap) are not covered;
+    the first two are refused as effects. Effects on inherited sockets/pipes and native code
+    are not undone.
   * Every blocked event ends the trial, also if the program would have survived it.
     `allow_events` lets chosen events through (for example "ctypes.dlopen").
   * Ctrl-C reaches the child through the terminal; the proxy ignores SIGINT and
@@ -65,7 +70,9 @@ Limits (stated, not hidden):
     "operational" ones (timeout, child died) - report them separately.
 """
 import atexit
+import concurrent.futures.thread as _cft
 import dis
+import gc
 import json
 import os
 import select
@@ -80,6 +87,7 @@ from typing import Any, Callable, Dict, List, Optional
 from transactional_runtime_healing import protocol as P
 from transactional_runtime_healing.heal_point import checks_message, missing_targets, run_healing_code
 from transactional_runtime_healing import meter, taint
+from transactional_runtime_healing.fs_journal import FsJournal
 from transactional_runtime_healing.instrument import HealContext, HealRecord, handled_by_caller
 
 _RETURN_OPCODES = {dis.opmap[n] for n in ("RETURN_VALUE", "YIELD_VALUE") if n in dis.opmap}
@@ -132,6 +140,9 @@ class LiveResult:
     #                                              of a repair that was applied although a check fails
     targets_missing: List[str] = field(default_factory=list)  # names the failing statement would
     #                                              have bound that the repair did not bind
+    fs_undone: List[str] = field(default_factory=list)       # file changes of a rejected attempt
+    #                                              that were reversed (filesystem journal)
+    fs_undo_failed: List[str] = field(default_factory=list)  # ... and those that could not be
 
     @property
     def category(self) -> str:
@@ -140,6 +151,36 @@ class LiveResult:
     @property
     def healed(self) -> bool:
         return self.status in (LiveStatus.TRIAL_ACCEPTED, LiveStatus.COMMITTED)
+
+
+def _executors():
+    return [o for o in gc.get_objects() if isinstance(o, _cft.ThreadPoolExecutor)]
+
+
+def _only_idle_pool_workers(threads) -> bool:
+    """Are all other threads idle workers of ThreadPoolExecutors (asyncio's default executor
+    is one)? Those can be dropped in the child: the pool is reset there (see below)."""
+    try:
+        workers = set()
+        for ex in _executors():
+            if not ex._work_queue.empty():
+                return False                          # queued work would be lost
+            idle = ex._idle_semaphore._value
+            if idle < len([t for t in ex._threads if t.is_alive()]):
+                return False                          # a worker is busy
+            workers.update(ex._threads)
+        return all(t in workers for t in threads)
+    except Exception:                                 # internals changed: be safe
+        return False
+
+
+def _reset_pool_executors():
+    """In the forked child: forget the workers the parent had (they were not copied), so that
+    the next submit starts new threads instead of waiting for a worker that does not exist."""
+    import threading as _t
+    for ex in _executors():
+        ex._threads.clear()
+        ex._idle_semaphore = _t.Semaphore(0)
 
 
 class _Pending:
@@ -195,7 +236,8 @@ class LiveHealer:
                  recurrence: str = "commit", allow_events=(), log_path: Optional[str] = None,
                  meter_state: bool = False, guard: bool = True, safe_paths=(),
                  protected_events=None, post_commit: str = "warn",
-                 require_targets: bool = False):
+                 require_targets: bool = False, fs_isolation: bool = True,
+                 pool_threads: bool = False):
         assert recurrence in ("commit", "reject")
         assert post_commit in ("off", "warn", "block")
         self.propose = propose
@@ -211,6 +253,9 @@ class LiveHealer:
         self.protected_events = protected_events
         self.post_commit = post_commit
         self.require_targets = require_targets
+        self.pool_threads = pool_threads             # fork although idle thread-pool workers exist
+        self.fs_isolation = fs_isolation             # undo file changes of a rejected repair
+        self._journal: Optional[FsJournal] = None
         self._lineage: set = set()                   # values introduced by committed repairs
         self._guard = None
         self.log: List[HealRecord] = []
@@ -260,10 +305,13 @@ class LiveHealer:
         finally:
             self._busy = False
 
-    @staticmethod
-    def _unsupported():
+    def _unsupported(self):
         if threading.active_count() > 1:
-            return "other threads exist; the forked child would not have them"
+            others = [t for t in threading.enumerate() if t is not threading.current_thread()]
+            names = sorted(f"{t.name}{' (daemon)' if t.daemon else ''}" for t in others)
+            if not (self.pool_threads and _only_idle_pool_workers(others)):
+                return ("other threads exist; the forked child would not have them: "
+                        + ", ".join(names)[:200])
         if threading.current_thread() is not threading.main_thread():
             return "not in the main thread"
         if sys.version_info < (3, 8):
@@ -280,6 +328,11 @@ class LiveHealer:
         sys.stdout.flush()
         sys.stderr.flush()
         offsets = P.fd_offsets()
+        self._journal = None
+        if self.fs_isolation:
+            with P.unwatched():
+                self._journal = FsJournal.create()
+                self._journal.mark_fds()             # files this process holds open for writing
         self._before = meter.snapshot(target, ctx.globals_) if self.meter_state else None
         self._target = target
         r, w = os.pipe()
@@ -305,8 +358,11 @@ class LiveHealer:
                                      inherit=self._lineage)
             guard.start(roots)
             self._guard = guard
+        if self.pool_threads:
+            _reset_pool_executors()                  # their workers do not exist in the child
         P.begin_watch(allow=self.allow_events, on_effect=self._effect_in_child,
-                      guard=guard, on_protected=self._protected_in_child)
+                      guard=guard, on_protected=self._protected_in_child,
+                      journal=self._journal)
         try:
             env, cl, cg, _ = run_healing_code(code, ctx.locals_, ctx.globals_)
         except BaseException as e:
@@ -441,6 +497,10 @@ class LiveHealer:
         P.write_all(1, p.cap.out)                    # held-back output, now released
         P.write_all(2, p.cap.err)
         effects, fs = P.end_watch()
+        if self._journal is not None:                # the file changes are part of the program now
+            with P.unwatched():
+                self._journal.discard()
+            self._journal = None
         self._watch_after_commit(p)
         res = p.record.result
         res.status, res.validated_at, res.fs_effects = LiveStatus.COMMITTED, where, fs
@@ -489,6 +549,7 @@ class LiveHealer:
                         break
         except BaseException:
             _kill(pid)
+            self._undo_files()
             for s, h in saved.items():
                 signal.signal(s, h)
             raise
@@ -498,6 +559,7 @@ class LiveHealer:
             self._proxy_until_exit(pid)              # does not return
         # Restore: the child is discarded, the parent is exactly as before the crash.
         _kill(pid)
+        undone, undo_failed = self._undo_files()
         for fd, off in offsets.items():
             try:
                 os.lseek(fd, off, os.SEEK_SET)
@@ -514,7 +576,10 @@ class LiveHealer:
                   "died": LiveStatus.REJECTED_CHILD_DIED}[info["verdict"]]
         result = LiveResult(status, info["reason"], effects=info["effects"],
                             fs_effects=info["fs"], repeat_count=self._repeat)
-        result.external_residue = list(info["fs"])   # files written stay on disk
+        result.fs_undone, result.fs_undo_failed = undone, undo_failed
+        # files written that are still changed: all of them without isolation, else the ones
+        # the journal could not restore
+        result.external_residue = list(undo_failed) if self.fs_isolation else list(info["fs"])
         if self._before is not None:                 # what did the rejected attempt leave?
             result.residue = meter.diff(self._before,
                                         meter.snapshot(self._target, ctx.globals_))
@@ -524,6 +589,17 @@ class LiveHealer:
             pass
         self._record(ctx, code, result)
         return None                                  # caller re-raises the original exception
+
+    def _undo_files(self):
+        """Reverse the file changes of the attempt that was just discarded."""
+        j, self._journal = self._journal, None
+        if j is None:
+            return [], []
+        try:
+            with P.unwatched():
+                return j.undo()
+        except Exception as e:                       # never let the undo break the program
+            return [], [f"journal undo failed: {type(e).__name__}: {e}"]
 
     def _proxy_until_exit(self, pid):
         while True:
@@ -571,6 +647,8 @@ def write_log(path, rec: HealRecord):
                 invalid_commit_changes=res.invalid_commit_changes if res else [],
                 check_would_fail=res.check_would_fail if res else "",
                 targets_missing=res.targets_missing if res else [],
+                fs_undone=res.fs_undone if res else [],
+                fs_undo_failed=res.fs_undo_failed if res else [],
                 category=res.category if res else "none")
     write_line(path, line)
 

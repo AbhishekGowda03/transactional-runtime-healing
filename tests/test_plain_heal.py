@@ -147,8 +147,7 @@ def test_file_written_by_the_repair_is_stopped_in_live_mode_but_not_in_plain_mod
 
 
 @pytest.mark.skipif(not hasattr(os, "fork"), reason="needs fork")
-def test_file_written_by_the_program_during_a_rejected_trial_stays_on_disk(tmp_path):
-    """The remaining gap (until the copy-on-write layer): the program's own writes."""
+def _program_writes_then_runs_a_command(tmp_path, *flags):
     out = tmp_path / "out.txt"
     prog = tmp_path / "prog.py"
     prog.write_text(textwrap.dedent(f"""
@@ -164,10 +163,23 @@ def test_file_written_by_the_program_during_a_rejected_trial_stays_on_disk(tmp_p
     rules.write_text(json.dumps([{"match": "1 / 0", "code": "v = 0"}]))
     log = tmp_path / "live.jsonl"
     subprocess.run([sys.executable, "-m", "transactional_runtime_healing.live_run", str(prog),
-                    str(rules), "--log", str(log)], capture_output=True, text=True,
+                    str(rules), "--log", str(log), *flags], capture_output=True, text=True,
                    env=dict(os.environ, PYTHONPATH=SRC), cwd=tmp_path, timeout=60)
     entry = [json.loads(l) for l in log.read_text().splitlines() if "REJECTED" in l][0]
+    return out, entry
+
+
+def test_file_written_by_the_program_during_a_rejected_trial_is_undone(tmp_path):
+    """Filesystem isolation (fs_journal): the file the continuation wrote is removed again."""
+    out, entry = _program_writes_then_runs_a_command(tmp_path)
     assert entry["status"] == "REJECTED_EXTERNAL_EFFECT"
+    assert not out.exists()
+    assert entry["external_residue"] == [] and entry["fs_undo_failed"] == []
+    assert entry["fs_effects"] == [f"open-write:{out}"]       # it is still recorded
+
+
+def test_without_isolation_the_file_stays_on_disk(tmp_path):
+    out, entry = _program_writes_then_runs_a_command(tmp_path, "--no-fs-isolation")
     assert out.exists() and entry["external_residue"] == [f"open-write:{out}"]
 
 

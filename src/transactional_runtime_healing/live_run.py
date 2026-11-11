@@ -62,7 +62,7 @@ def main(argv=None):
     ap.add_argument("--meter", action="store_true")
     ap.add_argument("--guard", choices=("heal-phase", "taint"), nargs="?", const="taint",
                     help="plain mode: heal-phase = stop protected operations of the healing "
-                         "code only; taint = also follow values it introduced (HealGuard-style)")
+                         "code only; taint = also follow values it introduced (HealGuard-inspired value matching, not HealGuard)")
     ap.add_argument("--post-commit", choices=("off", "warn", "block"), default="warn",
                     help="live mode: guard behaviour after the validation point")
     ap.add_argument("--require-targets", action="store_true",
@@ -70,6 +70,10 @@ def main(argv=None):
                          "statement would have bound (or never sets _eh_rtn for a return)")
     ap.add_argument("--no-guard", action="store_true",
                     help="live mode: switch the protected-operations check off")
+    ap.add_argument("--no-fs-isolation", action="store_true",
+                    help="live mode: do not undo the file changes of a rejected repair")
+    ap.add_argument("--pool-threads", action="store_true",
+                    help="live mode: fork although idle thread-pool workers exist (experimental)")
     ap.add_argument("--timeout", type=float, default=60.0)
     ap.add_argument("--recurrence", choices=("commit", "reject"), default="commit")
     ap.add_argument("--allow", action="append", default=[])
@@ -99,7 +103,9 @@ def main(argv=None):
         healer = LiveHealer(propose, timeout=ns.timeout, recurrence=ns.recurrence,
                             allow_events=ns.allow, log_path=ns.log, meter_state=ns.meter,
                             guard=not ns.no_guard, post_commit=ns.post_commit,
-                            require_targets=ns.require_targets)
+                            require_targets=ns.require_targets,
+                            fs_isolation=not ns.no_fs_isolation,
+                            pool_threads=ns.pool_threads)
     sys.argv = [ns.program]
     run_instrumented(source, healer, filename=ns.program,
                      globals_={"__name__": "__main__", "__file__": ns.program})

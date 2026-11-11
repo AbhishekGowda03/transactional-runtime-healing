@@ -27,7 +27,8 @@ from transactional_runtime_healing import instrument as _ins
 EXCLUDE_DIRS = {"tests", "test", "testing", "docs", "doc", "examples", "example", "benchmarks",
                 "benchmark", "build", "dist", "vendor", "_vendor", "vendored", "third_party",
                 "site-packages", "node_modules", ".git", "__pycache__", "scripts", "bin"}
-EXCLUDE_FILES = {"conftest.py", "setup.py"}
+EXCLUDE_FILES = {"conftest.py", "setup.py", "testing.py", "testutil.py", "testutils.py",
+                 "test_utils.py", "test_util.py"}     # test support: not code under test
 _VERSION = "4"                                    # change when the instrumenter changes
 
 

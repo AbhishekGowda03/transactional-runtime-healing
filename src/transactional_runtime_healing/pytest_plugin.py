@@ -15,6 +15,10 @@ It must be loaded with `-p` so that it is active before the repository is import
     TXH_HEAL_POST_COMMIT off | warn | block                live mode          default warn
     TXH_HEAL_NO_GUARD   1                                  live mode: protected-operations
                                                            check off (the "fork only" setting)
+    TXH_HEAL_NO_FS_ISOLATION 1                             live mode: file changes of a rejected
+                                                           repair are NOT undone
+    TXH_HEAL_POOL_THREADS 1                                live mode: fork although idle thread-pool
+                                                           workers exist (experimental)
     TXH_HEAL_REQUIRE_TARGETS 1                             live mode: completeness check
     TXH_HEAL_ONLY       `file:line;file:line` crash sites: only exceptions raised there are
                         repaired (the crash points of the failing run); default: any site
@@ -81,7 +85,9 @@ def build_healer(env=os.environ):
     from transactional_runtime_healing.live_heal import LiveHealer
     return LiveHealer(propose, log_path=log, guard=not env.get("TXH_HEAL_NO_GUARD"),
                       post_commit=env.get("TXH_HEAL_POST_COMMIT", "warn"),
-                      require_targets=bool(env.get("TXH_HEAL_REQUIRE_TARGETS")))
+                      require_targets=bool(env.get("TXH_HEAL_REQUIRE_TARGETS")),
+                      fs_isolation=not env.get("TXH_HEAL_NO_FS_ISOLATION"),
+                      pool_threads=bool(env.get("TXH_HEAL_POOL_THREADS")))
 
 
 if ROOT:

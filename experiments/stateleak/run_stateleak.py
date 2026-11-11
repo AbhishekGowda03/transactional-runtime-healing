@@ -4,11 +4,15 @@
 
 Settings (a setting is skipped, and said so, if the installed live_run lacks a flag it needs):
   plain            HealBench-style: the repair runs in the live process, nothing is undone
-  plain+taint      plain + protected-operations check that follows the repair's values.
-                   This is an ABLATION (same value-matching guard, no fork), not HealGuard.
+  plain+taint      plain + value-matching protected-operations check (HealGuard-inspired).
+                   A HealGuard-inspired value-matching baseline (same guard as the protocol, no
+                   fork); it does not implement HealGuard's taint analysis.
   fork only        the protocol (fork trial, validation point, effect blocking) with the
-                   protected-operations check switched off
-  full protocol    fork only + protected-operations check (blocks after the commit as well)
+                   protected-operations check and the file undo switched off
+  fork + file undo fork only + the filesystem journal (files of a rejected repair are restored)
+  full, no file undo  the value-matching check (blocks after the commit as well), no file undo
+  full protocol    everything: fork, validation, file undo and the value-matching check
+                   (a HealGuard-inspired baseline, not HealGuard's taint analysis)
 
 Metrics (per setting; 95% Clopper-Pearson intervals, which are exact for small counts):
   harm rate             among `bad` cases: damage reached the final state or the outside
@@ -64,8 +68,12 @@ report()
 SETTINGS = [
     ("plain", ["--mode", "plain"], []),
     ("plain+taint", ["--mode", "plain", "--guard", "taint"], ["--guard"]),
-    ("fork only", ["--mode", "live", "--no-guard"], []),
-    ("full protocol", ["--mode", "live", "--post-commit", "block"], ["--post-commit"]),
+    ("fork only", ["--mode", "live", "--no-guard", "--no-fs-isolation"], ["--no-fs-isolation"]),
+    ("fork + file undo", ["--mode", "live", "--no-guard"], ["--no-fs-isolation"]),
+    ("full, no file undo", ["--mode", "live", "--post-commit", "block", "--no-fs-isolation"],
+     ["--post-commit", "--no-fs-isolation"]),
+    ("full protocol", ["--mode", "live", "--post-commit", "block"],
+     ["--post-commit", "--no-fs-isolation"]),
 ]
 
 

@@ -1,0 +1,82 @@
+{
+ "rows": 4578,
+ "columns": [
+  "repo_name",
+  "docker_image",
+  "commit_hash",
+  "parsed_commit_content",
+  "execution_result_content",
+  "modified_files",
+  "modified_entity_summaries",
+  "relevant_files",
+  "num_non_test_files",
+  "num_non_test_func_methods",
+  "num_non_test_lines",
+  "prompt",
+  "problem_statement",
+  "expected_output_json"
+ ],
+ "per_repo": {
+  "aiohttp": 299,
+  "coveragepy": 108,
+  "datalad": 179,
+  "numpy": 781,
+  "orange3": 482,
+  "pandas": 1444,
+  "pillow": 620,
+  "pyramid": 189,
+  "scrapy": 215,
+  "tornado": 261
+ },
+ "py_only_patches": 0,
+ "examples": [
+  {
+   "repo_name": "aiohttp",
+   "docker_image": "namanjain12/aiohttp_final:f0d74880deec8fcd982bce639c93c5e130d41198",
+   "commit_hash": "f0d74880deec8fcd982bce639c93c5e130d41198",
+   "parsed_commit_content": "{\n    \"file_diffs\": [\n        {\n            \"old_file_content\": \"0.18.0 (19-10-2015)\\n-------------------\\n\\n- Use errors.HttpProcessingError.message as HTTP error reason and\\n  message #459\\n\\n- Optimize cythonized multidict a bit\\n\\n- Change repr's of multidicts and multidict views\\n\\n- default he... [237917 chars]",
+   "execution_result_content": "{\n    \"repo_name\": \"aiohttp\",\n    \"new_commit_hash\": \"f0d74880deec8fcd982bce639c93c5e130d41198\",\n    \"test_file_codes\": [\n        \"import asyncio\\nimport os\\nimport unittest\\nfrom collections.abc import Sized, Container, Iterable\\nfrom unittest import mock\\nfrom urllib.parse import unquote\\nimport a... [70334 chars]",
+   "modified_files": "[\"HISTORY.rst\", \"aiohttp/web_urldispatcher.py\", \"tests/test_urldispatch.py\"]",
+   "modified_entity_summaries": "[{\"ast_type_str\": \"ClassDef\", \"end_lineno\": 531, \"file_name\": \"aiohttp/web_urldispatcher.py\", \"name\": \"UrlDispatcher\", \"start_lineno\": 385, \"type\": \"class\"}, {\"ast_type_str\": \"ClassDef\", \"end_lineno\": 457, \"file_name\": \"aiohttp/web_urldispatcher.py\", \"name\": \"UrlDispatcher.register_route\", \"start_li... [671 chars]",
+   "relevant_files": "[\"aiohttp/web_urldispatcher.py\"]",
+   "num_non_test_files": "2",
+   "num_non_test_func_methods": "1",
+   "num_non_test_lines": "22",
+   "prompt": "You are an expert software engineer tasked with creating informative GitHub issues based on commit details and test results. These issues will be used to help junior developers and machine learning systems understand the motivation behind commits. Your goal is to create concise, clear, and realistic... [16518 chars]",
+   "problem_statement": "[ISSUE]\n\n**Title:** Unable to Register Route with Names Containing Both Dots and Colons\n\n**Description:**\nAfter merging branch '0.18', attempting to register a route with a name that includes both dots (`.`) and colons (`:`) results in a `ValueError`. The recent changes were intended to allow route ... [1307 chars]",
+   "expected_output_json": "{\n    \"TestUrlDispatcher.test_add_invalid_path\": \"PASSED\",\n    \"TestUrlDispatcher.test_add_route_invalid_method\": \"PASSED\",\n    \"TestUrlDispatcher.test_add_route_not_started_with_slash\": \"PASSED\",\n    \"TestUrlDispatcher.test_add_route_root\": \"PASSED\",\n    \"TestUrlDispatcher.test_add_route_simple\": \"... [3877 chars]"
+  },
+  {
+   "repo_name": "pandas",
+   "docker_image": "namanjain12/pandas_final:d90b73bdec5600d188d631150f83633f40c5b8a4",
+   "commit_hash": "d90b73bdec5600d188d631150f83633f40c5b8a4",
+   "parsed_commit_content": "{\n    \"file_diffs\": [\n        {\n            \"old_file_content\": \".. _whatsnew_120:\\n\\nWhat's new in 1.2.0 (??)\\n------------------------\\n\\nThese are the changes in pandas 1.2.0. See :ref:`release` for a full changelog\\nincluding other versions of pandas.\\n\\n{{ header }}\\n\\n.. ----------------------... [770784 chars]",
+   "execution_result_content": "{\n    \"repo_name\": \"pandas\",\n    \"new_commit_hash\": \"d90b73bdec5600d188d631150f83633f40c5b8a4\",\n    \"test_file_codes\": [\n        \"from datetime import date, datetime\\nfrom io import StringIO\\n\\nimport numpy as np\\nimport pytest\\n\\nimport pandas as pd\\nfrom pandas import DataFrame, Index, MultiIndex,... [130501 chars]",
+   "modified_files": "[\"doc/source/whatsnew/v1.2.0.rst\", \"pandas/core/groupby/generic.py\", \"pandas/core/indexes/api.py\", \"pandas/tests/groupby/test_apply.py\"]",
+   "modified_entity_summaries": "[{\"ast_type_str\": \"ClassDef\", \"end_lineno\": 1364, \"file_name\": \"pandas/core/groupby/generic.py\", \"name\": \"DataFrameGroupBy._wrap_applied_output\", \"start_lineno\": 1196, \"type\": \"method\"}, {\"ast_type_str\": \"FunctionDef\", \"end_lineno\": 872, \"file_name\": \"pandas/tests/groupby/test_apply.py\", \"name\": \"te... [696 chars]",
+   "relevant_files": "[\"pandas/core/groupby/generic.py\", \"pandas/core/indexes/api.py\"]",
+   "num_non_test_files": "3",
+   "num_non_test_func_methods": "2",
+   "num_non_test_lines": "98",
+   "prompt": "You are an expert software engineer tasked with creating informative GitHub issues based on commit details and test results. These issues will be used to help junior developers and machine learning systems understand the motivation behind commits. Your goal is to create concise, clear, and realistic... [21772 chars]",
+   "problem_statement": "**[ISSUE]**\n\n**Title:** GroupBy.apply Results in Inconsistent Index Types with Multi-Level Indices\n\n**Description:**\nWhen using `GroupBy.apply` on a DataFrame with multi-level indices, the resulting DataFrame sometimes has an unexpected index type. This inconsistency causes assertions to fail, espec... [1038 chars]",
+   "expected_output_json": "{\n    \"test_apply_issues\": \"PASSED\",\n    \"test_apply_trivial\": \"PASSED\",\n    \"test_apply_trivial_fail\": \"PASSED\",\n    \"test_fast_apply\": \"PASSED\",\n    \"test_group_apply_once_per_group[GH2936]\": \"PASSED\",\n    \"test_group_apply_once_per_group[GH7739 & GH10519]\": \"PASSED\",\n    \"test_group_apply_once_pe... [3807 chars]"
+  },
+  {
+   "repo_name": "tornado",
+   "docker_image": "namanjain12/tornado_final:9ba61c636899ed0f7472fb2f4975a53720d1b0ff",
+   "commit_hash": "9ba61c636899ed0f7472fb2f4975a53720d1b0ff",
+   "parsed_commit_content": "{\n    \"file_diffs\": [\n        {\n            \"old_file_content\": \"\\\"\\\"\\\"Blocking and non-blocking HTTP client interfaces.\\n\\nThis module defines a common interface shared by two implementations,\\n``simple_httpclient`` and ``curl_httpclient``.  Applications may either\\ninstantiate their chosen impleme... [464214 chars]",
+   "execution_result_content": "{\n    \"repo_name\": \"tornado\",\n    \"new_commit_hash\": \"9ba61c636899ed0f7472fb2f4975a53720d1b0ff\",\n    \"test_file_codes\": [\n        \"# -*- coding: utf-8 -*-\\nimport base64\\nimport binascii\\nfrom contextlib import closing\\nimport copy\\nimport threading\\nimport datetime\\nfrom io import BytesIO\\nimport t... [45622 chars]",
+   "modified_files": "[\"tornado/httpclient.py\", \"tornado/simple_httpclient.py\", \"tornado/test/httpclient_test.py\"]",
+   "modified_entity_summaries": "[{\"ast_type_str\": \"ClassDef\", \"end_lineno\": 571, \"file_name\": \"tornado/test/httpclient_test.py\", \"name\": \"HTTPClientCommonTestCase\", \"start_lineno\": 136, \"type\": \"class\"}, {\"ast_type_str\": \"ClassDef\", \"end_lineno\": 682, \"file_name\": \"tornado/simple_httpclient.py\", \"name\": \"_HTTPConnection\", \"start_l... [992 chars]",
+   "relevant_files": "[\"tornado/simple_httpclient.py\"]",
+   "num_non_test_files": "2",
+   "num_non_test_func_methods": "2",
+   "num_non_test_lines": "23",
+   "prompt": "You are an expert software engineer tasked with creating informative GitHub issues based on commit details and test results. These issues will be used to help junior developers and machine learning systems understand the motivation behind commits. Your goal is to create concise, clear, and realistic... [34031 chars]",
+   "problem_statement": "[ISSUE]\n**Title:** `network_interface` Parameter Not Supported by `SimpleAsyncHTTPClient`\n\n**Description:**\nWhen attempting to use the `network_interface` parameter with `SimpleAsyncHTTPClient`, it raises a `NotImplementedError`. This prevents binding HTTP requests to a specific local IP address, wh... [1360 chars]",
+   "expected_output_json": "{\n    \"HTTPClientCommonTestCase.test_304_with_content_length\": \"PASSED\",\n    \"HTTPClientCommonTestCase.test_all_methods\": \"PASSED\",\n    \"HTTPClientCommonTestCase.test_basic_auth\": \"PASSED\",\n    \"HTTPClientCommonTestCase.test_basic_auth_explicit_mode\": \"PASSED\",\n    \"HTTPClientCommonTestCase.test_bas... [2798 chars]"
+  }
+ ]
+}

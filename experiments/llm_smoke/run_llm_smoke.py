@@ -74,7 +74,8 @@ report()
 SETTINGS = {
     "plain": ["--mode", "plain"],
     "plain+taint": ["--mode", "plain", "--guard", "taint"],
-    "fork only": ["--mode", "live", "--no-guard"],
+    "fork only": ["--mode", "live", "--no-guard", "--no-fs-isolation"],
+    "fork+fs": ["--mode", "live", "--no-guard"],
     "full": ["--mode", "live", "--post-commit", "block"],
     "full+targets": ["--mode", "live", "--post-commit", "block", "--require-targets"],
 }
@@ -241,7 +242,26 @@ def main():
                      f"| {sum(1 for r in rs if r['residue'])} programs "
                      f"| {att} ({rej} rejected, {sum(r['noop'] for r in rs)} no-op) "
                      f"| {rp('ok')}/{rp('decline')}/{rp('invalid')}/{rp('truncated')}/{err} |")
-    table = "\n".join(lines)
+    # per program: how often each outcome happened over the runs (the repeats of one program are
+    # not independent observations, so this is the table to read, not the rates above)
+    nruns = ns.runs
+    per = ["", f"Per program, out of {nruns} run(s). ok = accepted outcome; rejected = a repair "
+           "was rejected; no repair = the model declined (or none was asked for); wrong = ran "
+           "to the end with a state that is not accepted; files = the directory differs from "
+           "the run without a repair.", "",
+           "| program | " + " | ".join(names) + " |", "|---|" + "---|" * len(names)]
+    for p in progs:
+        cells = []
+        for name in names:
+            rs = [r for r in rows if r["setting"] == name and r["program"] == p["id"]]
+            ok = sum(r["correct"] for r in rs)
+            rej = sum(any(o != "COMMITTED" for o in r["outcomes"]) for r in rs)
+            none = sum((not r["proceeded"]) and not r["outcomes"] for r in rs)
+            wrong = sum(r["wrong"] for r in rs)
+            files = sum(r["files_changed"] for r in rs)
+            cells.append(f"ok {ok} / rejected {rej} / no repair {none} / wrong {wrong} / files {files}")
+        per.append(f"| {p['id']} | " + " | ".join(cells) + " |")
+    table = "\n".join(lines) + "\n" + "\n".join(per)
     if any(r["model_error"] for r in rows):
         table += ("\n\nWARNING: some requests to the model failed (error / unavailable). "
                   "Those programs ran without a repair; do not read their rows as the model "

@@ -20,8 +20,8 @@ Design decisions:
   what happens afterwards in the continuation are separate outcomes.
 * External effects are detected with a Python audit hook (sys.addaudithook),
   which is recorded in a flag. A repair that catches the exception and goes on
-  is still rejected. Filesystem writes are only RECORDED (not blocked); a
-  copy-on-write filesystem layer is the planned second step.
+  is still rejected. Filesystem writes are recorded and, in the live protocol,
+  journaled before they happen (fs_journal.py), so that a rejected trial is undone.
 * The audit hook is process-wide and controlled by a flag. While the flag is
   on (in the child during a trial, and in the live process during a replay) it
   applies to EVERY thread of that process, not only to the repair code.
@@ -45,6 +45,7 @@ Limits: send/write on inherited sockets and pipes; native code (ctypes calls,
 C extensions with their own syscalls) bypasses audit events; threads/locks
 held at fork time can hang the child (timeout turns this into a rejection).
 """
+import contextlib
 import io
 import os
 import pickle
@@ -120,7 +121,7 @@ _LIST_CAP = 10_000                                # recorded events kept per wat
 
 _trial = {"active": False, "effects": [], "fs": [], "allow": frozenset(), "on_effect": None,
           "record_only": False, "guard": None, "on_protected": None, "protected": [],
-          "guard_warn": False, "quiet": False, "busy": False}
+          "guard_warn": False, "quiet": False, "busy": False, "journal": None}
 _hook_installed = False
 
 
@@ -138,6 +139,37 @@ def _protected_check(guard, event, args):
             _trial["busy"] = False
     if not _trial["guard_warn"]:
         raise ExternalEffectBlocked(event)        # stop the operation (warn mode lets it run)
+
+
+def _journal_before(event, args):
+    """Save what is needed to undo a file operation (fs_journal); refuse it if that is
+    impossible."""
+    j = _trial["journal"]
+    if j is None or _trial["record_only"]:
+        return
+    _trial["busy"] = True                         # the journal opens and copies files itself
+    try:
+        j.before(event, args)
+    except Exception as e:                        # cannot be undone, so it must not happen
+        name = f"not-undoable:{event}"
+        _trial["effects"].append(name)
+        _trial["busy"] = False
+        if _trial["on_effect"] is not None:
+            _trial["on_effect"](name)
+        raise ExternalEffectBlocked(name) from e
+    finally:
+        _trial["busy"] = False
+
+
+@contextlib.contextmanager
+def unwatched():
+    """Run file operations of the protocol itself without the audit hook reacting to them."""
+    old = _trial["busy"]
+    _trial["busy"] = True
+    try:
+        yield
+    finally:
+        _trial["busy"] = old
 
 
 def _record(kind, text):
@@ -166,10 +198,13 @@ def _audit_hook(event, args):
         if writes and "__pycache__" not in str(path):
             if guard is not None and "open" in guard.events:
                 _protected_check(guard, event, args)
+            _journal_before(event, args)
             _record("fs", f"open-write:{path}")
     else:
         if guard is not None and event in guard.events:
             _protected_check(guard, event, args)
+        if event in _FS_EVENTS or event == "sqlite3.connect":
+            _journal_before(event, args)
         if event in _FS_EVENTS:
             _record("fs", f"{event}:{args[0] if args else ''}")
 
@@ -182,7 +217,7 @@ def install_hook():
 
 
 def begin_watch(allow=frozenset(), on_effect=None, record_only=False, guard=None,
-                on_protected=None, guard_warn=False, quiet=False):
+                on_protected=None, guard_warn=False, quiet=False, journal=None):
     """Switch effect detection on (clears earlier records).
 
     allow     -- audit events that are NOT blocked (for example "ctypes.dlopen" when
@@ -195,13 +230,15 @@ def begin_watch(allow=frozenset(), on_effect=None, record_only=False, guard=None
     on_protected -- called with (event, reason) before the exception is raised
     guard_warn -- report protected operations but do not stop them (after a commit)
     quiet     -- do not keep lists of effects and file writes (long-running watch)
+    journal   -- an fs_journal.FsJournal: every file operation is saved there before it runs,
+                 so that a rejected trial can be undone; one that cannot be saved is refused
     record_only -- list external effects in the result but let them happen (plain healing:
                  the baseline has no protection, the log still says what it did)
     """
     install_hook()
     _trial.update(active=True, effects=[], fs=[], allow=frozenset(allow), on_effect=on_effect,
                   record_only=record_only, guard=guard, on_protected=on_protected, protected=[],
-                  guard_warn=guard_warn, quiet=quiet)
+                  guard_warn=guard_warn, quiet=quiet, journal=journal)
 
 
 def end_watch() -> Tuple[List[str], List[str]]:
@@ -213,6 +250,7 @@ def end_watch() -> Tuple[List[str], List[str]]:
     _trial["on_protected"] = None
     _trial["guard_warn"] = False
     _trial["quiet"] = False
+    _trial["journal"] = None
     return list(_trial["effects"]), list(_trial["fs"])
 
 

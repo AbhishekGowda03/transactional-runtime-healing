@@ -66,7 +66,7 @@ def test_safe_paths_are_not_policed():
     assert g("open", ("/tmp/scratch/x.txt", "w", 0)) is None
 
 
-# ---- plain mode with the guard ("HealGuard-style") ----------------------------------------
+# ---- plain mode with the guard ("HealGuard-inspired value-matching") ----------------------------------------
 def test_plain_guard_stops_a_deletion_by_the_repair(tmp_path):
     victim = tmp_path / "important.txt"
     victim.write_text("keep me")

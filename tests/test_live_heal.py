@@ -481,3 +481,44 @@ def test_post_commit_off_is_silent(tmp_path):
                       "--post-commit", "off")
     assert not (tmp_path / "victim_late.txt").exists()
     assert not any(e["status"] == "post-commit protected operation" for e in log)
+
+# ---- idle thread-pool workers (asyncio's default executor, tornado, ...) -------------------
+POOL_PROGRAM = """
+    from concurrent.futures import ThreadPoolExecutor
+    ex = ThreadPoolExecutor(max_workers=2)
+    ex.submit(lambda: 1).result()                  # leaves an idle worker thread behind
+    def f(d):
+        v = d['x'] * 2
+        return v + ex.submit(lambda: 10).result(timeout=5)
+    print('result', f({'y': 1}))
+"""
+
+
+def test_idle_pool_worker_blocks_healing_by_default(tmp_path):
+    p, log = run_live(tmp_path, POOL_PROGRAM, [{"match": "d['x']", "code": "v = 0"}], hook=True)
+    assert "SKIPPED" in [e["status"] for e in log]
+    assert "other threads exist" in [e["reason"] for e in log if e["status"] == "SKIPPED"][0]
+
+
+def test_idle_pool_worker_is_tolerated_with_the_flag(tmp_path):
+    p, log = run_live(tmp_path, POOL_PROGRAM, [{"match": "d['x']", "code": "v = 0"}],
+                      "--pool-threads", hook=True)
+    assert p.returncode == 0, p.stderr
+    assert "result 10" in p.stdout                  # the child's pool started a new worker
+    assert statuses(log) == ["COMMITTED"]
+
+
+def test_busy_pool_worker_still_blocks_healing_with_the_flag(tmp_path):
+    p, log = run_live(tmp_path, """
+        import time
+        from concurrent.futures import ThreadPoolExecutor
+        ex = ThreadPoolExecutor(max_workers=1)
+        ex.submit(time.sleep, 2)                    # a worker that is busy right now
+        time.sleep(0.2)
+        def f(d):
+            v = d['x'] * 2
+            return v
+        print('result', f({'y': 1}))
+    """, [{"match": "d['x']", "code": "v = 0"}], "--pool-threads", hook=True)
+    assert "COMMITTED" not in statuses(log) and "SKIPPED" in [e["status"] for e in log]
+    assert "original error" in p.stdout

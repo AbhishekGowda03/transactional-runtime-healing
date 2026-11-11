@@ -1,6 +1,6 @@
-"""Protected-operations check (proposal check 2): an observation-based approximation.
+"""Protected-operations check (proposal check 2): a HealGuard-inspired VALUE-MATCHING baseline.
 
-HealGuard tracks taint through the healing code and flags healing-influenced values that
+This is NOT an implementation of HealGuard. HealGuard tracks taint through the healing code and flags healing-influenced values that
 reach protected operations. This module approximates that without data-flow tracking, using
 the audit hook and VALUE MATCHING:
 
@@ -17,7 +17,8 @@ Protected operations (audit events): file writes (open for writing), remove, ren
 rmdir, rmtree, move, truncate, chmod, chown, link, symlink, mkdir, sqlite3.connect,
 socket.connect/sendto, subprocess.Popen, os.system, os.posix_spawn.
 
-Where it differs from HealGuard:
+Where it differs from HealGuard (so results must be called "value-matching baseline", never
+"HealGuard"):
   * False negatives: a value that is transformed (hashed, encoded, split into pieces, built
     from digits) before it reaches the operation no longer matches. Only strings of at least
     `min_len` characters are tracked; numbers are not.
