@@ -365,3 +365,18 @@ def test_transient_errors_are_retried_and_permanent_ones_are_not(tmp_path):
     with pytest.raises(LLMError):
         p._chat([])
     assert len(calls) == 1
+
+
+def test_short_renders_sets_in_a_fixed_order():
+    # the order of a set of strings changes with every process (hash randomisation); the prompt
+    # must not, or every run (and every setting) would ask the model a slightly different question
+    value = {"type", "refds", "status", "action"}
+    assert llm._short(value) == "{'action', 'refds', 'status', 'type'}"
+    assert llm._short([frozenset({"y", "x"}), {"k": {"b", "a"}}]) == "[frozenset({'x', 'y'}), {'k': {'a', 'b'}}]"
+    assert llm._short(set()) == "set()"
+    code = ("from transactional_runtime_healing import llm; "
+            "print(llm._short({'type','refds','status','action','x1','x2','x3'}))")
+    outs = {subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
+                           env={**os.environ, "PYTHONHASHSEED": seed}).stdout
+            for seed in ("1", "2", "3", "4")}
+    assert len(outs) == 1

@@ -152,9 +152,26 @@ def _stable(text: str) -> str:
     return text
 
 
+def _stable_repr(value, depth=3) -> str:
+    """repr() with sets and frozensets in sorted order (also inside lists, tuples and dicts).
+    The order of a set of strings changes with every Python process (hash randomisation), which
+    would give every run a different prompt."""
+    if depth and isinstance(value, (set, frozenset)):
+        items = sorted(_stable_repr(v, depth - 1) for v in value)
+        body = "{" + ", ".join(items) + "}" if items else "set()"
+        return body if isinstance(value, set) else f"frozenset({body})"
+    if depth and type(value) in (list, tuple):
+        inner = ", ".join(_stable_repr(v, depth - 1) for v in value)
+        return f"[{inner}]" if type(value) is list else (f"({inner},)" if len(value) == 1 else f"({inner})")
+    if depth and type(value) is dict:
+        return "{" + ", ".join(f"{_stable_repr(k, depth - 1)}: {_stable_repr(v, depth - 1)}"
+                               for k, v in value.items()) + "}"
+    return repr(value)
+
+
 def _short(value, limit=200) -> str:
     try:
-        r = repr(value)
+        r = _stable_repr(value)
     except Exception:
         r = f"<{type(value).__name__}>"
     r = _stable(r)

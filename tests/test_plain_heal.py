@@ -234,3 +234,11 @@ def test_plain_heal_phase_stop_does_not_follow_the_value(tmp_path):
                          guard="heal-phase")
     run_instrumented(src, healer)
     assert not victim.exists()
+
+def test_attempt_time_is_recorded_and_written_to_the_log(tmp_path):
+    log = tmp_path / "heal.jsonl"
+    src = "def f(d):\n    v = d['x'] * 2\n    return v + 1\nresult = f({'y': 1})\n"
+    g, h = plain(src, "v = 0", log_path=str(log))
+    assert isinstance(h.log[0].seconds, float) and h.log[0].seconds >= 0
+    line = json.loads(log.read_text().splitlines()[0])
+    assert line["attempt_seconds"] == h.log[0].seconds

@@ -522,3 +522,16 @@ def test_busy_pool_worker_still_blocks_healing_with_the_flag(tmp_path):
     """, [{"match": "d['x']", "code": "v = 0"}], "--pool-threads", hook=True)
     assert "COMMITTED" not in statuses(log) and "SKIPPED" in [e["status"] for e in log]
     assert "original error" in p.stdout
+
+
+
+def test_live_attempt_time_is_logged(tmp_path):
+    p, log = run_live(tmp_path, """
+        def f(d):
+            v = d['x'] * 2
+            return v + 1
+        print(f({'y': 1}))
+    """, [{"match": "d['x']", "code": "v = 0"}])
+    assert p.returncode == 0, p.stderr
+    done = [e for e in log if e["status"] == "COMMITTED"]
+    assert done and isinstance(done[0]["attempt_seconds"], float) and done[0]["attempt_seconds"] > 0

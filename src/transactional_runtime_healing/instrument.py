@@ -36,6 +36,8 @@ their own; a crash inside them is caught by the statement around them. Only
 `Exception` is caught.
 """
 import ast
+import collections
+import functools
 import os
 from dataclasses import dataclass, field
 import sys
@@ -294,6 +296,7 @@ def _handler_types_at(table, lineno):
     return best
 
 
+@functools.lru_cache(maxsize=4096)
 def _plain_names(expr: str) -> bool:
     """Only names, attribute chains and tuples of them are evaluated (no calls)."""
     try:
@@ -302,6 +305,13 @@ def _plain_names(expr: str) -> bool:
         return False
     return all(isinstance(n, (ast.Expression, ast.Name, ast.Attribute, ast.Tuple, ast.Load))
                for n in ast.walk(tree))
+
+
+@functools.lru_cache(maxsize=4096)
+def _isinstance_code(expr: str):
+    """Compiled `isinstance(__e, (expr,))`: a program that raises thousands of caught
+    exceptions would otherwise compile the same handler expression every time."""
+    return compile(f"isinstance(__e, ({expr},))", "<handler>", "eval")
 
 
 # Off by default; the pytest plugin switches it on, because there the test code is the program's caller.
@@ -343,6 +353,21 @@ def handled_by_caller(exc, frame, globals_=None, filename=None) -> bool:
     handlers (a `for` loop catching StopIteration, getattr defaults, contextlib.suppress,
     library code) are not seen; handler expressions other than names, attribute chains and
     tuples of them (for example a call) are not evaluated and count as "does not catch"."""
+    # An exception passes the heal point of every frame it leaves, and each of them would walk the
+    # whole stack again (cost grows with depth x frames). The answer for an exception object cannot
+    # change on its way up: the frames above the first one are a subset of the frames it checked.
+    cached = getattr(exc, "_txh_handled", None)
+    if cached is not None:
+        return cached
+    result = _handled_by_caller(exc, frame)
+    try:
+        exc._txh_handled = result
+    except Exception:                                  # exceptions with __slots__ and the like
+        pass
+    return result
+
+
+def _handled_by_caller(exc, frame) -> bool:
     f = frame.f_back
     while f is not None:
         table = HANDLER_TABLES.get(f.f_code.co_filename)
@@ -353,9 +378,8 @@ def handled_by_caller(exc, frame, globals_=None, filename=None) -> bool:
                 if not _plain_names(t):
                     continue
                 try:
-                    env = dict(f.f_locals)
-                    env["__e"] = exc
-                    if eval(f"isinstance(__e, ({t},))", f.f_globals, env):
+                    env = collections.ChainMap({"__e": exc}, f.f_locals)     # no copy of the frame's locals
+                    if eval(_isinstance_code(t), f.f_globals, env):
                         return True
                 except Exception:
                     pass
@@ -418,6 +442,7 @@ class HealRecord:
     context: HealContext
     code: Optional[str]
     result: Optional[HealResult]
+    seconds: Optional[float] = None        # attempt time: from the start of the trial to its verdict
 
 
 class Healer:

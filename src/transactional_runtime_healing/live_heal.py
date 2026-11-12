@@ -320,6 +320,7 @@ class LiveHealer:
 
     # ------------------------------------------------------------------
     def _attempt(self, ctx, code, target):
+        self._t_attempt = time.monotonic()        # the model's answer is already here: not part of the time
         self._attempts += 1
         sig = _signature(ctx.exception)
         ctx_repeat = self._seen.get(sig, 0)
@@ -506,6 +507,8 @@ class LiveHealer:
         res.status, res.validated_at, res.fs_effects = LiveStatus.COMMITTED, where, fs
         res.continuation_error = error
         res.reason = f"validation point: {where}"
+        t0 = getattr(self, "_t_attempt", None)       # set in the parent before the fork
+        p.record.seconds = round(time.monotonic() - t0, 4) if t0 else None
         self._write_log(p.record)
         P.send(p.w, "commit", dict(where=where))
         os.close(p.w)
@@ -617,7 +620,8 @@ class LiveHealer:
 
     # ------------------------------------------------------------------
     def _record(self, ctx, code, result):
-        rec = HealRecord(ctx, code, result)
+        t0, self._t_attempt = getattr(self, "_t_attempt", None), None
+        rec = HealRecord(ctx, code, result, round(time.monotonic() - t0, 4) if t0 and result else None)
         self.log.append(rec)
         self._write_log(rec)
 
@@ -649,7 +653,8 @@ def write_log(path, rec: HealRecord):
                 targets_missing=res.targets_missing if res else [],
                 fs_undone=res.fs_undone if res else [],
                 fs_undo_failed=res.fs_undo_failed if res else [],
-                category=res.category if res else "none")
+                category=res.category if res else "none",
+                attempt_seconds=getattr(rec, "seconds", None))
     write_line(path, line)
 
 

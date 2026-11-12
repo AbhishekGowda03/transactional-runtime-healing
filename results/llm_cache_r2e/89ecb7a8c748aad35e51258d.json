@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.7,
+ "run_id": "2",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- Assign the variable(s) that the failing statement would have assigned, using exactly the names on the left side of the failing statement (for `r = a / b` assign `r`) and a sensible value.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: responsetypes.py, line 105, in from_args\nException: TypeError: a bytes-like object is required, not 'str'\n\nFailing statement:\ncls = self.from_headers(headers)\n\nEnclosing function:\n    def from_args(self, headers=None, url=None, filename=None, body=None):\n        \"\"\"Guess the most appropriate Response class based on the given arguments\"\"\"\n        cls = Response\n        if headers is not None:\n            cls = self.from_headers(headers)\n        if cls is Response and url is not None:\n            cls = self.from_filename(url)\n        if cls is Response and filename is not None:\n            cls = self.from_filename(filename)\n        if cls is Response and body is not None:\n            cls = self.from_body(body)\n        return cls\n\nLocal variables at the crash:\n  self = <scrapy.responsetypes.ResponseTypes object at 0x\u2026>  # ResponseTypes\n  headers = {b'Content-Disposition': [b'attachment; filename=\"data.xml.gz\"']}  # Headers\n  url = 'http://www.example.com/page/'  # str\n  filename = None  # NoneType\n  body = None  # NoneType\n  cls = <class 'scrapy.http.response.Response'>  # type\n  _ResponseTypes__eh_e = TypeError(\"a bytes-like object is required, not 'str'\")  # TypeError\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"responsetypes.py\", line 105, in from_args\n    cls = self.from_headers(headers)\n  File \"responsetypes.py\", line 75, in from_headers\n    cls = self.from_content_disposition(headers['Content-Disposition'])\n  File \"responsetypes.py\", line 61, in from_content_disposition\n    filename = content_disposition.split(';')[1].split('=')[1]\nTypeError: a bytes-like object is required, not 'str'\n"
+  }
+ ],
+ "reply": "```python\ncls = self.from_filename(headers[b'Content-Disposition'][0].decode().split('filename=')[1].strip('\"'))\n```",
+ "usage": {
+  "prompt_tokens": 618,
+  "completion_tokens": 203,
+  "total_tokens": 821,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 165,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 9.65,
+ "created": "2026-11-11T14:44:57"
+}

@@ -166,6 +166,7 @@ def run_container(row, setting, a, sites):
         os.makedirs(d, exist_ok=True)
     healing = setting in HEAL_SETTINGS
     cmd = ["docker", "run", "--rm", "-e", "HOME=/tmp", "-e", "PYTHONDONTWRITEBYTECODE=1",
+           "-e", "PYTHONHASHSEED=0",                  # the same prompts and test behaviour in every process
            "-e", "PYTHONPATH=/txh:/testbed", "-v", f"{tdir}:/testbed/r2e_tests:ro",
            "-v", f"{gdir}:/gold:ro", "-v", f"{os.path.join(ROOT, 'src')}:/txh:ro",
            "-v", f"{out}:/out", "-v", f"{hook_cache}:/hookcache", "-v", f"{llm_cache}:/llmcache",
@@ -200,9 +201,13 @@ def run_container(row, setting, a, sites):
         extra = "-p transactional_runtime_healing.pytest_plugin -s " if heal_args else ""
         run = ("cd /testbed && PYTHONWARNINGS='ignore::UserWarning,ignore::SyntaxWarning' "
                f"/testbed/.venv/bin/python -W ignore -m pytest -rA --tb=native "
-               f"-p no:cacheprovider {extra}r2e_tests")
+               f"-p no:cacheprovider $NOCOV {extra}r2e_tests")
     # the files written into the mounted folders are handed back to the host user
-    script = (f"cp -r /gold/. /testbed/ 2>/dev/null; {run}; "
+    # pytest-cov (aiohttp, ...) breaks in forked children (coverage's atexit assertion), so it is
+    # switched off for every setting; the option exists only when the plugin is installed
+    script = (f"cp -r /gold/. /testbed/ 2>/dev/null; "
+              f"NOCOV=$(/testbed/.venv/bin/python -c 'import pytest_cov' 2>/dev/null && echo --no-cov); "
+              f"{run}; "
               f"rc=$?; chown -R {os.getuid()}:{os.getgid()} /out /hookcache /llmcache 2>/dev/null; "
               f"exit $rc")
     cmd += [row["docker_image"], "bash", "-lc", script]
@@ -270,7 +275,9 @@ def summarize_healing(out):
     if os.path.exists(ep):
         ev = [json.loads(x) for x in open(ep) if x.strip()]
         res["model"] = dict(requests=len(ev), failed=sum(e.get("outcome") in ("error", "unavailable")
-                                                          for e in ev))
+                                                          for e in ev),
+                            from_cache=sum(e.get("source") == "cache" for e in ev),
+                            from_model=sum(e.get("source") == "model" for e in ev))
     return res
 
 

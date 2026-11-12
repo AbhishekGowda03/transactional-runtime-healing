@@ -100,7 +100,7 @@ class PlainHealer:
         env = cl = cg = None
         failure = None
         old_handler = old_timer = None
-        t0 = time.monotonic()
+        t0 = self._t_attempt = time.monotonic()
         use_alarm = (threading.current_thread() is threading.main_thread()
                      and hasattr(signal, "setitimer"))
         if use_alarm:
@@ -173,6 +173,7 @@ class PlainHealer:
             P.begin_watch(record_only=True, guard=self._guard_obj, quiet=True)
 
     def _record(self, ctx, code, result):
-        rec = HealRecord(ctx, code, result)
+        t0, self._t_attempt = getattr(self, "_t_attempt", None), None
+        rec = HealRecord(ctx, code, result, round(time.monotonic() - t0, 4) if t0 and result else None)
         self.log.append(rec)
         write_log(self.log_path, rec)
