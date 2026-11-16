@@ -88,7 +88,7 @@ from transactional_runtime_healing import protocol as P
 from transactional_runtime_healing.heal_point import checks_message, missing_targets, run_healing_code
 from transactional_runtime_healing import meter, taint
 from transactional_runtime_healing.fs_journal import FsJournal
-from transactional_runtime_healing.instrument import HealContext, HealRecord, handled_by_caller
+from transactional_runtime_healing.instrument import HealContext, HealRecord, handled_by_caller, is_instrumentation_name
 
 _RETURN_OPCODES = {dis.opmap[n] for n in ("RETURN_VALUE", "YIELD_VALUE") if n in dis.opmap}
 _TOOL_ID = 3                                      # sys.monitoring tool id
@@ -272,7 +272,7 @@ class LiveHealer:
         if self._busy:
             return None
         filename, lineno, func, statement = site
-        clean = {k: v for k, v in locals_.items() if not k.startswith("__eh")}
+        clean = {k: v for k, v in locals_.items() if not is_instrumentation_name(k)}
         ctx = HealContext(exc, filename, lineno, func, statement, clean, globals_)
         target = sys._getframe(1)                    # the function that contains the crash
 

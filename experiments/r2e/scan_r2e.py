@@ -51,9 +51,22 @@ def sites_with_code(text, repo_root="/testbed"):
     return found
 
 
+def python_version(image):
+    """(major, minor) of the repository's interpreter; the first call also pulls the image."""
+    try:
+        p = subprocess.run(["docker", "run", "--rm", image, "/testbed/.venv/bin/python", "-c",
+                            "import sys; print(sys.version_info[0], sys.version_info[1])"],
+                           capture_output=True, text=True, timeout=1200)
+        major, minor = p.stdout.split()[-2:]
+        return int(major), int(minor)
+    except Exception:
+        return None
+
+
 def scan_one(row, a):
     commit = row["commit_hash"]
     rec = dict(commit=commit[:12], repo=row["repo_name"], time=time.strftime("%Y-%m-%d %H:%M:%S"))
+    rec["python"] = python_version(row["docker_image"])
     try:
         text, code, _, _, secs = R.run_container(row, "off", a, None)
     except Exception as e:                                   # keep scanning
@@ -68,6 +81,8 @@ def scan_one(row, a):
     non_raise = [c for _, c in pairs if not re.match(r"raise\b", c)]
     rec["raise_only"] = bool(pairs) and not non_raise
     rec["usable"] = bool(bad) and bool(pairs) and bool(non_raise)
+    if rec["usable"] and rec["python"] and rec["python"] < (3, 9):
+        rec["usable"], rec["old_python"] = False, True     # the instrumenter needs ast.unparse (3.9)
     if outcome == "ERROR":
         rec["detail"] = text.strip()[-200:].replace("\n", " | ")
     return rec
@@ -78,11 +93,13 @@ def summary(path):
     by = {}
     for r in rows:
         d = by.setdefault(r["repo"], dict(scanned=0, usable=0, no_failure=0, no_site=0,
-                                          raise_only=0, error=0, threads=0))
+                                          raise_only=0, error=0, threads=0, old_python=0))
         d["scanned"] += 1
         if r.get("usable"):
             d["usable"] += 1
             d["threads"] += bool(r.get("threads"))
+        elif r.get("old_python"):
+            d["old_python"] += 1
         elif r.get("status") in ("ERROR", "CRASH"):
             d["error"] += 1
         elif not r.get("failing"):

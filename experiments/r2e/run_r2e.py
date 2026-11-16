@@ -48,7 +48,7 @@ def _obj(v):
 
 
 def is_test_path(p):
-    return bool(re.search(r"(^|/)(tests?|testing)(/|$)|(^|/)test_[^/]*\.py$|_tests?\.py$", p))
+    return bool(re.search(r"(^|/)(tests?|testing)(/|$)|(^|/)test_[^/]*\.py$|_tests?\.py$", p, re.I))   # pillow: Tests/
 
 
 def write_inputs(row, folder, setting):
@@ -86,6 +86,7 @@ def test_style(row):
 
 def parse_report(text):
     """Test results: {'Class.test': (status, reason)} (names as in expected_output_json)."""
+    text = re.sub(r"\x1b\[[0-9;]*m", "", text)           # some repositories force coloured output
     out = {}
     for m in re.finditer(r"^(PASSED|FAILED|ERROR|SKIPPED) (\S+?::\S+?)(?: - (.*))?$", text, re.M):
         status, node, why = m.groups()                      # custom runner: test_1::Class::test
@@ -165,9 +166,18 @@ def run_container(row, setting, a, sites):
     for d in (hook_cache, llm_cache):
         os.makedirs(d, exist_ok=True)
     healing = setting in HEAL_SETTINGS
-    cmd = ["docker", "run", "--rm", "-e", "HOME=/tmp", "-e", "PYTHONDONTWRITEBYTECODE=1",
+    # newer pillow tests do `from .helper import ...`: they need a package that also holds the
+    # repository's Tests/helper.py (and __init__.py, conftest.py). The tests folder is read-only,
+    # so the package is built inside the container from those support files and the task's tests.
+    pillow_pkg = row["repo_name"] == "pillow" and test_style(row) == "pytest"
+    # a named container can be removed when the run times out or is interrupted: killing the
+    # `docker run` command alone leaves the container running
+    # Docker allows only [A-Za-z0-9_.-] in a container name ("plain+guard" is not valid)
+    cname = re.sub(r"[^A-Za-z0-9_.-]", "-", f"txh-{commit[:12]}-{setting}{run_tag}-{os.getpid()}")
+    cmd = ["docker", "run", "--rm", "--name", cname, "-e", "HOME=/tmp", "-e", "PYTHONDONTWRITEBYTECODE=1",
            "-e", "PYTHONHASHSEED=0",                  # the same prompts and test behaviour in every process
-           "-e", "PYTHONPATH=/txh:/testbed", "-v", f"{tdir}:/testbed/r2e_tests:ro",
+           "-e", "PYTHONPATH=/txh:/testbed" + (":/testbed/Tests" if row["repo_name"] == "pillow" else ""),
+           "-v", f"{tdir}:{'/r2e_in' if pillow_pkg else '/testbed/r2e_tests'}:ro",
            "-v", f"{gdir}:/gold:ro", "-v", f"{os.path.join(ROOT, 'src')}:/txh:ro",
            "-v", f"{out}:/out", "-v", f"{hook_cache}:/hookcache", "-v", f"{llm_cache}:/llmcache",
            "-w", "/testbed"]
@@ -194,18 +204,27 @@ def run_container(row, setting, a, sites):
     else:
         heal_args = False
     if test_style(row) == "runner":
-        py = ("-m transactional_runtime_healing.unittest_heal tornado_unittest_runner.py"
-              if heal_args else "tornado_unittest_runner.py")
-        run = f"cd /testbed/r2e_tests && /testbed/.venv/bin/python -W ignore {py}"
+        runner = next(n for n in _obj(row["execution_result_content"])["test_file_names"]
+                      if n.endswith("_runner.py"))
+        # tornado's runner must start inside r2e_tests; the others start in /testbed
+        cwd, path = ("/testbed/r2e_tests", runner) if row["repo_name"] == "tornado" else \
+                    ("/testbed", f"r2e_tests/{runner}")
+        py = (f"-m transactional_runtime_healing.unittest_heal {path}" if heal_args else path)
+        run = f"cd {cwd} && /testbed/.venv/bin/python -W ignore {py}"
     else:
         extra = "-p transactional_runtime_healing.pytest_plugin -s " if heal_args else ""
         run = ("cd /testbed && PYTHONWARNINGS='ignore::UserWarning,ignore::SyntaxWarning' "
-               f"/testbed/.venv/bin/python -W ignore -m pytest -rA --tb=native "
+               f"/testbed/.venv/bin/python -W ignore -m pytest -rA --tb=native --color=no "
                f"-p no:cacheprovider $NOCOV {extra}r2e_tests")
     # the files written into the mounted folders are handed back to the host user
     # pytest-cov (aiohttp, ...) breaks in forked children (coverage's atexit assertion), so it is
     # switched off for every setting; the option exists only when the plugin is installed
-    script = (f"cp -r /gold/. /testbed/ 2>/dev/null; "
+    build = ("mkdir -p /testbed/r2e_tests; "
+             "for f in __init__.py helper.py conftest.py; do "
+             "cp /testbed/Tests/$f /testbed/r2e_tests/ 2>/dev/null; done; "
+             "touch /testbed/r2e_tests/__init__.py; "
+             "cp -r /r2e_in/. /testbed/r2e_tests/; ") if pillow_pkg else ""
+    script = (f"cp -r /gold/. /testbed/ 2>/dev/null; {build}"
               f"NOCOV=$(/testbed/.venv/bin/python -c 'import pytest_cov' 2>/dev/null && echo --no-cov); "
               f"{run}; "
               f"rc=$?; chown -R {os.getuid()}:{os.getgid()} /out /hookcache /llmcache 2>/dev/null; "
@@ -217,6 +236,10 @@ def run_container(row, setting, a, sites):
         text, code = p.stdout + "\n" + p.stderr, p.returncode
     except subprocess.TimeoutExpired:
         text, code = "timeout", -1
+        subprocess.run(["docker", "rm", "-f", cname], capture_output=True)
+    except BaseException:                       # Ctrl-C, kill: do not leave the container behind
+        subprocess.run(["docker", "rm", "-f", cname], capture_output=True)
+        raise
     with open(os.path.join(folder, "pytest.txt"), "w") as f:
         f.write(text)
     return text, code, copied, out, round(time.monotonic() - t0, 1)
@@ -224,7 +247,9 @@ def run_container(row, setting, a, sites):
 
 def judge(row, text, code):
     got = parse_report(text)
-    expected = _obj(row["expected_output_json"])
+    # some tasks (pillow) were recorded with coloured output: their expected names carry the codes
+    expected = {re.sub(r"\x1b\[[0-9;]*m", "", k): v
+                for k, v in _obj(row["expected_output_json"]).items()}
     counts = {}
     for st, _ in got.values():
         counts[st] = counts.get(st, 0) + 1

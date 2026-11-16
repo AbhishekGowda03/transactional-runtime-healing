@@ -207,7 +207,7 @@ def build_prompt(ctx) -> str:
     exc = ctx.exception
     tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__)[-6:])
     tb = _stable(re.sub(r'File "([^"]*[/\\])?([^"/\\]+)"', r'File "\2"', tb))
-    names = [n for n in ctx.locals_ if not n.startswith("__") and n not in ("_eh_rtn", "_eh_cond")][:30]
+    names = [n for n in ctx.locals_ if not n.startswith("__") and "__eh_" not in n and n not in ("_eh_rtn", "_eh_cond")][:30]
     local_lines = "\n".join(f"  {n} = {_short(ctx.locals_[n])}  # {type(ctx.locals_[n]).__name__}"
                             for n in names) or "  (none)"
     src = _function_source(ctx.filename, ctx.lineno)

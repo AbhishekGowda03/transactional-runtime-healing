@@ -344,6 +344,14 @@ def _test_expects_exception(f) -> bool:
     return False
 
 
+def is_instrumentation_name(name: str) -> bool:
+    """A local variable that the instrumentation itself adds (`__eh_e`, `__eh_r`).
+
+    Inside a class body Python renames a name that starts with two underscores to
+    `_ClassName__eh_r`, so a test for a `__eh` prefix misses it: the name has to be searched for."""
+    return "__eh_" in name
+
+
 def handled_by_caller(exc, frame, globals_=None, filename=None) -> bool:
     """True if a function further up the stack is inside a `try` whose handler catches `exc`.
     Healing there would change what the program does, because the program expects and
@@ -473,7 +481,7 @@ class Healer:
         if handled_by_caller(exc, sys._getframe(1), globals_, filename):
             self.skipped_caller_handled += 1                  # the program handles it itself
             return None
-        clean = {k: v for k, v in locals_.items() if not k.startswith("__eh")}
+        clean = {k: v for k, v in locals_.items() if not is_instrumentation_name(k)}
         ctx = HealContext(exc, filename, lineno, func, statement, clean, globals_)
         self._busy = True
         try:

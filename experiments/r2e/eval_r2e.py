@@ -27,9 +27,10 @@ import run_r2e as R  # noqa: E402
 SETTINGS = ["plain", "plain+guard", "fork-only", "full"]
 
 
-def pick_tasks(scan_path, n, with_threads):
+def pick_tasks(scan_path, n, with_threads, repos=None):
     rows = [json.loads(x) for x in open(scan_path) if x.strip()]
-    rows = [r for r in rows if r.get("usable") and (with_threads or not r.get("threads"))]
+    rows = [r for r in rows if r.get("usable") and (with_threads or not r.get("threads"))
+            and (not repos or r["repo"] in repos)]
     by = {}
     for r in rows:
         by.setdefault(r["repo"], []).append(r)
@@ -217,6 +218,7 @@ def main(argv=None):
     ap.add_argument("--scan", default=os.path.join(R.ROOT, "results", "r2e", "scan.jsonl"))
     ap.add_argument("--out", default=os.path.join(R.ROOT, "results", "r2e", "eval.jsonl"))
     ap.add_argument("--n", type=int, default=36, help="number of tasks (round robin over repos)")
+    ap.add_argument("--repos", help="only these repositories, e.g. pillow")
     ap.add_argument("--runs", type=int, default=3)
     ap.add_argument("--settings", default=",".join(SETTINGS))
     ap.add_argument("--with-threads", action="store_true",
@@ -280,7 +282,8 @@ def main(argv=None):
                     unsupported.add(d["commit"])
                 if d["setting"] == "gold" and d["outcome"] != "PASSED":
                     bad_gold.add(d["commit"])          # does not pass with the gold patch: never evaluate
-    tasks = pick_tasks(a.scan, a.n, a.with_threads)
+    tasks = pick_tasks(a.scan, a.n, a.with_threads,
+                       [x for x in a.repos.split(",") if x] if a.repos else None)
     if a.only:
         tasks = [t for t in tasks if t["commit"].startswith(a.only)]
     settings = [s for s in a.settings.split(",") if s]

@@ -242,3 +242,29 @@ def test_attempt_time_is_recorded_and_written_to_the_log(tmp_path):
     assert isinstance(h.log[0].seconds, float) and h.log[0].seconds >= 0
     line = json.loads(log.read_text().splitlines()[0])
     assert line["attempt_seconds"] == h.log[0].seconds
+
+
+def test_instrumentation_names_inside_a_class_do_not_reach_the_proposer():
+    # Python renames `__eh_r` to `_K__eh_r` inside a class: the second crash in one call used to
+    # show the model the first repair's result object (and so the protocol itself)
+    src = ("class K:\n    def m(self, d):\n        a = d['x']\n        b = d['y']\n"
+           "        return (a, b)\nresult = K().m({})\n")
+    seen = []
+
+    def propose(ctx):
+        seen.append(sorted(ctx.locals_))
+        return "a = 1" if "d['x']" in ctx.statement else "b = 2"
+
+    g = run_instrumented(src, PlainHealer(propose))
+    assert g["result"] == (1, 2) and len(seen) == 2
+    assert not any("__eh_" in name for names in seen for name in names), seen
+
+
+def test_prompt_leaves_out_renamed_instrumentation_names():
+    from types import SimpleNamespace
+    from transactional_runtime_healing import llm
+    ctx = SimpleNamespace(exception=KeyError("x"), filename="f.py", lineno=1, function="m",
+                          statement="a = d['x']", globals_={},
+                          locals_={"d": {}, "_K__eh_r": object(), "_K__eh_e": KeyError("x")})
+    prompt = llm.build_prompt(ctx)
+    assert "__eh_" not in prompt and "  d = " in prompt

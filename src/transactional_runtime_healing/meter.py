@@ -49,7 +49,7 @@ import warnings
 from typing import Dict, List, Optional
 
 from transactional_runtime_healing import protocol as P
-from transactional_runtime_healing.instrument import HANDLER_TABLES
+from transactional_runtime_healing.instrument import HANDLER_TABLES, is_instrumentation_name
 
 
 def _stdlib_names():
@@ -179,7 +179,7 @@ def _process_settings(snap: Dict[str, str], filters):
 
 
 def _own_name(name: str) -> bool:
-    return name.startswith("__heal") or name.startswith("__eh") or name == "__builtins__"
+    return name.startswith("__heal") or is_instrumentation_name(name) or name == "__builtins__"
 
 
 def _structural(v) -> str:
