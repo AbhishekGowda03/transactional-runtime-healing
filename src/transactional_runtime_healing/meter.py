@@ -52,6 +52,24 @@ from transactional_runtime_healing import protocol as P
 from transactional_runtime_healing.instrument import HANDLER_TABLES, is_instrumentation_name
 
 
+
+def _valid_signals():
+    """signal.valid_signals() (Python 3.8); on 3.7 every number below NSIG that getsignal accepts."""
+    import signal
+    if hasattr(signal, "valid_signals"):
+        return signal.valid_signals()
+    return [n for n in range(1, signal.NSIG) if _signal_ok(n)]
+
+
+def _signal_ok(n):
+    import signal
+    try:
+        signal.getsignal(n)
+        return True
+    except (ValueError, OSError):
+        return False
+
+
 def _stdlib_names():
     """Names of the standard library's top-level modules (sys.stdlib_module_names exists from
     Python 3.10; for 3.9 the names are read from the standard library folder)."""
@@ -168,7 +186,7 @@ def _process_settings(snap: Dict[str, str], filters):
     put("socket.timeout", socket.getdefaulttimeout)
     put("signal.handlers", lambda: {int(sig): _ident(signal.getsignal(sig))
                                     if callable(signal.getsignal(sig)) else repr(signal.getsignal(sig))
-                                    for sig in signal.valid_signals()
+                                    for sig in _valid_signals()
                                     if sig not in (signal.SIGKILL, signal.SIGSTOP)})
     put("sys.stdout", lambda: id(sys.stdout))
     put("sys.stderr", lambda: id(sys.stderr))

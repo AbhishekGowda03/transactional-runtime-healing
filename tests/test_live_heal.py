@@ -535,3 +535,74 @@ def test_live_attempt_time_is_logged(tmp_path):
     assert p.returncode == 0, p.stderr
     done = [e for e in log if e["status"] == "COMMITTED"]
     assert done and isinstance(done[0]["attempt_seconds"], float) and done[0]["attempt_seconds"] > 0
+
+
+# ---- asyncio: a forked child must still see the parent's running event loop ----------------
+def test_repair_that_needs_the_running_loop_commits(tmp_path):
+    # asyncio ties the running loop to the process id: without help the forked trial raises
+    # RuntimeError('no running event loop')
+    p, log = run_live(tmp_path, """
+        import asyncio
+        async def work(d):
+            v = d['x']
+            await asyncio.sleep(0)
+            return v
+        async def main():
+            print('result', await work({'y': 1}))
+        asyncio.run(main())
+    """, [{"match": "d['x']", "code": "v = 7 if asyncio.get_running_loop() else 0"}])
+    assert p.returncode == 0, p.stderr
+    assert "result 7" in p.stdout.splitlines()
+    assert statuses(log) == ["COMMITTED"], log
+
+
+def test_program_keeps_its_event_loop_after_a_commit(tmp_path):
+    # after a commit the child IS the program: create_task and sleep must keep working
+    p, log = run_live(tmp_path, """
+        import asyncio
+        async def work(d):
+            v = d['x']
+            return v
+        async def main():
+            r = await work({'y': 1})
+            t = asyncio.create_task(asyncio.sleep(0, result='task done'))
+            print(await t, r)
+            await asyncio.sleep(0.01)
+            print('finished')
+        asyncio.run(main())
+    """, [{"match": "d['x']", "code": "v = 5"}])
+    assert p.returncode == 0, p.stderr
+    assert p.stdout.splitlines() == ["task done 5", "finished"], p.stdout + p.stderr
+    assert statuses(log) == ["COMMITTED"], log
+
+
+def test_rejected_trial_does_not_change_the_parents_event_loop_registrations(tmp_path):
+    # the child shares the loop's epoll descriptor with the parent: a trial that removes a
+    # reader must not deregister it for the parent, which carries on after the rejection
+    p, log = run_live(tmp_path, """
+        import asyncio, socket
+        a, b = socket.socketpair()
+        a.setblocking(False)
+        async def bad(d):
+            v = d['x']
+            return v
+        async def main():
+            loop = asyncio.get_running_loop()
+            got = loop.create_future()
+            loop.add_reader(a.fileno(), lambda: got.done() or got.set_result(a.recv(10)))
+            t = asyncio.ensure_future(bad({}))
+            try:
+                await t
+            except KeyError:
+                print('original error')
+            b.send(b'x')
+            try:
+                print('received', await asyncio.wait_for(got, 3))
+            except asyncio.TimeoutError:
+                print('timeout')
+        asyncio.run(main())
+    """, [{"match": "d['x']",
+           "code": "asyncio.get_running_loop().remove_reader(a.fileno())\nraise ValueError('boom')"}])
+    assert p.returncode == 0, p.stderr
+    assert p.stdout.splitlines() == ["original error", "received b'x'"], p.stdout + p.stderr
+    assert statuses(log) == ["REJECTED_REPAIR_ERROR"], log

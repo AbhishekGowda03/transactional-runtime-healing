@@ -183,6 +183,51 @@ def _reset_pool_executors():
         ex._idle_semaphore = _t.Semaphore(0)
 
 
+def _running_loop():
+    """The asyncio event loop that is running in this thread, or None (asyncio is not imported)."""
+    if "asyncio" not in sys.modules:
+        return None
+    try:
+        return sys.modules["asyncio"].events._get_running_loop()
+    except Exception:
+        return None
+
+
+def _adopt_running_loop(loop):
+    """In the forked child: asyncio ties the running loop to the process id, so the child no
+    longer sees the loop it was forked from (`get_running_loop()` raises 'no running event
+    loop') and a repair, or the program after a commit, that creates a task or sleeps would fail.
+    Register the loop for this process again."""
+    if loop is None:
+        return
+    try:
+        sys.modules["asyncio"].events._set_running_loop(loop)
+    except Exception:
+        pass
+    _private_epoll(loop)
+
+
+def _private_epoll(loop):
+    """The loop's epoll descriptor is shared with the parent after the fork: a trial that
+    registers or removes a file descriptor would change what the parent waits for, and a
+    discarded trial would leave the parent deaf. Give the child its own epoll object with the
+    same registrations (Linux; other selectors are left as they are)."""
+    try:
+        import select
+        import selectors
+        sel = getattr(loop, "_selector", None)
+        if not isinstance(sel, selectors.EpollSelector):
+            return
+        new = select.epoll()
+        for fd, key in list(sel._fd_to_key.items()):
+            ev = ((select.EPOLLIN if key.events & selectors.EVENT_READ else 0)
+                  | (select.EPOLLOUT if key.events & selectors.EVENT_WRITE else 0))
+            new.register(fd, ev)
+        sel._selector = new
+    except Exception:
+        pass
+
+
 class _Pending:
     """State of a trial that is running in this (child) process."""
 
@@ -248,6 +293,7 @@ class LiveHealer:
         self.allow_events = frozenset(allow_events)
         self.log_path = log_path
         self.meter_state = meter_state
+        P.install_hook()                  # before any state is measured (the wrappers import modules)
         self.guard = guard
         self.safe_paths = tuple(safe_paths)
         self.protected_events = protected_events
@@ -337,9 +383,11 @@ class LiveHealer:
         self._before = meter.snapshot(target, ctx.globals_) if self.meter_state else None
         self._target = target
         r, w = os.pipe()
+        loop = _running_loop()
         pid = os.fork()
         if pid == 0:
             os.close(r)
+            _adopt_running_loop(loop)
             return self._child_begin(ctx, code, target, w)
         os.close(w)
         return self._parent_wait(ctx, code, pid, r, offsets)

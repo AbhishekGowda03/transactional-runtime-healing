@@ -212,7 +212,11 @@ def _audit_hook(event, args):
 def install_hook():
     global _hook_installed
     if not _hook_installed:
-        sys.addaudithook(_audit_hook)            # cannot be removed; flag controls it
+        if hasattr(sys, "addaudithook") and os.environ.get("TXH_HOOKS") != "shim":
+            sys.addaudithook(_audit_hook)        # cannot be removed; flag controls it
+        else:                                    # Python 3.7 (or a comparison run): wrappers
+            from transactional_runtime_healing import compat_hooks
+            compat_hooks.install(_audit_hook)
         _hook_installed = True
 
 

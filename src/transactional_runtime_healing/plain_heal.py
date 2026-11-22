@@ -57,6 +57,7 @@ class PlainHealer:
         self.max_heals = max_heals
         self.log_path = log_path
         self.meter_state = meter_state
+        P.install_hook()                  # before any state is measured (the wrappers import modules)
         # guard: False | "heal-phase" (True) | "taint". "heal-phase" stops only protected
         # operations of the healing code itself; "taint" also follows values the repair
         # introduced through the rest of the run (the value-matching baseline, HealGuard-inspired).

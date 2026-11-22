@@ -149,6 +149,11 @@ def _stable(text: str) -> str:
     """Remove what changes between runs but means nothing (memory addresses, temp paths)."""
     text = re.sub(r"0x[0-9a-fA-F]{4,}", "0x…", text)
     text = re.sub(r"/tmp/[^\s'\"]+", "/tmp/…", text)
+    # the port of a test server on the local machine and file descriptor numbers are different in
+    # every process (aiohttp's tests started a new server on a random port in every run)
+    text = re.sub(r"((?:127\.0\.0\.1|localhost|0\.0\.0\.0|\[::1\])['\"]?(?::|,\s*port=))\d{2,5}",
+                  r"\1PORT", text)
+    text = re.sub(r"\bfd=\d+", "fd=N", text)
     return text
 
 

@@ -380,3 +380,19 @@ def test_short_renders_sets_in_a_fixed_order():
                            env={**os.environ, "PYTHONHASHSEED": seed}).stdout
             for seed in ("1", "2", "3", "4")}
     assert len(outs) == 1
+
+
+
+def test_stable_replaces_local_ports_and_descriptors():
+    from transactional_runtime_healing.llm import _stable
+    t = ("<ClientResponse(http://127.0.0.1:32903/) [None None]> "
+         "ConnectionKey(host='127.0.0.1', port=32903, is_ssl=False) "
+         "transport=<_SelectorSocketTransport fd=10 read=polling> http://localhost:8080/x")
+    out = _stable(t)
+    assert "32903" not in out and "fd=10" not in out and "8080" not in out
+    assert "127.0.0.1:PORT/" in out and "host='127.0.0.1', port=PORT" in out and "fd=N" in out
+
+
+def test_stable_keeps_ports_of_other_hosts():
+    from transactional_runtime_healing.llm import _stable
+    assert _stable("https://example.com:8443/x port=8443") == "https://example.com:8443/x port=8443"
