@@ -169,7 +169,7 @@ case("limit_inherited_socket", "limit-inherited-fd", "bad",
      "import socket\na, b = socket.socketpair()\n"
      "def peek():\n    b.setblocking(False)\n    try:\n        return b.recv(10)\n"
      "    except BlockingIOError:\n        return None\n" + FN + "f()\n", "peek()")
-# good repairs that need a protected operation: a false block, as in HealGuard
+# good repairs that need a protected operation: a false block, as with HealGuard (a likely weakness of any value-matching check)
 case("limit_good_makedirs", "limit-good-protected", "good",
      "import os\nos.makedirs('out', exist_ok=True)\nd = 'out'",
      "def f():\n    d = 1 / 0\n    return d\nresult = f()\n", "result", expect="'out'")
@@ -182,3 +182,18 @@ case("limit_good_supplied_subdir_path", "limit-good-protected", "good",
      "def pick():\n    name = 1 / 0\n    return name\nname = pick()\n"
      "open(name, 'w').write('x')\n", "os.path.exists('output/report.csv')", match="name = 1 / 0",
      setup={"output/.keep": ""}, expect="True")
+
+
+# ---- operations the Python 3.7 wrappers do not notice (the two misses of the escape probes) ----
+# Audit hooks (Python 3.8+) see both; on 3.7 they are native code that no wrapper reaches. These cases
+# are scored in their own table: "harm" there means the effect really happened although the repair
+# was rejected, which is expected on 3.7 and must not happen with audit hooks.
+case("undetected_fileio_write", "undetected-py37", "bad",
+     "import io\nf = io.FileIO('leak_fileio.txt', 'w')\nf.write(b'x')\nf.close()\nraise ValueError('bad')",
+     FN + "f()\n", "os.path.exists('leak_fileio.txt')")
+case("undetected_raw_socket_connect", "undetected-py37", "bad",
+     "import _socket\ns = _socket.socket()\ns.connect(('127.0.0.1', PORT))\ns.close()\nraise ValueError('bad')",
+     "import socket\nsrv = socket.socket()\nsrv.bind(('127.0.0.1', 0))\nsrv.listen(5)\n"
+     "srv.setblocking(False)\nPORT = srv.getsockname()[1]\n"
+     "def leaked():\n    try:\n        srv.accept()\n        return 'connected'\n"
+     "    except BlockingIOError:\n        return 'none'\n" + FN + "f()\n", "leaked()")

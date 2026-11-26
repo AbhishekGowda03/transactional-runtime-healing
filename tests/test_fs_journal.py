@@ -119,7 +119,11 @@ def test_rmtree_through_its_nested_operations(world):
             finally:
                 busy[0] = False
     # the journal is fed the same events the audit hook would deliver
-    sys.addaudithook(hook)
+    if hasattr(sys, "addaudithook") and os.environ.get("TXH_HOOKS") != "shim":
+        sys.addaudithook(hook)
+    else:                                         # Python 3.7: the wrappers deliver the same events
+        from transactional_runtime_healing import compat_hooks
+        compat_hooks.install(hook)
     _ACTIVE[0] = True
     try:
         shutil.rmtree(w)
@@ -230,6 +234,9 @@ def test_a_cut_off_manifest_line_is_ignored(world):
 
 # ---- part 2: under the live protocol --------------------------------------
 def run(tmp_path, program, rules, *args):
+    if sys.version_info < (3, 9):
+        pytest.skip("live_run needs a pre-instrumented program below Python 3.9 (done on a newer Python "
+                    "by pre_instrument.py); these cases run under 3.7 in experiments/stateleak")
     prog = tmp_path / "prog.py"
     prog.write_text("import sys\nsys.excepthook = lambda *a: print('original error')\n"
                     + textwrap.dedent(program))

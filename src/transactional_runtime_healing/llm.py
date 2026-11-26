@@ -183,6 +183,22 @@ def _short(value, limit=200) -> str:
     return r if len(r) <= limit else r[:limit] + "…"
 
 
+def _end_by_indent(lines, start):
+    """Last line of the block that starts at line `start` (1-based): the lines after it that are
+    blank or indented deeper than the `def` line. Used where the syntax tree has no end positions
+    (Python 3.7) and the file was not pre-instrumented."""
+    first = lines[start - 1]
+    indent = len(first) - len(first.lstrip())
+    end = start
+    for n in range(start, len(lines)):
+        text = lines[n]
+        if text.strip() and len(text) - len(text.lstrip()) <= indent:
+            break
+        if text.strip():
+            end = n + 1
+    return end
+
+
 def _function_source(filename: str, lineno: int, max_lines: int = 60) -> str:
     """Source of the function that contains the line (or the lines around it)."""
     try:
@@ -192,15 +208,25 @@ def _function_source(filename: str, lineno: int, max_lines: int = 60) -> str:
         return ""
     lines = text.splitlines()
     try:
-        tree = ast.parse(text)
-        best = None
-        for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and \
-                    node.lineno <= lineno <= (node.end_lineno or node.lineno):
-                if best is None or node.lineno >= best.lineno:
-                    best = node
+        from transactional_runtime_healing import instrument as _ins
+        spans = _ins.FUNC_SPANS.get(filename)         # pre-instrumented file: spans computed earlier
+        best = None                                   # (first line, last line)
+        if spans is not None:
+            for start, end in spans:
+                if start <= lineno <= end and (best is None or start >= best[0]):
+                    best = (start, end)
+        else:
+            tree = ast.parse(text)
+            node_best = None
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    end = getattr(node, "end_lineno", None) or _end_by_indent(lines, node.lineno)
+                    if node.lineno <= lineno <= end and \
+                            (node_best is None or node.lineno >= node_best[0]):
+                        node_best = (node.lineno, end)
+            best = node_best
         if best is not None:
-            return "\n".join(lines[best.lineno - 1:best.end_lineno][:max_lines])
+            return "\n".join(lines[best[0] - 1:best[1]][:max_lines])
     except SyntaxError:
         pass
     lo = max(lineno - 8, 0)

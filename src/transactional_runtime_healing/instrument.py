@@ -39,6 +39,7 @@ import ast
 import collections
 import functools
 import os
+import re
 from dataclasses import dataclass, field
 import sys
 from typing import Any, Callable, Dict, List, Optional
@@ -50,6 +51,10 @@ from transactional_runtime_healing.heal_point import HealResult, heal_point
 # globals) so that code from several files can be looked up from one place.
 HANDLER_TABLES: Dict[str, list] = {}
 READ_NAMES: Dict[str, set] = {}
+# Per instrumented file: (first line, last line) of every function. The prompt shows the function
+# around a crash; Python 3.7 has no end positions in its syntax tree, so for a pre-instrumented
+# file the spans come from here (they were computed by the Python that did the instrumenting).
+FUNC_SPANS: Dict[str, list] = {}
 
 _NO_WRAP = (ast.Pass, ast.Break, ast.Continue, ast.Global, ast.Nonlocal,
             ast.Raise, ast.Assert, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
@@ -126,10 +131,45 @@ def _is_docstring(stmt) -> bool:
 _MATCH = getattr(ast, "Match", ())          # match statements exist from Python 3.10
 
 
+_LINE = re.compile(r"[^\r\n]*(?:\r\n|\r|\n)|[^\r\n]+")
+
+
+class _Segments:
+    """`ast.get_source_segment` for one source text. The standard function splits the whole text
+    into lines on every call, which makes instrumenting a file with thousands of statements take
+    minutes (argparse.py: 13 s, 90% of it there). The result is the same string."""
+
+    def __init__(self, source: str):
+        self.lines = _LINE.findall(source)       # split on \n, \r\n and \r only, as ast does
+        self._bytes = {}
+
+    def _line(self, i):
+        b = self._bytes.get(i)
+        if b is None:
+            b = self._bytes[i] = self.lines[i].encode()
+        return b
+
+    def get(self, node):
+        try:
+            if node.end_lineno is None or node.end_col_offset is None:
+                return None
+            lineno, end_lineno = node.lineno - 1, node.end_lineno - 1
+            col, end_col = node.col_offset, node.end_col_offset
+        except AttributeError:
+            return None
+        if end_lineno == lineno:
+            return self._line(lineno)[col:end_col].decode()
+        parts = [self._line(lineno)[col:].decode()]
+        parts.extend(self.lines[lineno + 1:end_lineno])
+        parts.append(self._line(end_lineno)[:end_col].decode())
+        return "".join(parts)
+
+
 class _Instrumenter:
     def __init__(self, source: str, filename: str):
         self.source = source
         self.filename = filename
+        self._segments = _Segments(source)
         self.table = []          # (first line, last line, handler types) for every statement
 
     # -- public ----------------------------------------------------------
@@ -209,7 +249,7 @@ class _Instrumenter:
 
     # -- wrapping --------------------------------------------------------
     def handler_body(self, stmt, names, expected, func, lineno):
-        segment = getattr(stmt, "_eh_segment", None) or ast.get_source_segment(self.source, stmt) or ""
+        segment = getattr(stmt, "_eh_segment", None) or self._segments.get(stmt) or ""
         site = (self.filename, lineno, func, segment[:_SOURCE_LIMIT])
         lines = []
         types = [e for e in expected if e]
@@ -246,7 +286,7 @@ class _Instrumenter:
         """`if COND:` becomes `_eh_cond = COND` (a heal point of its own, so a failure in the
         condition can be repaired by supplying its truth value) followed by `if _eh_cond:`.
         The whole `if` is still a heal point for failures inside its branches."""
-        text = ast.get_source_segment(self.source, stmt.test) or ast.unparse(stmt.test)
+        text = self._segments.get(stmt.test) or ast.unparse(stmt.test)
         init = ast.parse("_eh_cond = None").body[0]
         assign = ast.Assign(targets=[ast.Name(id="_eh_cond", ctx=ast.Store())], value=stmt.test)
         ast.copy_location(assign, stmt.test)
@@ -269,17 +309,29 @@ class _Instrumenter:
 
 
 # ----------------------------------------------------------------------
-def instrument_with_table(source: str, filename: str = "<instrumented>"):
-    """(code object, handler table). The table says, for every statement, which exception
-    types the program's own `try` statements around it catch."""
-    tree = ast.parse(source, filename)
+def instrument_tree(source: str, filename: str = "<instrumented>", feature_version=None):
+    """(rewritten syntax tree, handler table, names the file reads, function spans), not compiled.
+    The tree keeps the line numbers of the original file. This is also what the pre-instrumentation
+    for Python 3.7 stores (pre_instrument.py): 3.7 cannot do this step itself."""
+    tree = ast.parse(source, filename, feature_version=feature_version) if feature_version \
+        else ast.parse(source, filename)
     ins = _Instrumenter(source, filename)
     reads = {n.id for n in ast.walk(tree)
              if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load)}
+    spans = sorted((n.lineno, n.end_lineno or n.lineno) for n in ast.walk(tree)
+                   if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)))
     tree = ins.module(tree)
-    HANDLER_TABLES[filename] = ins.table
+    return tree, ins.table, reads, spans
+
+
+def instrument_with_table(source: str, filename: str = "<instrumented>"):
+    """(code object, handler table). The table says, for every statement, which exception
+    types the program's own `try` statements around it catch."""
+    tree, table, reads, spans = instrument_tree(source, filename)
+    HANDLER_TABLES[filename] = table
     READ_NAMES[filename] = reads
-    return compile(tree, filename, "exec"), ins.table
+    FUNC_SPANS[filename] = spans
+    return compile(tree, filename, "exec"), table
 
 
 def instrument(source: str, filename: str = "<instrumented>"):
@@ -421,11 +473,30 @@ def _apply(result: HealResult, globals_: dict, local_names, filename=None):
     globals_.update(result.globals_updates)
 
 
+def _code_for(source: str, filename: str):
+    """Code of a program with heal points: instrumented now, or, on Python before 3.9 (and with
+    TXH_PRE_AST=1), loaded from the entry that a newer Python made ahead of time. The entry is looked
+    up in TXH_PRE_CACHE (or TXH_HEAL_CACHE) under the program's path and content."""
+    from transactional_runtime_healing import repo_hook
+    if not repo_hook.PRE_AST:
+        return instrument_with_table(source, filename)[0]
+    from transactional_runtime_healing import pre_instrument
+    folder = os.environ.get("TXH_PRE_CACHE") or os.environ.get("TXH_HEAL_CACHE") or ""
+    path = os.path.join(folder, pre_instrument.entry_name(source.encode("utf-8"), filename,
+                                                          repo_hook._VERSION))
+    if not os.path.exists(path):
+        raise RuntimeError("%s was not pre-instrumented (needed on Python before 3.9; see "
+                           "pre_instrument.py)" % filename)
+    code, table, reads, spans = pre_instrument.load_entry(path)
+    HANDLER_TABLES[filename], READ_NAMES[filename], FUNC_SPANS[filename] = table, reads, spans
+    return code
+
+
 def run_instrumented(source: str, healer: Callable, filename: str = "<instrumented>",
                      globals_: Optional[dict] = None) -> dict:
     """Run `source` with heal points; returns the module's globals afterwards."""
     g = {"__name__": "__main__"} if globals_ is None else globals_
-    code, _ = instrument_with_table(source, filename)
+    code = _code_for(source, filename)
     g["__heal__"] = healer
     g["__heal_apply__"] = _apply
     exec(code, g)

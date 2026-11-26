@@ -63,10 +63,23 @@ def python_version(image):
         return None
 
 
+NETWORK_ERRORS = ("no such host", "unexpected EOF", "TLS handshake", "connection reset",
+                  "Temporary failure in name resolution", "toomanyrequests", "i/o timeout",
+                  "Cannot connect to the Docker daemon", "dial tcp", "net/http")
+
+
+def tier_of(py):
+    """Results are kept apart by the repository's Python: 3.7 uses wrapper-based detection."""
+    if not py:
+        return "unknown"
+    return "py37" if py < (3, 8) else "py38" if py < (3, 9) else "py39+"
+
+
 def scan_one(row, a):
     commit = row["commit_hash"]
     rec = dict(commit=commit[:12], repo=row["repo_name"], time=time.strftime("%Y-%m-%d %H:%M:%S"))
     rec["python"] = python_version(row["docker_image"])
+    rec["tier"] = tier_of(rec["python"])
     try:
         text, code, _, _, secs = R.run_container(row, "off", a, None)
     except Exception as e:                                   # keep scanning
@@ -81,7 +94,7 @@ def scan_one(row, a):
     non_raise = [c for _, c in pairs if not re.match(r"raise\b", c)]
     rec["raise_only"] = bool(pairs) and not non_raise
     rec["usable"] = bool(bad) and bool(pairs) and bool(non_raise)
-    if rec["usable"] and rec["python"] and rec["python"] < (3, 9):
+    if rec["usable"] and rec["python"] and rec["python"] < (3, 9) and not getattr(a, "allow_old", False):
         rec["usable"], rec["old_python"] = False, True     # the instrumenter needs ast.unparse (3.9)
     if outcome == "ERROR":
         rec["detail"] = text.strip()[-200:].replace("\n", " | ")
@@ -122,6 +135,9 @@ def main(argv=None):
     ap.add_argument("--workdir", default=os.path.expanduser("~/r2e_work"))
     ap.add_argument("--timeout", type=int, default=900)
     ap.add_argument("--keep-images", action="store_true")
+    ap.add_argument("--allow-old", action="store_true",
+                    help="keep tasks whose Python is older than 3.9 (they are pre-instrumented and "
+                         "evaluated as a separate tier, see experiments/healbench/preinstrument_image.py)")
     ap.add_argument("--summary", metavar="FILE")
     a = ap.parse_args(argv)
     if a.summary:
@@ -147,6 +163,13 @@ def main(argv=None):
         print(f"{repo}: {len(rs)} tasks, scanning {len(todo)} of the first {a.per_repo}", flush=True)
         for r in todo:
             rec = scan_one(r, a)
+            why = f"{rec.get('detail', '')} {rec.get('status', '')}"
+            if rec.get("status") in ("ERROR", "CRASH", "TIMEOUT") and any(
+                    m in why for m in NETWORK_ERRORS):
+                # not a result about the task: nothing is written, the scan can be started again
+                sys.exit(f"\nSTOPPED: the network failed while pulling {r['docker_image']}:\n  {why[-250:]}\n"
+                         f"Nothing was recorded for this task. Fix the connection (DNS, Docker Hub) and "
+                         f"start the scan again; finished tasks are kept.")
             with open(a.out, "a") as f:
                 f.write(json.dumps(rec) + "\n")
             print(f"  {rec['commit']} {rec['status']:7s} usable={rec.get('usable')} "

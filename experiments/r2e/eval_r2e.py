@@ -27,10 +27,26 @@ import run_r2e as R  # noqa: E402
 SETTINGS = ["plain", "plain+guard", "fork-only", "full"]
 
 
-def pick_tasks(scan_path, n, with_threads, repos=None):
+def row_tier(r):
+    """py37, py38 or py39+ of a scan record (older scans have only the interpreter's version)."""
+    if r.get("tier"):
+        return r["tier"]
+    py = r.get("python")
+    if not py:
+        return "py39+"
+    return "py37" if tuple(py) < (3, 8) else "py38" if tuple(py) < (3, 9) else "py39+"
+
+
+def pick_tasks(scan_path, n, with_threads, repos=None, tier="py39+"):
     rows = [json.loads(x) for x in open(scan_path) if x.strip()]
-    rows = [r for r in rows if r.get("usable") and (with_threads or not r.get("threads"))
-            and (not repos or r["repo"] in repos)]
+    for r in rows:
+        r["tier"] = row_tier(r)
+    # tasks on Python before 3.9 were marked old_python (not usable) by the scan; they are usable
+    # since their repository can be pre-instrumented (pre_instrument.py)
+    rows = [r for r in rows if (r.get("usable") or (r.get("old_python") and r["tier"] != "py39+"))
+            and (with_threads or not r.get("threads"))
+            and (not repos or r["repo"] in repos)
+            and (tier == "all" or r["tier"] == tier)]
     by = {}
     for r in rows:
         by.setdefault(r["repo"], []).append(r)
@@ -86,7 +102,7 @@ def heal_detail(out):
     return cats
 
 
-def one(row, setting, run, sites, a):
+def one(row, setting, run, sites, a, tier="py39+"):
     a.run_id = str(run)
     a.temperature = 0.7 if run >= 2 else None
     text, code, _, out, secs = R.run_container(row, setting, a, sites)
@@ -94,7 +110,7 @@ def one(row, setting, run, sites, a):
     if setting in R.HEAL_SETTINGS and ("has no attribute 'get_source_segment'" in text
                                        or "has no attribute 'unparse'" in text):
         outcome = "UNSUPPORTED_PY"        # the repository's Python is older than 3.9 (ast.unparse)
-    rec = dict(commit=row["commit_hash"][:12], repo=row["repo_name"], setting=setting, run=run,
+    rec = dict(commit=row["commit_hash"][:12], repo=row["repo_name"], tier=tier, setting=setting, run=run,
                time=time.strftime("%Y-%m-%d %H:%M:%S"), outcome=outcome, counts=counts,
                seconds=secs, not_passing={k: v[1] for k, v in list(bad.items())[:5]})
     if setting in R.HEAL_SETTINGS:
@@ -105,7 +121,13 @@ def one(row, setting, run, sites, a):
         rec["rejected"] = list(heal_detail.rejected)
         rec["skipped"] = skipped_reasons(out)
         rec["at_sites"] = R.records_at_sites(out, sites)
-        if outcome == "UNSUPPORTED_PY":
+        # attempts skipped for a reason of the protocol itself (not a thread or a caller that handles
+        # the error) and nothing tried at all: the setting did not run; never count it as a result
+        odd = {k: v for k, v in rec["skipped"].items() if k not in ("threads", "handled")}
+        if odd and not rec.get("heals") and outcome != "UNSUPPORTED_PY":
+            rec["outcome"] = outcome = "INVALID_SKIP"
+            rec["detail"] = "attempts skipped: " + "; ".join(sorted(odd))
+        if outcome in ("UNSUPPORTED_PY", "INVALID_SKIP"):
             pass
         elif rec.get("model", {}).get("failed"):
             rec["outcome"] = "MODEL_ERROR"
@@ -141,13 +163,39 @@ def per_task(rows, ok):
                           f"statuses={x.get('statuses')} skipped={x.get('skipped')}")
 
 
-def summary(path, detail=False):
-    rows = [json.loads(x) for x in open(path) if x.strip()]
+TIER_NOTE = {"py37": "Python 3.7: effects are noticed by wrappers (compat_hooks.py), not audit hooks; "
+                     "direct use of io.FileIO and _socket.socket.connect is NOT noticed. "
+                     "No claim of complete protection; do not merge with the other tiers.",
+             "py38": "Python 3.8: audit hooks are available; the instrumentation is done ahead of time."}
+
+
+def summary(path, detail=False, tier=None):
+    """The table for each Python tier, kept apart (3.7 detects fewer operations)."""
+    all_rows = [json.loads(x) for x in open(path) if x.strip()]
+    tiers = sorted({r.get("tier", "py39+") for r in all_rows})
+    if tier:
+        tiers = [tier]
+    for tr in tiers:
+        if len(tiers) > 1 or tier:
+            print(f"\n=== tier {tr} ===")
+            if tr in TIER_NOTE:
+                print(TIER_NOTE[tr])
+        _summary([r for r in all_rows if r.get("tier", "py39+") == tr], detail)
+
+
+def _summary(rows, detail=False):
+    bad = [r for r in rows if r["outcome"] == "INVALID_SKIP"]
+    if bad:
+        why = sorted({r.get("detail", "") for r in bad})
+        print(f"WARNING: {len(bad)} runs are INVALID_SKIP: the healer skipped its attempts for a reason of "
+              f"the protocol itself and tried nothing, so these runs say nothing about the protection. "
+              f"They are left out of the rates below.\n  {why}")
     gold = {r["commit"]: r["outcome"] for r in rows if r["setting"] == "gold"}
     ok = {c for c, o in gold.items() if o == "PASSED"}
     print(f"tasks with a passing gold run: {len(ok)} of {len(gold)}")
     unsup = {r["commit"] for r in rows if r["outcome"] == "UNSUPPORTED_PY"}
-    rows = [r for r in rows if r["setting"] != "gold" and r["commit"] in ok and r["commit"] not in unsup]
+    rows = [r for r in rows if r["setting"] != "gold" and r["commit"] in ok and r["commit"] not in unsup
+            and r["outcome"] != "INVALID_SKIP"]
     if unsup:
         print(f"tasks the instrumenter cannot handle (repository Python < 3.9): {len(unsup)} {sorted(unsup)}")
     plain_pass = {(r["commit"], r["run"]) for r in rows if r["setting"] == "plain" and r["outcome"] == "PASSED"}
@@ -221,6 +269,9 @@ def main(argv=None):
     ap.add_argument("--repos", help="only these repositories, e.g. pillow")
     ap.add_argument("--runs", type=int, default=3)
     ap.add_argument("--settings", default=",".join(SETTINGS))
+    ap.add_argument("--tier", choices=("py39+", "py38", "py37", "all"),
+                    help="which Python tier to evaluate (default py39+; kept apart because 3.7 uses "
+                         "wrapper-based detection); with --summary: only this tier's table")
     ap.add_argument("--with-threads", action="store_true",
                     help="also use tasks whose failing run showed thread use")
     ap.add_argument("--pool-threads", action="store_true")
@@ -248,7 +299,7 @@ def main(argv=None):
             print(f"  {k[0]} {k[1]:12s} r{k[2]}: {x['outcome']} -> {y['outcome']}  statuses {x.get('statuses')} -> {y.get('statuses')}")
         return 0
     if a.summary:
-        summary(a.summary, a.per_task)
+        summary(a.summary, a.per_task, a.tier if a.tier != 'all' else None)
         return 0
     a.workdir = os.path.abspath(os.path.expanduser(a.workdir))
     a.cache_dir = os.path.join(R.ROOT, "results", "llm_cache_r2e")
@@ -283,7 +334,7 @@ def main(argv=None):
                 if d["setting"] == "gold" and d["outcome"] != "PASSED":
                     bad_gold.add(d["commit"])          # does not pass with the gold patch: never evaluate
     tasks = pick_tasks(a.scan, a.n, a.with_threads,
-                       [x for x in a.repos.split(",") if x] if a.repos else None)
+                       [x for x in a.repos.split(",") if x] if a.repos else None, a.tier or "py39+")
     if a.only:
         tasks = [t for t in tasks if t["commit"].startswith(a.only)]
     settings = [s for s in a.settings.split(",") if s]
@@ -297,7 +348,7 @@ def main(argv=None):
         jobs = ([("gold", 1)] if (t["commit"], "gold", 1) not in done else []) + \
                [(s, r) for r in range(1, a.runs + 1) for s in settings if (t["commit"], s, r) not in done]
         for setting, run in jobs:
-            rec = one(row, setting, run, sites, a)
+            rec = one(row, setting, run, sites, a, t.get("tier", "py39+"))
             with open(a.out, "a") as f:
                 f.write(json.dumps(rec) + "\n")
             if rec["outcome"] == "UNSUPPORTED_PY":

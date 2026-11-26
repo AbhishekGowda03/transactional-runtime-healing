@@ -360,8 +360,6 @@ class LiveHealer:
                         + ", ".join(names)[:200])
         if threading.current_thread() is not threading.main_thread():
             return "not in the main thread"
-        if sys.version_info < (3, 8):
-            return "Python 3.8 or newer is required"
         return ""
 
     # ------------------------------------------------------------------

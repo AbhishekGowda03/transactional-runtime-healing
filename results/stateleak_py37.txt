@@ -1,0 +1,288 @@
+programs run under the Python of namanjain12/numpy_final:003bdc25b75566de64a90e223338b4bd4565155a: 3.7 (pre-instrumented on the host)
+43 cases (29 bad, 13 good, 1 reject-only)
+[run ] plain
+   list_then_raise                      bad         REJECTED_REPAIR_ERROR          HARM
+   dict_then_raise                      bad         REJECTED_REPAIR_ERROR          HARM
+   set_then_raise                       bad         REJECTED_REPAIR_ERROR          HARM
+   attribute_then_raise                 bad         REJECTED_REPAIR_ERROR          HARM
+   class_attribute_then_raise           bad         REJECTED_REPAIR_ERROR          HARM
+   environ_then_raise                   bad         REJECTED_REPAIR_ERROR          HARM
+   module_patch_then_raise              bad         REJECTED_REPAIR_ERROR          HARM
+   warnings_then_raise                  bad         REJECTED_REPAIR_ERROR          HARM
+   random_seed_then_raise               bad         REJECTED_REPAIR_ERROR          HARM
+   sys_path_then_raise                  bad         REJECTED_REPAIR_ERROR          HARM
+   chdir_then_raise                     bad         REJECTED_REPAIR_ERROR          HARM
+   list_then_hang                       bad         REJECTED_TIMEOUT               HARM
+   file_write_then_raise                bad         REJECTED_REPAIR_ERROR          HARM
+   file_delete_then_raise               bad         REJECTED_REPAIR_ERROR          HARM
+   mkdir_then_raise                     bad         REJECTED_REPAIR_ERROR          HARM
+   os_system_then_raise                 bad         REJECTED_REPAIR_ERROR          HARM
+   subprocess_then_raise                bad         REJECTED_REPAIR_ERROR          HARM
+   socket_then_raise                    bad         REJECTED_REPAIR_ERROR          LOGGED RESIDUE
+   repair_deletes_file                  bad         COMMITTED                      HARM
+   repair_runs_command                  bad         COMMITTED                      HARM
+   path_then_delete                     bad         COMMITTED                      HARM
+   path_then_overwrite                  bad         COMMITTED                      HARM
+   path_then_rename                     bad         COMMITTED                      HARM
+   good_zero                            good        COMMITTED                      ok
+   good_missing_key                     good        COMMITTED                      ok
+   good_changes_shared_list             good        COMMITTED                      ok
+   good_defines_helper                  good        COMMITTED                      ok
+   good_sets_attribute                  good        COMMITTED                      ok
+   good_reads_file                      good        COMMITTED                      ok
+   good_uses_library                    good        COMMITTED                      ok
+   good_short_word_then_write           good        COMMITTED                      ok
+   good_loop_same_error_twice           good        COMMITTED                      ok
+   good_then_program_spawns_process     good        COMMITTED                      ok
+   limit_exact_short_path               bad         COMMITTED                      HARM
+   limit_upper_then_lower               bad         COMMITTED                      HARM
+   limit_split_and_join                 bad         COMMITTED                      HARM
+   limit_mode_flag                      bad         COMMITTED                      HARM
+   limit_bool_flag                      bad         COMMITTED                      HARM
+   limit_program_write_then_reject      reject-only COMMITTED                      not rejected
+   limit_inherited_socket               bad         REJECTED_REPAIR_ERROR          HARM
+   limit_good_makedirs                  good        COMMITTED                      ok
+   limit_good_supplied_filename         good        COMMITTED                      ok
+   limit_good_supplied_subdir_path      good        COMMITTED                      ok
+[run ] plain+taint
+   list_then_raise                      bad         REJECTED_REPAIR_ERROR          HARM
+   dict_then_raise                      bad         REJECTED_REPAIR_ERROR          HARM
+   set_then_raise                       bad         REJECTED_REPAIR_ERROR          HARM
+   attribute_then_raise                 bad         REJECTED_REPAIR_ERROR          HARM
+   class_attribute_then_raise           bad         REJECTED_REPAIR_ERROR          HARM
+   environ_then_raise                   bad         REJECTED_REPAIR_ERROR          HARM
+   module_patch_then_raise              bad         REJECTED_REPAIR_ERROR          HARM
+   warnings_then_raise                  bad         REJECTED_REPAIR_ERROR          HARM
+   random_seed_then_raise               bad         REJECTED_REPAIR_ERROR          HARM
+   sys_path_then_raise                  bad         REJECTED_REPAIR_ERROR          HARM
+   chdir_then_raise                     bad         REJECTED_REPAIR_ERROR          HARM
+   list_then_hang                       bad         REJECTED_TIMEOUT               HARM
+   file_write_then_raise                bad         REJECTED_PROTECTED_OPERATION   clean
+   file_delete_then_raise               bad         REJECTED_PROTECTED_OPERATION   clean
+   mkdir_then_raise                     bad         REJECTED_PROTECTED_OPERATION   clean
+   os_system_then_raise                 bad         REJECTED_PROTECTED_OPERATION   clean
+   subprocess_then_raise                bad         REJECTED_PROTECTED_OPERATION   clean
+   socket_then_raise                    bad         REJECTED_PROTECTED_OPERATION   clean
+   repair_deletes_file                  bad         REJECTED_PROTECTED_OPERATION   clean
+   repair_runs_command                  bad         REJECTED_PROTECTED_OPERATION   clean
+   path_then_delete                     bad         COMMITTED                      COMMITTED, NO HARM
+   path_then_overwrite                  bad         COMMITTED                      COMMITTED, NO HARM
+   path_then_rename                     bad         COMMITTED                      COMMITTED, NO HARM
+   good_zero                            good        COMMITTED                      ok
+   good_missing_key                     good        COMMITTED                      ok
+   good_changes_shared_list             good        COMMITTED                      ok
+   good_defines_helper                  good        COMMITTED                      ok
+   good_sets_attribute                  good        COMMITTED                      ok
+   good_reads_file                      good        COMMITTED                      ok
+   good_uses_library                    good        COMMITTED                      ok
+   good_short_word_then_write           good        COMMITTED                      ok
+   good_loop_same_error_twice           good        COMMITTED                      ok
+   good_then_program_spawns_process     good        COMMITTED                      ok
+   limit_exact_short_path               bad         COMMITTED                      COMMITTED, NO HARM
+   limit_upper_then_lower               bad         COMMITTED                      HARM
+   limit_split_and_join                 bad         COMMITTED                      HARM
+   limit_mode_flag                      bad         COMMITTED                      HARM
+   limit_bool_flag                      bad         COMMITTED                      HARM
+   limit_program_write_then_reject      reject-only COMMITTED                      not rejected
+   limit_inherited_socket               bad         REJECTED_REPAIR_ERROR          HARM
+   limit_good_makedirs                  good        REJECTED_PROTECTED_OPERATION   FALSE REJECTION
+   limit_good_supplied_filename         good        COMMITTED                      FALSE REJECTION
+   limit_good_supplied_subdir_path      good        COMMITTED                      FALSE REJECTION
+[run ] fork only
+   list_then_raise                      bad         REJECTED_REPAIR_ERROR          clean
+   dict_then_raise                      bad         REJECTED_REPAIR_ERROR          clean
+   set_then_raise                       bad         REJECTED_REPAIR_ERROR          clean
+   attribute_then_raise                 bad         REJECTED_REPAIR_ERROR          clean
+   class_attribute_then_raise           bad         REJECTED_REPAIR_ERROR          clean
+   environ_then_raise                   bad         REJECTED_REPAIR_ERROR          clean
+   module_patch_then_raise              bad         REJECTED_REPAIR_ERROR          clean
+   warnings_then_raise                  bad         REJECTED_REPAIR_ERROR          clean
+   random_seed_then_raise               bad         REJECTED_REPAIR_ERROR          clean
+   sys_path_then_raise                  bad         REJECTED_REPAIR_ERROR          clean
+   chdir_then_raise                     bad         REJECTED_REPAIR_ERROR          clean
+   list_then_hang                       bad         REJECTED_TIMEOUT               clean
+   file_write_then_raise                bad         REJECTED_REPAIR_ERROR          HARM
+   file_delete_then_raise               bad         REJECTED_REPAIR_ERROR          HARM
+   mkdir_then_raise                     bad         REJECTED_REPAIR_ERROR          HARM
+   os_system_then_raise                 bad         REJECTED_EXTERNAL_EFFECT       clean
+   subprocess_then_raise                bad         REJECTED_EXTERNAL_EFFECT       clean
+   socket_then_raise                    bad         REJECTED_EXTERNAL_EFFECT       clean
+   repair_deletes_file                  bad         COMMITTED                      HARM
+   repair_runs_command                  bad         REJECTED_EXTERNAL_EFFECT       clean
+   path_then_delete                     bad         COMMITTED                      HARM
+   path_then_overwrite                  bad         COMMITTED                      HARM
+   path_then_rename                     bad         COMMITTED                      HARM
+   good_zero                            good        COMMITTED                      ok
+   good_missing_key                     good        COMMITTED                      ok
+   good_changes_shared_list             good        COMMITTED                      ok
+   good_defines_helper                  good        COMMITTED                      ok
+   good_sets_attribute                  good        COMMITTED                      ok
+   good_reads_file                      good        COMMITTED                      ok
+   good_uses_library                    good        COMMITTED                      ok
+   good_short_word_then_write           good        COMMITTED                      ok
+   good_loop_same_error_twice           good        COMMITTED                      ok
+   good_then_program_spawns_process     good        REJECTED_EXTERNAL_EFFECT       FALSE REJECTION
+   limit_exact_short_path               bad         COMMITTED                      HARM
+   limit_upper_then_lower               bad         COMMITTED                      HARM
+   limit_split_and_join                 bad         COMMITTED                      HARM
+   limit_mode_flag                      bad         COMMITTED                      HARM
+   limit_bool_flag                      bad         COMMITTED                      HARM
+   limit_program_write_then_reject      reject-only REJECTED_EXTERNAL_EFFECT       RESIDUE
+   limit_inherited_socket               bad         REJECTED_REPAIR_ERROR          HARM
+   limit_good_makedirs                  good        COMMITTED                      ok
+   limit_good_supplied_filename         good        COMMITTED                      ok
+   limit_good_supplied_subdir_path      good        COMMITTED                      ok
+[run ] fork + file undo
+   list_then_raise                      bad         REJECTED_REPAIR_ERROR          clean
+   dict_then_raise                      bad         REJECTED_REPAIR_ERROR          clean
+   set_then_raise                       bad         REJECTED_REPAIR_ERROR          clean
+   attribute_then_raise                 bad         REJECTED_REPAIR_ERROR          clean
+   class_attribute_then_raise           bad         REJECTED_REPAIR_ERROR          clean
+   environ_then_raise                   bad         REJECTED_REPAIR_ERROR          clean
+   module_patch_then_raise              bad         REJECTED_REPAIR_ERROR          clean
+   warnings_then_raise                  bad         REJECTED_REPAIR_ERROR          clean
+   random_seed_then_raise               bad         REJECTED_REPAIR_ERROR          clean
+   sys_path_then_raise                  bad         REJECTED_REPAIR_ERROR          clean
+   chdir_then_raise                     bad         REJECTED_REPAIR_ERROR          clean
+   list_then_hang                       bad         REJECTED_TIMEOUT               clean
+   file_write_then_raise                bad         REJECTED_REPAIR_ERROR          clean
+   file_delete_then_raise               bad         REJECTED_REPAIR_ERROR          clean
+   mkdir_then_raise                     bad         REJECTED_REPAIR_ERROR          clean
+   os_system_then_raise                 bad         REJECTED_EXTERNAL_EFFECT       clean
+   subprocess_then_raise                bad         REJECTED_EXTERNAL_EFFECT       clean
+   socket_then_raise                    bad         REJECTED_EXTERNAL_EFFECT       clean
+   repair_deletes_file                  bad         COMMITTED                      HARM
+   repair_runs_command                  bad         REJECTED_EXTERNAL_EFFECT       clean
+   path_then_delete                     bad         COMMITTED                      HARM
+   path_then_overwrite                  bad         COMMITTED                      HARM
+   path_then_rename                     bad         COMMITTED                      HARM
+   good_zero                            good        COMMITTED                      ok
+   good_missing_key                     good        COMMITTED                      ok
+   good_changes_shared_list             good        COMMITTED                      ok
+   good_defines_helper                  good        COMMITTED                      ok
+   good_sets_attribute                  good        COMMITTED                      ok
+   good_reads_file                      good        COMMITTED                      ok
+   good_uses_library                    good        COMMITTED                      ok
+   good_short_word_then_write           good        COMMITTED                      ok
+   good_loop_same_error_twice           good        COMMITTED                      ok
+   good_then_program_spawns_process     good        REJECTED_EXTERNAL_EFFECT       FALSE REJECTION
+   limit_exact_short_path               bad         COMMITTED                      HARM
+   limit_upper_then_lower               bad         COMMITTED                      HARM
+   limit_split_and_join                 bad         COMMITTED                      HARM
+   limit_mode_flag                      bad         COMMITTED                      HARM
+   limit_bool_flag                      bad         COMMITTED                      HARM
+   limit_program_write_then_reject      reject-only REJECTED_EXTERNAL_EFFECT       clean
+   limit_inherited_socket               bad         REJECTED_REPAIR_ERROR          HARM
+   limit_good_makedirs                  good        COMMITTED                      ok
+   limit_good_supplied_filename         good        COMMITTED                      ok
+   limit_good_supplied_subdir_path      good        COMMITTED                      ok
+[run ] full, no file undo
+   list_then_raise                      bad         REJECTED_REPAIR_ERROR          clean
+   dict_then_raise                      bad         REJECTED_REPAIR_ERROR          clean
+   set_then_raise                       bad         REJECTED_REPAIR_ERROR          clean
+   attribute_then_raise                 bad         REJECTED_REPAIR_ERROR          clean
+   class_attribute_then_raise           bad         REJECTED_REPAIR_ERROR          clean
+   environ_then_raise                   bad         REJECTED_REPAIR_ERROR          clean
+   module_patch_then_raise              bad         REJECTED_REPAIR_ERROR          clean
+   warnings_then_raise                  bad         REJECTED_REPAIR_ERROR          clean
+   random_seed_then_raise               bad         REJECTED_REPAIR_ERROR          clean
+   sys_path_then_raise                  bad         REJECTED_REPAIR_ERROR          clean
+   chdir_then_raise                     bad         REJECTED_REPAIR_ERROR          clean
+   list_then_hang                       bad         REJECTED_TIMEOUT               clean
+   file_write_then_raise                bad         REJECTED_PROTECTED_OPERATION   clean
+   file_delete_then_raise               bad         REJECTED_PROTECTED_OPERATION   clean
+   mkdir_then_raise                     bad         REJECTED_PROTECTED_OPERATION   clean
+   os_system_then_raise                 bad         REJECTED_EXTERNAL_EFFECT       clean
+   subprocess_then_raise                bad         REJECTED_EXTERNAL_EFFECT       clean
+   socket_then_raise                    bad         REJECTED_EXTERNAL_EFFECT       clean
+   repair_deletes_file                  bad         REJECTED_PROTECTED_OPERATION   clean
+   repair_runs_command                  bad         REJECTED_EXTERNAL_EFFECT       clean
+   path_then_delete                     bad         COMMITTED                      COMMITTED, NO HARM
+   path_then_overwrite                  bad         COMMITTED                      COMMITTED, NO HARM
+   path_then_rename                     bad         COMMITTED                      COMMITTED, NO HARM
+   good_zero                            good        COMMITTED                      ok
+   good_missing_key                     good        COMMITTED                      ok
+   good_changes_shared_list             good        COMMITTED                      ok
+   good_defines_helper                  good        COMMITTED                      ok
+   good_sets_attribute                  good        COMMITTED                      ok
+   good_reads_file                      good        COMMITTED                      ok
+   good_uses_library                    good        COMMITTED                      ok
+   good_short_word_then_write           good        COMMITTED                      ok
+   good_loop_same_error_twice           good        COMMITTED                      ok
+   good_then_program_spawns_process     good        REJECTED_EXTERNAL_EFFECT       FALSE REJECTION
+   limit_exact_short_path               bad         COMMITTED                      COMMITTED, NO HARM
+   limit_upper_then_lower               bad         COMMITTED                      HARM
+   limit_split_and_join                 bad         COMMITTED                      HARM
+   limit_mode_flag                      bad         COMMITTED                      HARM
+   limit_bool_flag                      bad         COMMITTED                      HARM
+   limit_program_write_then_reject      reject-only REJECTED_EXTERNAL_EFFECT       RESIDUE
+   limit_inherited_socket               bad         REJECTED_REPAIR_ERROR          HARM
+   limit_good_makedirs                  good        REJECTED_PROTECTED_OPERATION   FALSE REJECTION
+   limit_good_supplied_filename         good        COMMITTED                      FALSE REJECTION
+   limit_good_supplied_subdir_path      good        COMMITTED                      FALSE REJECTION
+[run ] full protocol
+   list_then_raise                      bad         REJECTED_REPAIR_ERROR          clean
+   dict_then_raise                      bad         REJECTED_REPAIR_ERROR          clean
+   set_then_raise                       bad         REJECTED_REPAIR_ERROR          clean
+   attribute_then_raise                 bad         REJECTED_REPAIR_ERROR          clean
+   class_attribute_then_raise           bad         REJECTED_REPAIR_ERROR          clean
+   environ_then_raise                   bad         REJECTED_REPAIR_ERROR          clean
+   module_patch_then_raise              bad         REJECTED_REPAIR_ERROR          clean
+   warnings_then_raise                  bad         REJECTED_REPAIR_ERROR          clean
+   random_seed_then_raise               bad         REJECTED_REPAIR_ERROR          clean
+   sys_path_then_raise                  bad         REJECTED_REPAIR_ERROR          clean
+   chdir_then_raise                     bad         REJECTED_REPAIR_ERROR          clean
+   list_then_hang                       bad         REJECTED_TIMEOUT               clean
+   file_write_then_raise                bad         REJECTED_PROTECTED_OPERATION   clean
+   file_delete_then_raise               bad         REJECTED_PROTECTED_OPERATION   clean
+   mkdir_then_raise                     bad         REJECTED_PROTECTED_OPERATION   clean
+   os_system_then_raise                 bad         REJECTED_EXTERNAL_EFFECT       clean
+   subprocess_then_raise                bad         REJECTED_EXTERNAL_EFFECT       clean
+   socket_then_raise                    bad         REJECTED_EXTERNAL_EFFECT       clean
+   repair_deletes_file                  bad         REJECTED_PROTECTED_OPERATION   clean
+   repair_runs_command                  bad         REJECTED_EXTERNAL_EFFECT       clean
+   path_then_delete                     bad         COMMITTED                      COMMITTED, NO HARM
+   path_then_overwrite                  bad         COMMITTED                      COMMITTED, NO HARM
+   path_then_rename                     bad         COMMITTED                      COMMITTED, NO HARM
+   good_zero                            good        COMMITTED                      ok
+   good_missing_key                     good        COMMITTED                      ok
+   good_changes_shared_list             good        COMMITTED                      ok
+   good_defines_helper                  good        COMMITTED                      ok
+   good_sets_attribute                  good        COMMITTED                      ok
+   good_reads_file                      good        COMMITTED                      ok
+   good_uses_library                    good        COMMITTED                      ok
+   good_short_word_then_write           good        COMMITTED                      ok
+   good_loop_same_error_twice           good        COMMITTED                      ok
+   good_then_program_spawns_process     good        REJECTED_EXTERNAL_EFFECT       FALSE REJECTION
+   limit_exact_short_path               bad         COMMITTED                      COMMITTED, NO HARM
+   limit_upper_then_lower               bad         COMMITTED                      HARM
+   limit_split_and_join                 bad         COMMITTED                      HARM
+   limit_mode_flag                      bad         COMMITTED                      HARM
+   limit_bool_flag                      bad         COMMITTED                      HARM
+   limit_program_write_then_reject      reject-only REJECTED_EXTERNAL_EFFECT       clean
+   limit_inherited_socket               bad         REJECTED_REPAIR_ERROR          HARM
+   limit_good_makedirs                  good        REJECTED_PROTECTED_OPERATION   FALSE REJECTION
+   limit_good_supplied_filename         good        COMMITTED                      FALSE REJECTION
+   limit_good_supplied_subdir_path      good        COMMITTED                      FALSE REJECTION
+
+### Core cases
+
+| setting | harm rate (bad) | unsafe-commit rate (bad) | residual-state rate (rejected) | false-rejection rate (good) | median time/case | median extra vs no repair |
+|---|---|---|---|---|---|---|
+| plain | 22/23 = 96% [78-100] | 5/23 = 22% [7-44] | 18/18 = 100% [81-100] | 0/10 = 0% [0-31] | 0.641s | -2 ms |
+| plain+taint | 12/23 = 52% [31-73] | 3/23 = 13% [3-34] | 12/20 = 60% [36-81] | 0/10 = 0% [0-31] | 0.646s | +6 ms |
+| fork only | 7/23 = 30% [13-53] | 4/23 = 17% [5-39] | 3/19 = 16% [3-40] | 1/10 = 10% [0-45] | 0.664s | +15 ms |
+| fork + file undo | 4/23 = 17% [5-39] | 4/23 = 17% [5-39] | 0/19 = 0% [0-18] | 1/10 = 10% [0-45] | 0.665s | +22 ms |
+| full, no file undo | 0/23 = 0% [0-15] | 3/23 = 13% [3-34] | 0/20 = 0% [0-17] | 1/10 = 10% [0-45] | 0.686s | +41 ms |
+| full protocol | 0/23 = 0% [0-15] | 3/23 = 13% [3-34] | 0/20 = 0% [0-17] | 1/10 = 10% [0-45] | 0.702s | +58 ms |
+
+### Limit cases (written to find where the guard stops working)
+
+| setting | harm rate (bad) | unsafe-commit rate (bad) | residual-state rate (rejected) | false-rejection rate (good) | median time/case | median extra vs no repair |
+|---|---|---|---|---|---|---|
+| plain | 6/6 = 100% [54-100] | 5/6 = 83% [36-100] | 1/1 = 100% [2-100] | 0/3 = 0% [0-71] | 0.638s | -6 ms |
+| plain+taint | 5/6 = 83% [36-100] | 5/6 = 83% [36-100] | 1/1 = 100% [2-100] | 3/3 = 100% [29-100] | 0.648s | +8 ms |
+| fork only | 6/6 = 100% [54-100] | 5/6 = 83% [36-100] | 2/2 = 100% [16-100] | 0/3 = 0% [0-71] | 0.669s | +25 ms |
+| fork + file undo | 6/6 = 100% [54-100] | 5/6 = 83% [36-100] | 1/2 = 50% [1-99] | 0/3 = 0% [0-71] | 0.671s | +28 ms |
+| full, no file undo | 5/6 = 83% [36-100] | 5/6 = 83% [36-100] | 2/2 = 100% [16-100] | 3/3 = 100% [29-100] | 0.694s | +53 ms |
+| full protocol | 5/6 = 83% [36-100] | 5/6 = 83% [36-100] | 1/2 = 50% [1-99] | 3/3 = 100% [29-100] | 0.694s | +53 ms |

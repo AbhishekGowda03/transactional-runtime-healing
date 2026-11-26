@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.7,
+ "run_id": "3",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- The failing statement is a `return`. Assign the value that should be returned to the variable `_eh_rtn` and to nothing else.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: linalg.py, line 1459, in cond\nException: ValueError: Improper number of dimensions to norm.\n\nFailing statement:\nreturn norm(x, p)*norm(inv(x), p)\n\nEnclosing function:\ndef cond(x, p=None):\n    \"\"\"\n    Compute the condition number of a matrix.\n\n    This function is capable of returning the condition number using\n    one of seven different norms, depending on the value of `p` (see\n    Parameters below).\n\n    Parameters\n    ----------\n    x : (M, N) array_like\n        The matrix whose condition number is sought.\n    p : {None, 1, -1, 2, -2, inf, -inf, 'fro'}, optional\n        Order of the norm:\n\n        =====  ============================\n        p      norm for matrices\n        =====  ============================\n        None   2-norm, computed directly using the ``SVD``\n        'fro'  Frobenius norm\n        inf    max(sum(abs(x), axis=1))\n        -inf   min(sum(abs(x), axis=1))\n        1      max(sum(abs(x), axis=0))\n        -1     min(sum(abs(x), axis=0))\n        2      2-norm (largest sing. value)\n        -2     smallest singular value\n        =====  ============================\n\n        inf means the numpy.inf object, and the Frobenius norm is\n        the root-of-sum-of-squares norm.\n\n    Returns\n    -------\n    c : {float, inf}\n        The condition number of the matrix. May be infinite.\n\n    See Also\n    --------\n    numpy.linalg.norm\n\n    Notes\n    -----\n    The condition number of `x` is defined as the norm of `x` times the\n    norm of the inverse of `x` [1]_; the norm can be the usual L2-norm\n    (root-of-sum-of-squares) or one of a number of other matrix norms.\n\n    References\n    ----------\n    .. [1] G. Strang, *Linear Algebra and Its Applications*, Orlando, FL,\n           Academic Press, Inc., 1980, pg. 285.\n\n    Examples\n    --------\n    >>> from numpy import linalg as LA\n    >>> a = np.array([[1, 0, -1], [0, 1, 0], [1, 0, 1]])\n    >>> a\n    array([[ 1,  0, -1],\n           [ 0,  1,  0],\n           [ 1,  0,  1]])\n    >>> LA.cond(a)\n\nLocal variables at the crash:\n  x = array([[[ 1.,  2.,  1.],\n        [ 0., -2.,  0.],\n        [ 6.,  2.,  3.]]])  # ndarray\n  p = 2  # int\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"linalg.py\", line 1459, in cond\n    return norm(x, p)*norm(inv(x), p)\n  File \"linalg.py\", line 2221, in norm\n    raise ValueError(\"Improper number of dimensions to norm.\")\nValueError: Improper number of dimensions to norm.\n"
+  }
+ ],
+ "reply": "```python\n_eh_rtn = norm(x[0], p) * norm(inv(x[0]), p)\n```",
+ "usage": {
+  "prompt_tokens": 896,
+  "completion_tokens": 275,
+  "total_tokens": 1171,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 241,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 3.51,
+ "created": "2026-11-24T17:42:47"
+}

@@ -24,6 +24,16 @@ import sys
 
 from transactional_runtime_healing import instrument as _ins
 
+# Python before 3.9 cannot rewrite a file (no ast.unparse, no end positions in the tree), and a
+# code object made by another version cannot be loaded. There the files must have been rewritten
+# ahead of time by a newer Python (pre_instrument.py), and the loader only reads the result.
+# TXH_PRE_AST=1 makes a newer Python read pre-instrumented entries too (for testing that path).
+PRE_AST = sys.version_info < (3, 9) or os.environ.get("TXH_PRE_AST") == "1"
+
+
+class NotPreInstrumented(Exception):
+    """No pre-instrumented entry for this file (it changed since, or it could not be rewritten)."""
+
 EXCLUDE_DIRS = {"tests", "test", "testing", "docs", "doc", "examples", "example", "benchmarks",
                 "benchmark", "build", "dist", "vendor", "_vendor", "vendored", "third_party",
                 "site-packages", "node_modules", ".git", "__pycache__", "scripts", "bin"}
@@ -55,9 +65,26 @@ class _HealLoader(importlib.abc.Loader):
     def create_module(self, spec):
         return self.inner.create_module(spec) if hasattr(self.inner, "create_module") else None
 
+    def _code_pre(self, filename, raw):
+        """Python 3.7 (or TXH_PRE_AST=1): load the entry that a newer Python made."""
+        from transactional_runtime_healing import pre_instrument
+        path = os.path.join(self.cache_dir or "", pre_instrument.entry_name(raw, filename, _VERSION))
+        if not (self.cache_dir and os.path.exists(path)):
+            raise NotPreInstrumented(filename)
+        try:
+            code, table, reads, spans = pre_instrument.load_entry(path)
+        except Exception as e:                    # damaged entry or a tree this Python rejects
+            raise NotPreInstrumented("%s (%s: %s)" % (filename, type(e).__name__, str(e)[:80]))
+        _ins.HANDLER_TABLES[filename] = table
+        _ins.READ_NAMES[filename] = reads
+        _ins.FUNC_SPANS[filename] = spans
+        return code
+
     def _code(self, filename):
         with open(filename, "rb") as f:
             raw = f.read()
+        if PRE_AST:
+            return self._code_pre(filename, raw)
         key = hashlib.sha1(raw + _VERSION.encode() + filename.encode()).hexdigest()
         path = os.path.join(self.cache_dir, key + ".pkl") if self.cache_dir else None
         if path and os.path.exists(path + ".fail"):      # known not to be rewritable
@@ -91,7 +118,7 @@ class _HealLoader(importlib.abc.Loader):
         filename = module.__spec__.origin
         try:
             code = self._code(filename)
-        except (SyntaxError, UnicodeDecodeError, RecursionError):
+        except (SyntaxError, UnicodeDecodeError, RecursionError, NotPreInstrumented):
             self.skipped.append(filename)             # cannot be rewritten: load it unchanged
             return self.inner.exec_module(module)
         module.__dict__["__heal__"] = self.healer

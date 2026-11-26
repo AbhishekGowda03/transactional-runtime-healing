@@ -166,6 +166,14 @@ def run_container(row, setting, a, sites):
     for d in (hook_cache, llm_cache):
         os.makedirs(d, exist_ok=True)
     healing = setting in HEAL_SETTINGS
+    if healing:
+        # Python before 3.9 cannot instrument a file itself: the repository is rewritten here on the
+        # host (pre_instrument.py) and the container only loads the result. Nothing happens for 3.9+.
+        sys.path.insert(0, os.path.join(ROOT, "experiments", "healbench"))
+        import preinstrument_image
+        pre = preinstrument_image.ensure(row["docker_image"], hook_cache)
+        with open(os.path.join(out, "pre.json"), "w") as f:
+            json.dump(pre, f)
     # newer pillow tests do `from .helper import ...`: they need a package that also holds the
     # repository's Tests/helper.py (and __init__.py, conftest.py). The tests folder is read-only,
     # so the package is built inside the container from those support files and the task's tests.
@@ -296,6 +304,11 @@ def summarize_healing(out):
             if st not in ("SKIPPED", "NO_PROPOSAL"):
                 heals[st] = heals.get(st, 0) + 1
         res["heals"] = heals
+    pp = os.path.join(out, "pre.json")
+    if os.path.exists(pp):
+        pre = json.load(open(pp))
+        if pre.get("needed"):                       # Python before 3.9: files were rewritten ahead of time
+            res["pre"] = {k: pre.get(k) for k in ("python", "files", "failed", "seconds", "warm")}
     ep = os.path.join(out, "events.jsonl")
     if os.path.exists(ep):
         ev = [json.loads(x) for x in open(ep) if x.strip()]
