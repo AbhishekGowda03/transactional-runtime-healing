@@ -23,6 +23,7 @@ CAN_BUILD = sys.version_info >= (3, 9)
 sys.path.insert(0, SRC)
 from transactional_runtime_healing import instrument as ins  # noqa: E402
 from transactional_runtime_healing import pre_instrument as pi  # noqa: E402
+from transactional_runtime_healing import repo_hook  # noqa: E402
 
 
 def source():
@@ -251,7 +252,7 @@ def run_toy(repo, rules, tmp_path, extra_env):
 def test_a_repository_is_healed_through_pre_instrumented_files(toy, tmp_path):
     repo, rules = toy
     cache = tmp_path / "cache"
-    written, failed = pi.instrument_tree_of(str(repo), str(repo), str(cache), "4")
+    written, failed = pi.instrument_tree_of(str(repo), str(repo), str(cache), repo_hook._VERSION)
     assert written == 2 and not failed                    # __init__.py and core.py; tests are left alone
     p = run_toy(repo, rules, tmp_path, {"TXH_PRE_AST": "1"})
     assert "2 passed" in p.stdout, p.stdout + p.stderr

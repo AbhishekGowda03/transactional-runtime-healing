@@ -48,7 +48,9 @@ def _obj(v):
 
 
 def is_test_path(p):
-    return bool(re.search(r"(^|/)(tests?|testing)(/|$)|(^|/)test_[^/]*\.py$|_tests?\.py$", p, re.I))   # pillow: Tests/
+    """Test code and test support (the files that never get heal points): same rule as the loader."""
+    from transactional_runtime_healing import repo_hook
+    return repo_hook.excluded_parts([x for x in p.split("/") if x])
 
 
 def write_inputs(row, folder, setting):

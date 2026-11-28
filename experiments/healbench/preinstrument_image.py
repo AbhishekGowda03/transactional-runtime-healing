@@ -56,7 +56,11 @@ def copy_repository(image, dest, timeout=900):
 
 
 def marker_path(image, cache_dir):
-    return os.path.join(cache_dir, "pre_%s.json" % hashlib.sha1(image.encode()).hexdigest()[:16])
+    # the instrumentation version is part of the name: entries written under another version are
+    # never read (their key differs), so a marker from an older version must not count as "done"
+    from transactional_runtime_healing import repo_hook
+    key = "%s|%s" % (image, repo_hook._VERSION)
+    return os.path.join(cache_dir, "pre_%s.json" % hashlib.sha1(key.encode()).hexdigest()[:16])
 
 
 def warm(image, cache_dir, timeout=3600):

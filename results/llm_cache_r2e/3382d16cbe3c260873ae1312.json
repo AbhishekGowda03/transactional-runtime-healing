@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.0,
+ "run_id": "1",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- The failing statement is the condition of an `if`. Assign the truth value the condition should have (True or False) to the variable `_eh_cond` and to nothing else. The program then runs the matching branch of the `if`.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: function_base.py, line 1138, in average\nException: AttributeError: 'bool' object has no attribute 'any'\n\nFailing statement:\nif (scl == 0.0).any():\n\nEnclosing function:\ndef average(a, axis=None, weights=None, returned=False):\n    \"\"\"\n    Compute the weighted average along the specified axis.\n\n    Parameters\n    ----------\n    a : array_like\n        Array containing data to be averaged. If `a` is not an array, a\n        conversion is attempted.\n    axis : None or int or tuple of ints, optional\n        Axis or axes along which to average `a`.  The default,\n        axis=None, will average over all of the elements of the input array.\n        If axis is negative it counts from the last to the first axis.\n\n        .. versionadded:: 1.7.0\n\n        If axis is a tuple of ints, averaging is performed on all of the axes\n        specified in the tuple instead of a single axis or all the axes as\n        before.\n    weights : array_like, optional\n        An array of weights associated with the values in `a`. Each value in\n        `a` contributes to the average according to its associated weight.\n        The weights array can either be 1-D (in which case its length must be\n        the size of `a` along the given axis) or of the same shape as `a`.\n        If `weights=None`, then all data in `a` are assumed to have a\n        weight equal to one.\n    returned : bool, optional\n        Default is `False`. If `True`, the tuple (`average`, `sum_of_weights`)\n        is returned, otherwise only the average is returned.\n        If `weights=None`, `sum_of_weights` is equivalent to the number of\n        elements over which the average is taken.\n\n\n    Returns\n    -------\n    average, [sum_of_weights] : array_type or double\n        Return the average along the specified axis. When returned is `True`,\n        return a tuple with the average as the first element and the sum\n        of the weights as the second element. The return type is `Float`\n        if `a` is of integer type, otherwise it is of the same type as `a`.\n        `sum_of_weights` is of the same type as `average`.\n\n    Raises\n    ------\n    ZeroDivisionError\n        When all weights along axis are zero. See `numpy.ma.average` for a\n        version robust to this type of error.\n    TypeError\n        When the length of 1D `weights` is not the same as the shape of `a`\n        along axis.\n\n    See Also\n    --------\n    mean\n\n    ma.average : average for masked arrays -- useful if your data contains\n                 \"missing\" values\n\n    Examples\n    --------\n\nLocal variables at the crash:\n  a = array([Decimal('0'), Decimal('1'), Decimal('2'), Decimal('3'),\n       Decimal('4'), Decimal('5'), Decimal('6'), Decimal('7'),\n       Decimal('8'), Decimal('9')], dtype=object)  # ndarray\n  axis = None  # NoneType\n  weights = array([Decimal('0.1'), Decimal('0.1'), Decimal('0.1'), Decimal('0.1'),\n       Decimal('0.1'), Decimal('0.1'), Decimal('0.1'), Decimal('0.1'),\n       Decimal('0.1'), Decimal('0.1')], dtype=object)  # ndarray\n  returned = False  # bool\n  result_dtype = dtype('O')  # dtype\n  scl = Decimal('1.0')  # Decimal\n  wgt = array([Decimal('0.1'), Decimal('0.1'), Decimal('0.1'), Decimal('0.1'),\n       Decimal('0.1'), Decimal('0.1'), Decimal('0.1'), Decimal('0.1'),\n       Decimal('0.1'), Decimal('0.1')], dtype=object)  # ndarray\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"function_base.py\", line 1138, in average\n    if (scl == 0.0).any():\nAttributeError: 'bool' object has no attribute 'any'\n"
+  }
+ ],
+ "reply": "```python\n_eh_cond = False\n```",
+ "usage": {
+  "prompt_tokens": 1117,
+  "completion_tokens": 44,
+  "total_tokens": 1161,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 1114,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 25,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 1.48,
+ "created": "2026-11-27T16:47:34"
+}

@@ -138,6 +138,9 @@ def main(argv=None):
     ap.add_argument("--allow-old", action="store_true",
                     help="keep tasks whose Python is older than 3.9 (they are pre-instrumented and "
                          "evaluated as a separate tier, see experiments/healbench/preinstrument_image.py)")
+    ap.add_argument("--dataset", metavar="FILE",
+                    help="HealBench jsonl (HealGuard/datasets/healbench.jsonl): scan exactly the R2E tasks of "
+                         "this list (of the --repos given; --per-repo and --seed are ignored)")
     ap.add_argument("--summary", metavar="FILE")
     a = ap.parse_args(argv)
     if a.summary:
@@ -156,11 +159,25 @@ def main(argv=None):
     for r in load_dataset("R2E-Gym/R2E-Gym-Lite", split="train"):
         if r["repo_name"] in rows:
             rows[r["repo_name"]].append(r)
+    listed = None
+    if a.dataset:
+        listed = set()
+        for l in open(os.path.expanduser(a.dataset), encoding="utf-8"):
+            if l.strip():
+                d = json.loads(l)
+                if d.get("source_dataset") == "R2E-Gym-Lite" and d.get("dockerhub_tag"):
+                    listed.add(d["dockerhub_tag"].rsplit(":", 1)[-1])
+        print(f"{len(listed)} R2E tasks in {a.dataset}", flush=True)
     for repo in wanted:
         rs = sorted(rows[repo], key=lambda r: r["commit_hash"])
-        random.Random(a.seed).shuffle(rs)
-        todo = [r for r in rs[:a.per_repo] if r["commit_hash"][:12] not in done]
-        print(f"{repo}: {len(rs)} tasks, scanning {len(todo)} of the first {a.per_repo}", flush=True)
+        if listed is not None:
+            rs = [r for r in rs if r["commit_hash"] in listed or r["docker_image"].rsplit(":", 1)[-1] in listed]
+            todo = [r for r in rs if r["commit_hash"][:12] not in done]
+            print(f"{repo}: {len(rs)} HealBench tasks, scanning {len(todo)}", flush=True)
+        else:
+            random.Random(a.seed).shuffle(rs)
+            todo = [r for r in rs[:a.per_repo] if r["commit_hash"][:12] not in done]
+            print(f"{repo}: {len(rs)} tasks, scanning {len(todo)} of the first {a.per_repo}", flush=True)
         for r in todo:
             rec = scan_one(r, a)
             why = f"{rec.get('detail', '')} {rec.get('status', '')}"

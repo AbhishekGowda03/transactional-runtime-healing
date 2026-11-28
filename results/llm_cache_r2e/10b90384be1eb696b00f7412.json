@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.0,
+ "run_id": "1",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- Assign the variable(s) that the failing statement would have assigned, using exactly the names on the left side of the failing statement (for `r = a / b` assign `r`) and a sensible value.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: wsgi.py, line 74, in create_wsgi_environ\nException: ValueError: too many values to unpack (expected 2)\n\nFailing statement:\nfor hdr_name, hdr_value in message.headers:\n            if hdr_name == 'HOST':\n                server = hdr_value\n            elif hdr_name == 'SCRIPT_NAME':\n                script_name = hdr_value\n            elif hdr_name == 'CONTENT-TYPE':\n                environ['CONTENT_TYPE'] = hdr_value\n                continue\n            elif hdr_name == 'CONTENT-LENGTH':\n                environ['CONTENT_LENGTH'] = hdr_value\n                continue\n\n            key = 'HTTP_%s' % hdr_name.replace('-', '_')\n            if key in environ:\n                hdr_value = '%s,%s' % (environ[key], hdr_value)\n\n            environ[key] = hdr_value\n\nEnclosing function:\n    def create_wsgi_environ(self, message, payload):\n        uri_parts = urlsplit(message.path)\n        url_scheme = 'https' if self.is_ssl else 'http'\n\n        environ = {\n            'wsgi.input': payload,\n            'wsgi.errors': sys.stderr,\n            'wsgi.version': (1, 0),\n            'wsgi.async': True,\n            'wsgi.multithread': False,\n            'wsgi.multiprocess': False,\n            'wsgi.run_once': False,\n            'wsgi.file_wrapper': FileWrapper,\n            'wsgi.url_scheme': url_scheme,\n            'SERVER_SOFTWARE': aiohttp.HttpMessage.SERVER_SOFTWARE,\n            'REQUEST_METHOD': message.method,\n            'QUERY_STRING': uri_parts.query or '',\n            'RAW_URI': message.path,\n            'SERVER_PROTOCOL': 'HTTP/%s.%s' % message.version\n        }\n\n        # authors should be aware that REMOTE_HOST and REMOTE_ADDR\n        # may not qualify the remote addr:\n        # http://www.ietf.org/rfc/rfc3875\n        forward = self.transport.get_extra_info('addr', '127.0.0.1')\n        script_name = self.SCRIPT_NAME\n        server = forward\n\n        for hdr_name, hdr_value in message.headers:\n            if hdr_name == 'HOST':\n                server = hdr_value\n            elif hdr_name == 'SCRIPT_NAME':\n                script_name = hdr_value\n            elif hdr_name == 'CONTENT-TYPE':\n                environ['CONTENT_TYPE'] = hdr_value\n                continue\n            elif hdr_name == 'CONTENT-LENGTH':\n                environ['CONTENT_LENGTH'] = hdr_value\n                continue\n\n            key = 'HTTP_%s' % hdr_name.replace('-', '_')\n            if key in environ:\n                hdr_value = '%s,%s' % (environ[key], hdr_value)\n\n            environ[key] = hdr_value\n\n        if isinstance(forward, str):\n            # we only took the last one\n            # http://en.wikipedia.org/wiki/X-Forwarded-For\n            if ',' in forward:\n                forward = forward.rsplit(',', 1)[-1].strip()\n\n            # find host and port on ipv6 address\n            if '[' in forward and ']' in forward:\n                host = forward.split(']')[0][1:].lower()\n            elif ':' in forward and forward.count(':') == 1:\n                host = forward.split(':')[0].lower()\n            else:\n                host = forward\n\n\nLocal variables at the crash:\n  self = <aiohttp.wsgi.WSGIServerHttpProtocol object at 0x\u2026>  # WSGIServerHttpProtocol\n  message = RawRequestMessage(method='GET', path='/path', version=(1, 0), headers=<MutableMultiDict OrderedDict([('HOST', ['python.org']), ('SCRIPT_NAME', ['script']), ('CONTENT-TYPE', ['text/plain']), ('CONTENT-\u2026  # RawRequestMessage\n  payload = <aiohttp.parsers.DataQueue object at 0x\u2026>  # DataQueue\n  uri_parts = SplitResult(scheme='', netloc='', path='/path', query='', fragment='')  # SplitResult\n  environ = {'wsgi.input': <aiohttp.parsers.DataQueue object at 0x\u2026>, 'wsgi.errors': <_io.TextIOWrapper name='<stderr>' mode='w' encoding='utf-8'>, 'wsgi.version': (1, 0), 'wsgi.async': True, 'wsgi.multithread': \u2026  # dict\n  forward = '127.0.0.1'  # str\n  script_name = ''  # str\n  server = '127.0.0.1'  # str\n  url_scheme = 'https'  # str\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"wsgi.py\", line 74, in create_wsgi_environ\n    for hdr_name, hdr_value in message.headers:\nValueError: too many values to unpack (expected 2)\n"
+  }
+ ],
+ "reply": "```python\nfor hdr_name, hdr_values in message.headers.items():\n    for hdr_value in hdr_values:\n        if hdr_name == 'HOST':\n            server = hdr_value\n        elif hdr_name == 'SCRIPT_NAME':\n            script_name = hdr_value\n        elif hdr_name == 'CONTENT-TYPE':\n            environ['CONTENT_TYPE'] = hdr_value\n            continue\n        elif hdr_name == 'CONTENT-LENGTH':\n            environ['CONTENT_LENGTH'] = hdr_value\n            continue\n\n        key = 'HTTP_%s' % hdr_name.replace('-', '_')\n        if key in environ:\n            hdr_value = '%s,%s' % (environ[key], hdr_value)\n        environ[key] = hdr_value\n```",
+ "usage": {
+  "prompt_tokens": 1222,
+  "completion_tokens": 243,
+  "total_tokens": 1465,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 1219,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 88,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 2.56,
+ "created": "2026-11-27T05:22:44"
+}

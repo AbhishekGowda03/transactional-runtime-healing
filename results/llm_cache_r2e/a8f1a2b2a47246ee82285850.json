@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.0,
+ "run_id": "1",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- Assign the variable(s) that the failing statement would have assigned, using exactly the names on the left side of the failing statement (for `r = a / b` assign `r`) and a sensible value.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: reshape.py, line 435, in _unstack_frame\nException: AttributeError: 'RangeIndex' object has no attribute 'levels'\n\nFailing statement:\nunstacker = _Unstacker(obj.index, level=level)\n\nEnclosing function:\ndef _unstack_frame(obj, level, fill_value=None):\n    if not obj._can_fast_transpose:\n        unstacker = _Unstacker(obj.index, level=level)\n        mgr = obj._mgr.unstack(unstacker, fill_value=fill_value)\n        return obj._constructor(mgr)\n    else:\n        return _Unstacker(\n            obj.index, level=level, constructor=obj._constructor,\n        ).get_result(obj._values, value_columns=obj.columns, fill_value=fill_value)\n\nLocal variables at the crash:\n  obj =      x    y\n0  1.0  3.0\n1  2.0  4.0\n2  NaN  NaN  # DataFrame\n  level = -1  # int\n  fill_value = None  # NoneType\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"reshape.py\", line 435, in _unstack_frame\n    unstacker = _Unstacker(obj.index, level=level)\n  File \"reshape.py\", line 106, in __init__\n    self.removed_level_full = index.levels[self.level]\nAttributeError: 'RangeIndex' object has no attribute 'levels'\n"
+  }
+ ],
+ "reply": "```python\nindex_frame = obj.index.to_frame(index=False)\nunstacker = _Unstacker(index_frame.set_index(index_frame.columns.tolist()).index, level=level)\n```",
+ "usage": {
+  "prompt_tokens": 525,
+  "completion_tokens": 602,
+  "total_tokens": 1127,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 550,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 5.3,
+ "created": "2026-11-27T21:48:51"
+}

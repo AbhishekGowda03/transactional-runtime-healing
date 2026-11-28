@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.0,
+ "run_id": "1",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- Assign the variable(s) that the failing statement would have assigned, using exactly the names on the left side of the failing statement (for `r = a / b` assign `r`) and a sensible value.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: core.py, line 415, in _check_fill_value\nException: ValueError: size of tuple must match number of fields.\n\nFailing statement:\nfill_value = np.array(_recursive_set_default_fill_value(descr),\n                                  dtype=ndtype,)\n\nEnclosing function:\ndef _check_fill_value(fill_value, ndtype):\n    \"\"\"\n    Private function validating the given `fill_value` for the given dtype.\n\n    If fill_value is None, it is set to the default corresponding to the dtype\n    if this latter is standard (no fields). If the datatype is flexible (named\n    fields), fill_value is set to a tuple whose elements are the default fill\n    values corresponding to each field.\n\n    If fill_value is not None, its value is forced to the given dtype.\n\n    \"\"\"\n    ndtype = np.dtype(ndtype)\n    fields = ndtype.fields\n    if fill_value is None:\n        if fields:\n            descr = ndtype.descr\n            fill_value = np.array(_recursive_set_default_fill_value(descr),\n                                  dtype=ndtype,)\n        else:\n            fill_value = default_fill_value(ndtype)\n    elif fields:\n        fdtype = [(_[0], _[1]) for _ in ndtype.descr]\n        if isinstance(fill_value, (ndarray, np.void)):\n            try:\n                fill_value = np.array(fill_value, copy=False, dtype=fdtype)\n            except ValueError:\n                err_msg = \"Unable to transform %s to dtype %s\"\n                raise ValueError(err_msg % (fill_value, fdtype))\n        else:\n            descr = ndtype.descr\n            fill_value = np.asarray(fill_value, dtype=object)\n            fill_value = np.array(_recursive_set_fill_value(fill_value, descr),\n                                  dtype=ndtype)\n    else:\n        if isinstance(fill_value, basestring) and (ndtype.char not in 'OSVU'):\n            err_msg = \"Cannot set fill value of string with array of dtype %s\"\n            raise TypeError(err_msg % ndtype)\n        else:\n            # In case we want to convert 1e20 to int.\n            try:\n                fill_value = np.array(fill_value, copy=False, dtype=ndtype)\n            except OverflowError:\n                # Raise TypeError instead of OverflowError. OverflowError\n                # is seldom used, and the real problem here is that the\n                # passed fill_value is not compatible with the ndtype.\n                err_msg = \"Fill value %s overflows dtype %s\"\n                raise TypeError(err_msg % (fill_value, ndtype))\n    return np.array(fill_value)\n\nLocal variables at the crash:\n  fill_value = None  # NoneType\n  ndtype = dtype({'names':['f0','f1'], 'formats':['S4','<i8'], 'offsets':[0,8], 'itemsize':16})  # dtype\n  descr = [('f0', '|S4'), ('', '|V4'), ('f1', '<i8')]  # list\n  fields = mappingproxy({'f0': (dtype('S4'), 0), 'f1': (dtype('int64'), 8)})  # mappingproxy\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"core.py\", line 416, in _check_fill_value\n    dtype=ndtype,)\nValueError: size of tuple must match number of fields.\n"
+  }
+ ],
+ "reply": "```python\nfill_value = np.array(tuple(default_fill_value(info[0]) for info in fields.values()), dtype=ndtype)\n```",
+ "usage": {
+  "prompt_tokens": 924,
+  "completion_tokens": 265,
+  "total_tokens": 1189,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 228,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 3.18,
+ "created": "2026-11-27T15:45:53"
+}

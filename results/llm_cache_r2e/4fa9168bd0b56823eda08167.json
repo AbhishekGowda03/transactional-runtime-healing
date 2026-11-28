@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.7,
+ "run_id": "3",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- Assign the variable(s) that the failing statement would have assigned, using exactly the names on the left side of the failing statement (for `r = a / b` assign `r`) and a sensible value.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: polynomial.py, line 588, in polyfit\nException: ValueError: On entry to DLASCL parameter number 4 had an illegal value\n\nFailing statement:\nc, resids, rank, s = lstsq(lhs, rhs, rcond)\n\nEnclosing function:\ndef polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):\n    \"\"\"\n    Least squares polynomial fit.\n\n    Fit a polynomial ``p(x) = p[0] * x**deg + ... + p[deg]`` of degree `deg`\n    to points `(x, y)`. Returns a vector of coefficients `p` that minimises\n    the squared error.\n\n    Parameters\n    ----------\n    x : array_like, shape (M,)\n        x-coordinates of the M sample points ``(x[i], y[i])``.\n    y : array_like, shape (M,) or (M, K)\n        y-coordinates of the sample points. Several data sets of sample\n        points sharing the same x-coordinates can be fitted at once by\n        passing in a 2D-array that contains one dataset per column.\n    deg : int\n        Degree of the fitting polynomial\n    rcond : float, optional\n        Relative condition number of the fit. Singular values smaller than\n        this relative to the largest singular value will be ignored. The\n        default value is len(x)*eps, where eps is the relative precision of\n        the float type, about 2e-16 in most cases.\n    full : bool, optional\n        Switch determining nature of return value. When it is False (the\n        default) just the coefficients are returned, when True diagnostic\n        information from the singular value decomposition is also returned.\n    w : array_like, shape (M,), optional\n        weights to apply to the y-coordinates of the sample points.\n    cov : bool, optional\n        Return the estimate and the covariance matrix of the estimate\n        If full is True, then cov is not returned.\n\n    Returns\n    -------\n    p : ndarray, shape (M,) or (M, K)\n        Polynomial coefficients, highest power first.  If `y` was 2-D, the\n        coefficients for `k`-th data set are in ``p[:,k]``.\n\n    residuals, rank, singular_values, rcond :\n        Present only if `full` = True.  Residuals of the least-squares fit,\n        the effective rank of the scaled Vandermonde coefficient matrix,\n        its singular values, and the specified value of `rcond`. For more\n        details, see `linalg.lstsq`.\n\n    V : ndarray, shape (M,M) or (M,M,K)\n        Present only if `full` = False and `cov`=True.  The covariance\n        matrix of the polynomial coefficient estimates.  The diagonal of\n        this matrix are the variance estimates for each coefficient.  If y\n        is a 2-D array, then the covariance matrix for the `k`-th data set\n        are in ``V[:,:,k]``\n\n\n    Warns\n    -----\n    RankWarning\n        The rank of the coefficient matrix in the least-squares fit is\n        deficient. The warning is only raised if `full` = False.\n\n        The warnings can be turned off by\n\nLocal variables at the crash:\n  x = array([        nan,  0.09703974,  0.32211546,  0.38175601,  0.87572401,\n        0.25776698,  0.7860884 ,  0.76773811,  0.76820643,  0.27918284])  # ndarray\n  y = array([[ 0.        ,  0.        ],\n       [ 0.2356456 ,  0.41688121],\n       [ 0.63356475,  0.76077556],\n       [ 0.91419178,  0.31701848],\n       [ 0.62316966,  0.08305305],\n       [ 0.13573559,  0.6\u2026  # ndarray\n  deg = 3  # int\n  rcond = 2.2204460492503131e-15  # float64\n  full = True  # bool\n  w = array([ 0.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  0.])  # ndarray\n  cov = False  # bool\n  order = 4  # int\n  lhs = array([[        nan,         nan,         nan,  0.        ],\n       [        nan,         nan,         nan,  0.35355339],\n       [        nan,         nan,         nan,  0.35355339],\n       [        n\u2026  # ndarray\n  rhs = array([[ 0.        ,  0.        ],\n       [ 0.2356456 ,  0.41688121],\n       [ 0.63356475,  0.76077556],\n       [ 0.91419178,  0.31701848],\n       [ 0.62316966,  0.08305305],\n       [ 0.13573559,  0.6\u2026  # ndarray\n  scale = array([        nan,         nan,         nan,  2.82842712])  # ndarray\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"polynomial.py\", line 588, in polyfit\n    c, resids, rank, s = lstsq(lhs, rhs, rcond)\n  File \"linalg.py\", line 1867, in lstsq\n    0, work, lwork, iwork, 0)\nValueError: On entry to DLASCL parameter number 4 had an illegal value\n"
+  }
+ ],
+ "reply": "```python\nmask = np.isfinite(x) & (w != 0)\nlhs_fit = np.vander(x[mask], order) * w[mask, None]\nrhs_fit = y[mask] * w[mask, None]\nscale_fit = np.sqrt((lhs_fit * lhs_fit).sum(axis=0))\nlhs_fit /= scale_fit\nc, resids, rank, s = lstsq(lhs_fit, rhs_fit, rcond)\nc /= scale_fit[:, None] if c.ndim == 2 else scale_fit\n```",
+ "usage": {
+  "prompt_tokens": 1498,
+  "completion_tokens": 457,
+  "total_tokens": 1955,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 1495,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 336,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 4.6,
+ "created": "2026-11-27T21:44:27"
+}

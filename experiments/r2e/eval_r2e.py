@@ -79,6 +79,7 @@ def heal_detail(out):
     """Statuses of the attempts with their category (committed / safety / operational)."""
     cats, hp = {}, os.path.join(out, "heal.jsonl")
     heal_detail.names = {}
+    heal_detail.assertion = 0          # committed repairs of an assertion (they can fake a pass)
     heal_detail.secs = []
     heal_detail.rejected = []
     if os.path.exists(hp):
@@ -91,6 +92,8 @@ def heal_detail(out):
                 continue
             c = d.get("category") or d.get("status")
             cats[c] = cats.get(c, 0) + 1
+            if d.get("status") == "COMMITTED" and d.get("assertion_repair"):
+                heal_detail.assertion += 1
             heal_detail.names[d["status"]] = heal_detail.names.get(d["status"], 0) + 1
             if d.get("attempt_seconds") is not None:
                 heal_detail.secs.append(d["attempt_seconds"])
@@ -119,6 +122,7 @@ def one(row, setting, run, sites, a, tier="py39+"):
         rec["statuses"] = dict(heal_detail.names)     # COMMITTED, REJECTED_CHECK, ...
         rec["attempt_seconds"] = list(heal_detail.secs)   # trial to verdict, without the model's time
         rec["rejected"] = list(heal_detail.rejected)
+        rec["assertion_repairs"] = heal_detail.assertion
         rec["skipped"] = skipped_reasons(out)
         rec["at_sites"] = R.records_at_sites(out, sites)
         # attempts skipped for a reason of the protocol itself (not a thread or a caller that handles
@@ -225,6 +229,12 @@ def _summary(rows, detail=False):
                                                          sum(r.get("statuses", {}).get("REJECTED_REPAIR_ERROR", 0) for r in rs),
                                                          sum(nrule(r) for r in rs), cat("operational"),
                                                          thr, fr)))
+    sus = [r for r in rows if r["outcome"] == "PASSED" and r.get("assertion_repairs")]
+    if sus:
+        print(f"\nWARNING: {len(sus)} PASSED runs committed a repair of an assertion (a statement with assert / "
+              f"assert_* / AssertionError). Such a pass can come from the test helper, not from the library: "
+              f"check them ({sorted({r['commit'] for r in sus})[:8]}). Logs from before this flag existed "
+              f"do not have it.")
     off = {(r["commit"], r["run"]): r["seconds"] for r in rows if r["setting"] == "off" and r["run"] >= 2}
     if off:
         print("\ntime relative to `off` (same task and run, runs 2-3, median of ratios; the first run of a task is left out"

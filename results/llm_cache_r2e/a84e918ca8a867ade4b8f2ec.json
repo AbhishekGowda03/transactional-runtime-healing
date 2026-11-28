@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.7,
+ "run_id": "2",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- Assign the variable(s) that the failing statement would have assigned, using exactly the names on the left side of the failing statement (for `r = a / b` assign `r`) and a sensible value.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: records.py, line 663, in fromrecords\nException: IndexError: index 2 is out of bounds for axis 2 with size 2\n\nFailing statement:\narrlist = [sb.array(obj[..., i].tolist()) for i in range(nfields)]\n\nEnclosing function:\ndef fromrecords(recList, dtype=None, shape=None, formats=None, names=None,\n                titles=None, aligned=False, byteorder=None):\n    \"\"\" create a recarray from a list of records in text form\n\n        The data in the same field can be heterogeneous, they will be promoted\n        to the highest data type.  This method is intended for creating\n        smaller record arrays.  If used to create large array without formats\n        defined\n\n        r=fromrecords([(2,3.,'abc')]*100000)\n\n        it can be slow.\n\n        If formats is None, then this will auto-detect formats. Use list of\n        tuples rather than list of lists for faster processing.\n\n    >>> r=np.core.records.fromrecords([(456,'dbe',1.2),(2,'de',1.3)],\n    ... names='col1,col2,col3')\n    >>> print(r[0])\n    (456, 'dbe', 1.2)\n    >>> r.col1\n    array([456,   2])\n    >>> r.col2\n    array(['dbe', 'de'],\n          dtype='|S3')\n    >>> import pickle\n    >>> print(pickle.loads(pickle.dumps(r)))\n    [(456, 'dbe', 1.2) (2, 'de', 1.3)]\n    \"\"\"\n\n    nfields = len(recList[0])\n    if formats is None and dtype is None:  # slower\n        obj = sb.array(recList, dtype=object)\n        arrlist = [sb.array(obj[..., i].tolist()) for i in range(nfields)]\n        return fromarrays(arrlist, formats=formats, shape=shape, names=names,\n                          titles=titles, aligned=aligned, byteorder=byteorder)\n\n    if dtype is not None:\n        descr = sb.dtype((record, dtype))\n    else:\n        descr = format_parser(formats, names, titles, aligned, byteorder)._descr\n\n    try:\n        retval = sb.array(recList, dtype=descr)\n    except TypeError:  # list of lists instead of list of tuples\n        if (shape is None or shape == 0):\n            shape = len(recList)\n        if isinstance(shape, (int, long)):\n            shape = (shape,)\n        if len(shape) > 1:\n            raise ValueError(\"Can only deal with 1-d array.\")\n        _array = recarray(shape, descr)\n        for k in range(_array.size):\n            _array[k] = tuple(recList[k])\n        return _array\n    else:\n        if shape is not None and retval.shape != shape:\n            retval.shape = shape\n\n    res = retval.view(recarray)\n\nLocal variables at the crash:\n  recList = [[(1, 2), (3, 4), (5, 6)], [(6, 5), (4, 3), (2, 1)]]  # list\n  dtype = None  # NoneType\n  shape = None  # NoneType\n  formats = None  # NoneType\n  names = ['a', 'b']  # list\n  titles = None  # NoneType\n  aligned = False  # bool\n  byteorder = None  # NoneType\n  nfields = 3  # int\n  obj = array([[[1, 2],\n        [3, 4],\n        [5, 6]],\n\n       [[6, 5],\n        [4, 3],\n        [2, 1]]], dtype=object)  # ndarray\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"records.py\", line 663, in fromrecords\n    arrlist = [sb.array(obj[..., i].tolist()) for i in range(nfields)]\n  File \"records.py\", line 663, in <listcomp>\n    arrlist = [sb.array(obj[..., i].tolist()) for i in range(nfields)]\nIndexError: index 2 is out of bounds for axis 2 with size 2\n"
+  }
+ ],
+ "reply": "```python\narrlist = [sb.array(obj[..., i].tolist()) for i in range(obj.shape[-1])]\n```",
+ "usage": {
+  "prompt_tokens": 1119,
+  "completion_tokens": 451,
+  "total_tokens": 1570,
+  "prompt_tokens_details": {
+   "cached_tokens": 1116,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 417,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 4.18,
+ "created": "2026-11-27T17:19:39"
+}

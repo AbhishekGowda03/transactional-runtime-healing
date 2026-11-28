@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.7,
+ "run_id": "2",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- Assign the variable(s) that the failing statement would have assigned, using exactly the names on the left side of the failing statement (for `r = a / b` assign `r`) and a sensible value.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: type_check.py, line 368, in nan_to_num\nException: AttributeError: 'list' object has no attribute 'dtype'\n\nFailing statement:\nif not issubclass(t, _nx.integer):\n        if not y.shape:\n            y = array([x])\n            scalar = True\n        else:\n            scalar = False\n        are_inf = isposinf(y)\n        are_neg_inf = isneginf(y)\n        are_nan = isnan(y)\n        maxf, minf = _getmaxmin(y.dtype.type)\n        y[are_nan] = 0\n        y[are_inf] = maxf\n        y[are_neg_inf] = minf\n        if scalar:\n            y = y[0]\n\nEnclosing function:\ndef nan_to_num(x):\n    \"\"\"\n    Replace nan with zero and inf with finite numbers.\n\n    Returns an array or scalar replacing Not a Number (NaN) with zero,\n    (positive) infinity with a very large number and negative infinity\n    with a very small (or negative) number.\n\n    Parameters\n    ----------\n    x : array_like\n        Input data.\n\n    Returns\n    -------\n    out : ndarray, float\n        Array with the same shape as `x` and dtype of the element in `x`  with\n        the greatest precision. NaN is replaced by zero, and infinity\n        (-infinity) is replaced by the largest (smallest or most negative)\n        floating point value that fits in the output dtype. All finite numbers\n        are upcast to the output dtype (default float64).\n\n    See Also\n    --------\n    isinf : Shows which elements are negative or negative infinity.\n    isneginf : Shows which elements are negative infinity.\n    isposinf : Shows which elements are positive infinity.\n    isnan : Shows which elements are Not a Number (NaN).\n    isfinite : Shows which elements are finite (not NaN, not infinity)\n\n    Notes\n    -----\n    Numpy uses the IEEE Standard for Binary Floating-Point for Arithmetic\n    (IEEE 754). This means that Not a Number is not equivalent to infinity.\n\n\n    Examples\n    --------\n    >>> np.set_printoptions(precision=8)\n    >>> x = np.array([np.inf, -np.inf, np.nan, -128, 128])\n    >>> np.nan_to_num(x)\n    array([  1.79769313e+308,  -1.79769313e+308,   0.00000000e+000,\n            -1.28000000e+002,   1.28000000e+002])\n\n    \"\"\"\n    try:\n        t = x.dtype.type\n    except AttributeError:\n        t = obj2sctype(type(x))\n    if issubclass(t, _nx.complexfloating):\n        return nan_to_num(x.real) + 1j * nan_to_num(x.imag)\n    else:\n        try:\n            y = x.copy()\n        except AttributeError:\n            y = array(x)\n    if not issubclass(t, _nx.integer):\n        if not y.shape:\n            y = array([x])\n            scalar = True\n\nLocal variables at the crash:\n  x = [1]  # list\n  t = <class 'numpy.object_'>  # type\n  y = [1]  # list\n  are_inf = array([False], dtype=bool)  # ndarray\n  are_nan = array([False], dtype=bool)  # ndarray\n  are_neg_inf = array([False], dtype=bool)  # ndarray\n  scalar = False  # bool\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"type_check.py\", line 377, in nan_to_num\n    maxf, minf = _getmaxmin(y.dtype.type)\nAttributeError: 'list' object has no attribute 'dtype'\n"
+  }
+ ],
+ "reply": "```python\ny = array(y, dtype=float)\nmaxf, minf = _getmaxmin(y.dtype.type)\n```",
+ "usage": {
+  "prompt_tokens": 1027,
+  "completion_tokens": 360,
+  "total_tokens": 1387,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 1024,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 325,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 4.25,
+ "created": "2026-11-27T23:01:55"
+}

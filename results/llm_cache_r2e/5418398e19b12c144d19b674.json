@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.7,
+ "run_id": "3",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- The failing statement is the condition of an `if`. Assign the truth value the condition should have (True or False) to the variable `_eh_cond` and to nothing else. The program then runs the matching branch of the `if`.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: shape_base.py, line 133, in apply_along_axis\nException: AttributeError: 'tuple' object has no attribute 'shape'\n\nFailing statement:\nif res.shape == ():\n\nEnclosing function:\ndef apply_along_axis(func1d, axis, arr, *args, **kwargs):\n    \"\"\"\n    Apply a function to 1-D slices along the given axis.\n\n    Execute `func1d(a, *args)` where `func1d` operates on 1-D arrays and `a`\n    is a 1-D slice of `arr` along `axis`.\n\n    Parameters\n    ----------\n    func1d : function\n        This function should accept 1-D arrays. It is applied to 1-D\n        slices of `arr` along the specified axis.\n    axis : integer\n        Axis along which `arr` is sliced.\n    arr : ndarray\n        Input array.\n    args : any\n        Additional arguments to `func1d`.\n    kwargs : any\n        Additional named arguments to `func1d`.\n\n        .. versionadded:: 1.9.0\n\n\n    Returns\n    -------\n    apply_along_axis : ndarray\n        The output array. The shape of `outarr` is identical to the shape of\n        `arr`, except along the `axis` dimension, where the length of `outarr`\n        is equal to the size of the return value of `func1d`.  If `func1d`\n        returns a scalar `outarr` will have one fewer dimensions than `arr`.\n\n    See Also\n    --------\n    apply_over_axes : Apply a function repeatedly over multiple axes.\n\n    Examples\n    --------\n    >>> def my_func(a):\n    ...     \\\"\\\"\\\"Average first and last element of a 1-D array\\\"\\\"\\\"\n    ...     return (a[0] + a[-1]) * 0.5\n    >>> b = np.array([[1,2,3], [4,5,6], [7,8,9]])\n    >>> np.apply_along_axis(my_func, 0, b)\n    array([ 4.,  5.,  6.])\n    >>> np.apply_along_axis(my_func, 1, b)\n    array([ 2.,  5.,  8.])\n\n    For a function that doesn't return a scalar, the number of dimensions in\n    `outarr` is the same as `arr`.\n\n    >>> b = np.array([[8,1,7], [4,3,9], [5,2,6]])\n    >>> np.apply_along_axis(sorted, 1, b)\n    array([[1, 7, 8],\n           [3, 4, 9],\n           [2, 5, 6]])\n\n    \"\"\"\n    arr = asanyarray(arr)\n    nd = arr.ndim\n    if axis < 0:\n\nLocal variables at the crash:\n  func1d = <function TestApplyAlongAxis.test_tuple_func1d.<locals>.sample_1d at 0x\u2026>  # function\n  axis = 1  # int\n  arr = array([[1, 2],\n       [3, 4]])  # ndarray\n  args = ()  # tuple\n  kwargs = {}  # dict\n  Ntot = 2  # int64\n  holdshape = array([2])  # ndarray\n  i = array([1, slice(None, None, None)], dtype=object)  # ndarray\n  ind = [1]  # list\n  indlist = [0]  # list\n  k = 2  # int\n  n = -1  # int\n  nd = 2  # int\n  outarr = array([[2, 1],\n       [4, 3]])  # ndarray\n  outshape = [2, 2]  # list\n  res = (4, 3)  # tuple\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"shape_base.py\", line 133, in apply_along_axis\n    if res.shape == ():\nAttributeError: 'tuple' object has no attribute 'shape'\n"
+  }
+ ],
+ "reply": "```python\n_eh_cond = False\n```",
+ "usage": {
+  "prompt_tokens": 1095,
+  "completion_tokens": 82,
+  "total_tokens": 1177,
+  "prompt_tokens_details": {
+   "cached_tokens": 1092,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 63,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 1.74,
+ "created": "2026-11-27T22:00:57"
+}

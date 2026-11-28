@@ -300,7 +300,7 @@ def wanted_files(root, as_root):
     from transactional_runtime_healing import repo_hook
     out = []
     for dirpath, dirs, files in os.walk(root):
-        dirs[:] = [d for d in dirs if d not in repo_hook.EXCLUDE_DIRS]
+        dirs[:] = [d for d in dirs if d.lower() not in repo_hook.EXCLUDE_DIRS]
         for name in files:
             if name.endswith(".py"):
                 real = os.path.join(dirpath, name)

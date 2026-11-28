@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.7,
+ "run_id": "2",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- Assign the variable(s) that the failing statement would have assigned, using exactly the names on the left side of the failing statement (for `r = a / b` assign `r`) and a sensible value.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: polynomial.py, line 588, in polyfit\nException: TypeError: tuple indices must be integers or slices, not str\n\nFailing statement:\nc, resids, rank, s = lstsq(lhs, rhs, rcond)\n\nEnclosing function:\ndef polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):\n    \"\"\"\n    Least squares polynomial fit.\n\n    Fit a polynomial ``p(x) = p[0] * x**deg + ... + p[deg]`` of degree `deg`\n    to points `(x, y)`. Returns a vector of coefficients `p` that minimises\n    the squared error.\n\n    Parameters\n    ----------\n    x : array_like, shape (M,)\n        x-coordinates of the M sample points ``(x[i], y[i])``.\n    y : array_like, shape (M,) or (M, K)\n        y-coordinates of the sample points. Several data sets of sample\n        points sharing the same x-coordinates can be fitted at once by\n        passing in a 2D-array that contains one dataset per column.\n    deg : int\n        Degree of the fitting polynomial\n    rcond : float, optional\n        Relative condition number of the fit. Singular values smaller than\n        this relative to the largest singular value will be ignored. The\n        default value is len(x)*eps, where eps is the relative precision of\n        the float type, about 2e-16 in most cases.\n    full : bool, optional\n        Switch determining nature of return value. When it is False (the\n        default) just the coefficients are returned, when True diagnostic\n        information from the singular value decomposition is also returned.\n    w : array_like, shape (M,), optional\n        weights to apply to the y-coordinates of the sample points.\n    cov : bool, optional\n        Return the estimate and the covariance matrix of the estimate\n        If full is True, then cov is not returned.\n\n    Returns\n    -------\n    p : ndarray, shape (M,) or (M, K)\n        Polynomial coefficients, highest power first.  If `y` was 2-D, the\n        coefficients for `k`-th data set are in ``p[:,k]``.\n\n    residuals, rank, singular_values, rcond :\n        Present only if `full` = True.  Residuals of the least-squares fit,\n        the effective rank of the scaled Vandermonde coefficient matrix,\n        its singular values, and the specified value of `rcond`. For more\n        details, see `linalg.lstsq`.\n\n    V : ndarray, shape (M,M) or (M,M,K)\n        Present only if `full` = False and `cov`=True.  The covariance\n        matrix of the polynomial coefficient estimates.  The diagonal of\n        this matrix are the variance estimates for each coefficient.  If y\n        is a 2-D array, then the covariance matrix for the `k`-th data set\n        are in ``V[:,:,k]``\n\n\n    Warns\n    -----\n    RankWarning\n        The rank of the coefficient matrix in the least-squares fit is\n        deficient. The warning is only raised if `full` = False.\n\n        The warnings can be turned off by\n\nLocal variables at the crash:\n  x = array([        nan,  0.6390745 ,  0.20647995,  0.82549401,  0.81593105,\n        0.341147  ,  0.48550046,  0.63521336,  0.59574198,  0.86499026])  # ndarray\n  y = array([[ 0.        ,  0.        ],\n       [ 0.58335128,  0.54492033],\n       [ 0.19088346,  0.7782409 ],\n       [ 0.71096656,  0.36726294],\n       [ 0.09124261,  0.27304436],\n       [ 0.72487026,  0.2\u2026  # ndarray\n  deg = 3  # int\n  rcond = 2.2204460492503131e-15  # float64\n  full = True  # bool\n  w = array([ 0.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  0.])  # ndarray\n  cov = False  # bool\n  order = 4  # int\n  lhs = array([[        nan,         nan,         nan,  0.        ],\n       [        nan,         nan,         nan,  0.35355339],\n       [        nan,         nan,         nan,  0.35355339],\n       [        n\u2026  # ndarray\n  rhs = array([[ 0.        ,  0.        ],\n       [ 0.58335128,  0.54492033],\n       [ 0.19088346,  0.7782409 ],\n       [ 0.71096656,  0.36726294],\n       [ 0.09124261,  0.27304436],\n       [ 0.72487026,  0.2\u2026  # ndarray\n  scale = array([        nan,         nan,         nan,  2.82842712])  # ndarray\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"polynomial.py\", line 588, in polyfit\n    c, resids, rank, s = lstsq(lhs, rhs, rcond)\n  File \"linalg.py\", line 1868, in lstsq\n    if results['info'] > 0:\nTypeError: tuple indices must be integers or slices, not str\n"
+  }
+ ],
+ "reply": "```python\n_valid = np.isfinite(x) & np.isfinite(w)\n_vander = np.vander(x[_valid], order) * w[_valid, None]\nscale = np.sqrt((_vander * _vander).sum(axis=0))\nscale[scale == 0] = 1\nc, resids, rank, s = np.linalg.lstsq(\n    _vander / scale, y[_valid] * w[_valid, None], rcond=rcond\n)\n```",
+ "usage": {
+  "prompt_tokens": 1485,
+  "completion_tokens": 497,
+  "total_tokens": 1982,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 1482,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 385,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 4.98,
+ "created": "2026-11-27T21:43:54"
+}

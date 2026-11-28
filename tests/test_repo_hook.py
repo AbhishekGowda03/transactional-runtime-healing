@@ -130,3 +130,40 @@ def test_nothing_is_healed_outside_test_bodies(tmp_path):
     assert "error" in p.stdout.lower() and not any(e["status"] == "COMMITTED" for e in log)         # imported at collection: not healed
     p, log = run_pytest(repo, rules, tmp_path, "plain", {"TXH_HEAL_ALL": "1"})
     assert "1 passed" in p.stdout and len(log) == 1
+
+
+def test_test_support_files_never_get_heal_points():
+    """A repair inside an assertion helper can make a test pass without changing the library."""
+    from transactional_runtime_healing.repo_hook import excluded_parts
+    excluded = ["pandas/_testing/asserters.py", "pandas/_testing/_warnings.py", "pandas/_testing.py",
+                "pandas/util/testing.py", "pandas/util/_test_decorators.py", "Tests/helper.py",
+                "pkg/Tests/x.py", "pkg/TESTING/y.py", "scrapy/utils/test.py", "scrapy/utils/testsite.py",
+                "aiohttp/pytest_plugin.py", "numpy/testing/_private/utils.py", "numpy/ma/testutils.py",
+                "pkg/tests/helper.py", "pkg/conftest.py", "pkg/mod_test.py", "pkg/mod_tests.py"]
+    kept = ["pandas/core/frame.py", "pandas/io/formats/format.py", "pkg/helper.py", "pkg/testimony.py",
+            "pkg/contest.py", "pkg/latest.py", "scrapy/utils/misc.py", "aiohttp/web.py"]
+    assert [p for p in excluded if not excluded_parts(p.split("/"))] == []
+    assert [p for p in kept if excluded_parts(p.split("/"))] == []
+
+
+def test_wanted_agrees_with_the_rule(tmp_path):
+    from transactional_runtime_healing.repo_hook import wanted
+    for rel in ["pandas/core/a.py", "pandas/_testing/asserters.py", "Tests/helper.py", "pkg/helper.py"]:
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_text("x = 1")
+    got = {rel for rel in ["pandas/core/a.py", "pandas/_testing/asserters.py", "Tests/helper.py",
+                           "pkg/helper.py"] if wanted(str(tmp_path / rel), str(tmp_path))}
+    assert got == {"pandas/core/a.py", "pkg/helper.py"}
+
+
+def test_a_repair_of_an_assertion_is_flagged():
+    from types import SimpleNamespace as NS
+    from transactional_runtime_healing.live_heal import is_assertion_repair as flag
+    assert flag(NS(exception=AssertionError("x"), statement="y = f(a)"))
+    assert flag(NS(exception=ValueError("x"), statement="assert_almost_equal(a, b)"))
+    assert flag(NS(exception=ValueError("x"), statement="    assert a == b"))
+    assert flag(NS(exception=ValueError("x"), statement="raise AssertionError('no')"))
+    assert flag(NS(exception=ValueError("x"), statement="self.assertEqual(a, b)"))
+    assert not flag(NS(exception=ZeroDivisionError("x"), statement="v = 1 / x"))
+    assert not flag(NS(exception=KeyError("x"), statement="value = table['key']"))
+    assert not flag(NS(exception=KeyError("x"), statement="reassert = compute()"))

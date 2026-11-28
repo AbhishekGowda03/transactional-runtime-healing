@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.7,
+ "run_id": "3",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- The failing statement is the condition of an `if`. Assign the truth value the condition should have (True or False) to the variable `_eh_cond` and to nothing else. The program then runs the matching branch of the `if`.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: algorithms.py, line 444, in isin\nException: TypeError: ufunc 'isnan' not supported for the input types, and the inputs could not be safely coerced to any supported types according to the casting rule ''safe''\n\nFailing statement:\nif np.isnan(values).any():\n\nEnclosing function:\ndef isin(comps: AnyArrayLike, values: AnyArrayLike) -> np.ndarray:\n    \"\"\"\n    Compute the isin boolean array.\n\n    Parameters\n    ----------\n    comps : array-like\n    values : array-like\n\n    Returns\n    -------\n    ndarray[bool]\n        Same length as `comps`.\n    \"\"\"\n    if not is_list_like(comps):\n        raise TypeError(\n            \"only list-like objects are allowed to be passed \"\n            f\"to isin(), you passed a [{type(comps).__name__}]\"\n        )\n    if not is_list_like(values):\n        raise TypeError(\n            \"only list-like objects are allowed to be passed \"\n            f\"to isin(), you passed a [{type(values).__name__}]\"\n        )\n\n    if not isinstance(values, (ABCIndex, ABCSeries, ABCExtensionArray, np.ndarray)):\n        values = construct_1d_object_array_from_listlike(list(values))\n        # TODO: could use ensure_arraylike here\n\n    comps = extract_array(comps, extract_numpy=True)\n    if is_categorical_dtype(comps):\n        # TODO(extension)\n        # handle categoricals\n        return cast(\"Categorical\", comps).isin(values)\n\n    comps, dtype = _ensure_data(comps)\n    values, _ = _ensure_data(values, dtype=dtype)\n\n    # faster for larger cases to use np.in1d\n    f = htable.ismember_object\n\n    # GH16012\n    # Ensure np.in1d doesn't get object types or it *may* throw an exception\n    if len(comps) > 1_000_000 and not is_object_dtype(comps):\n        # If the the values include nan we need to check for nan explicitly\n        # since np.nan it not equal to np.nan\n        if np.isnan(values).any():\n            f = lambda c, v: np.logical_or(np.in1d(c, v), np.isnan(c))\n        else:\n            f = np.in1d\n    elif is_integer_dtype(comps):\n        try:\n            values = values.astype(\"int64\", copy=False)\n            comps = comps.astype(\"int64\", copy=False)\n            f = htable.ismember_int64\n        except (TypeError, ValueError, OverflowError):\n            values = values.astype(object)\n            comps = comps.astype(object)\n\n    elif is_float_dtype(comps):\n\nLocal variables at the crash:\n  comps = array([ 1.,  2., nan, ...,  1.,  2., nan])  # ndarray\n  values = array(['bar', 'foo'], dtype=object)  # ndarray\n  _ = dtype('O')  # dtype\n  dtype = dtype('float64')  # dtype\n  f = <built-in function ismember_object>  # builtin_function_or_method\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"algorithms.py\", line 444, in isin\n    if np.isnan(values).any():\nTypeError: ufunc 'isnan' not supported for the input types, and the inputs could not be safely coerced to any supported types according to the casting rule ''safe''\n"
+  }
+ ],
+ "reply": "```python\n_eh_cond = False\n```",
+ "usage": {
+  "prompt_tokens": 939,
+  "completion_tokens": 98,
+  "total_tokens": 1037,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 79,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 2.05,
+ "created": "2026-11-27T18:22:38"
+}

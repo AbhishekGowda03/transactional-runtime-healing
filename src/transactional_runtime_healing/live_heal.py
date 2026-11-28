@@ -75,6 +75,7 @@ import dis
 import gc
 import json
 import os
+import re
 import select
 import signal
 import sys
@@ -675,6 +676,19 @@ class LiveHealer:
         write_log(self.log_path, rec)
 
 
+_ASSERTION = None
+
+
+def is_assertion_repair(ctx) -> bool:
+    """The repaired statement is an assertion (a failing `assert`, `raise AssertionError`, a call of an
+    `assert_*` function) or raised an AssertionError. A repair there can turn a failing test into a
+    passing one without changing the code under test: such commits are flagged in the log."""
+    global _ASSERTION
+    if _ASSERTION is None:
+        _ASSERTION = re.compile(r"(^|\n)\s*assert\b|\bassert_\w*\s*\(|\bAssertionError\b|\bassert[A-Z]\w*\s*\(")
+    return isinstance(ctx.exception, AssertionError) or bool(_ASSERTION.search(ctx.statement or ""))
+
+
 def write_log(path, rec: HealRecord):
     """Append one JSON line describing a heal attempt (also used by the plain healer)."""
     if not path:
@@ -700,6 +714,7 @@ def write_log(path, rec: HealRecord):
                 fs_undone=res.fs_undone if res else [],
                 fs_undo_failed=res.fs_undo_failed if res else [],
                 category=res.category if res else "none",
+                assertion_repair=is_assertion_repair(ctx),
                 attempt_seconds=getattr(rec, "seconds", None))
     write_line(path, line)
 

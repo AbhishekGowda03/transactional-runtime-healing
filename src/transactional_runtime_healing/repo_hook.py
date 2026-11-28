@@ -34,12 +34,29 @@ PRE_AST = sys.version_info < (3, 9) or os.environ.get("TXH_PRE_AST") == "1"
 class NotPreInstrumented(Exception):
     """No pre-instrumented entry for this file (it changed since, or it could not be rewritten)."""
 
-EXCLUDE_DIRS = {"tests", "test", "testing", "docs", "doc", "examples", "example", "benchmarks",
-                "benchmark", "build", "dist", "vendor", "_vendor", "vendored", "third_party",
-                "site-packages", "node_modules", ".git", "__pycache__", "scripts", "bin"}
-EXCLUDE_FILES = {"conftest.py", "setup.py", "testing.py", "testutil.py", "testutils.py",
-                 "test_utils.py", "test_util.py"}     # test support: not code under test
-_VERSION = "4"                                    # change when the instrumenter changes
+# Folder and file names are compared in lower case (Pillow keeps its tests in `Tests/`).
+EXCLUDE_DIRS = {"tests", "test", "testing", "_testing", "docs", "doc", "examples", "example",
+                "benchmarks", "benchmark", "build", "dist", "vendor", "_vendor", "vendored",
+                "third_party", "site-packages", "node_modules", ".git", "__pycache__", "scripts", "bin"}
+# Test support is not code under test: a repair inside an assertion helper or a test utility can make
+# a test pass without changing the library. pandas keeps its helpers in `pandas/_testing/` (older:
+# `_testing.py`, `util/testing.py`), scrapy in `utils/test.py` and `utils/testsite.py`, aiohttp in
+# `pytest_plugin.py`, Pillow in `Tests/helper.py` (a `helper.py` counts only inside a test folder).
+EXCLUDE_FILES = {"conftest.py", "setup.py", "testing.py", "_testing.py", "testutil.py", "testutils.py",
+                 "test_utils.py", "test_util.py", "test.py", "testsite.py", "pytest_plugin.py"}
+_VERSION = "5"                                    # change when the instrumenter or the file selection changes
+
+
+def excluded_parts(parts) -> bool:
+    """`parts`: the path below the repository root, split into names. True for test code and test
+    support (and docs, examples, vendored code, build output)."""
+    if any(d.lower() in EXCLUDE_DIRS for d in parts[:-1]):
+        return True
+    name = parts[-1].lower()
+    if name == "helper.py":                       # only a test helper inside a test folder
+        return any(d.lower() in ("tests", "test", "testing", "_testing") for d in parts[:-1])
+    return (name in EXCLUDE_FILES or name.startswith("test_") or name.startswith("_test_")
+            or name.endswith("_test.py") or name.endswith("_tests.py"))
 
 
 def wanted(path: str, root: str) -> bool:
@@ -48,11 +65,7 @@ def wanted(path: str, root: str) -> bool:
     r = os.path.realpath(root)
     if not p.startswith(r + os.sep) or not p.endswith(".py"):
         return False
-    parts = os.path.relpath(p, r).split(os.sep)
-    if any(d in EXCLUDE_DIRS for d in parts[:-1]):
-        return False
-    name = parts[-1]
-    return not (name in EXCLUDE_FILES or name.startswith("test_") or name.endswith("_test.py"))
+    return not excluded_parts(os.path.relpath(p, r).split(os.sep))
 
 
 class _HealLoader(importlib.abc.Loader):

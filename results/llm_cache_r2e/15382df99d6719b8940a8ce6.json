@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.0,
+ "run_id": "1",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- Assign the variable(s) that the failing statement would have assigned, using exactly the names on the left side of the failing statement (for `r = a / b` assign `r`) and a sensible value.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: generic.py, line 7059, in interpolate\nException: UnboundLocalError: local variable 'ax' referenced before assignment\n\nFailing statement:\nax = _maybe_transposed_self._get_axis_number(ax)\n\nEnclosing function:\n    def interpolate(\n        self,\n        method=\"linear\",\n        axis=0,\n        limit=None,\n        inplace=False,\n        limit_direction=\"forward\",\n        limit_area=None,\n        downcast=None,\n        **kwargs\n    ):\n        \"\"\"\n        Interpolate values according to different methods.\n        \"\"\"\n        inplace = validate_bool_kwarg(inplace, \"inplace\")\n\n        if axis == 0:\n            ax = self._info_axis_name\n            _maybe_transposed_self = self\n        elif axis == 1:\n            _maybe_transposed_self = self.T\n            ax = 1\n        else:\n            _maybe_transposed_self = self\n        ax = _maybe_transposed_self._get_axis_number(ax)\n\n        if _maybe_transposed_self.ndim == 2:\n            alt_ax = 1 - ax\n        else:\n            alt_ax = ax\n\n        if isinstance(_maybe_transposed_self.index, MultiIndex) and method != \"linear\":\n            raise ValueError(\n                \"Only `method=linear` interpolation is supported on MultiIndexes.\"\n            )\n\n        if _maybe_transposed_self._data.get_dtype_counts().get(\"object\") == len(\n            _maybe_transposed_self.T\n        ):\n            raise TypeError(\n                \"Cannot interpolate with all object-dtype columns \"\n                \"in the DataFrame. Try setting at least one \"\n                \"column to a numeric dtype.\"\n            )\n\n        # create/use the index\n        if method == \"linear\":\n            # prior default\n            index = np.arange(len(_maybe_transposed_self._get_axis(alt_ax)))\n        else:\n            index = _maybe_transposed_self._get_axis(alt_ax)\n            methods = {\"index\", \"values\", \"nearest\", \"time\"}\n            is_numeric_or_datetime = (\n                is_numeric_dtype(index)\n                or is_datetime64_any_dtype(index)\n                or is_timedelta64_dtype(index)\n            )\n            if method not in methods and not is_numeric_or_datetime:\n                raise ValueError(\n                    \"Index column must be numeric or datetime type when \"\n\nLocal variables at the crash:\n  self =      0    1    2\n0  0.0  1.0  2.0\n1  NaN  NaN  5.0\n2  6.0  7.0  8.0  # DataFrame\n  method = 'linear'  # str\n  axis = 'rows'  # str\n  limit = None  # NoneType\n  inplace = False  # bool\n  limit_direction = 'forward'  # str\n  limit_area = None  # NoneType\n  downcast = None  # NoneType\n  kwargs = {}  # dict\n  _maybe_transposed_self =      0    1    2\n0  0.0  1.0  2.0\n1  NaN  NaN  5.0\n2  6.0  7.0  8.0  # DataFrame\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"generic.py\", line 7059, in interpolate\n    ax = _maybe_transposed_self._get_axis_number(ax)\nUnboundLocalError: local variable 'ax' referenced before assignment\n"
+  }
+ ],
+ "reply": "```python\nax = _maybe_transposed_self._get_axis_number(axis)\n```",
+ "usage": {
+  "prompt_tokens": 949,
+  "completion_tokens": 109,
+  "total_tokens": 1058,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 83,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 2.33,
+ "created": "2026-11-27T21:39:58"
+}

@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.0,
+ "run_id": "1",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- Assign the variable(s) that the failing statement would have assigned, using exactly the names on the left side of the failing statement (for `r = a / b` assign `r`) and a sensible value.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: function_base.py, line 3346, in _median\nException: IndexError: index -1 is out of bounds for axis 2 with size 0\n\nFailing statement:\nn = np.isnan(part[..., -1])\n\nEnclosing function:\ndef _median(a, axis=None, out=None, overwrite_input=False):\n    # can't be reasonably be implemented in terms of percentile as we have to\n    # call mean to not break astropy\n    a = np.asanyarray(a)\n\n    # Set the partition indexes\n    if axis is None:\n        sz = a.size\n    else:\n        sz = a.shape[axis]\n    if sz % 2 == 0:\n        szh = sz // 2\n        kth = [szh - 1, szh]\n    else:\n        kth = [(sz - 1) // 2]\n    # Check if the array contains any nan's\n    if np.issubdtype(a.dtype, np.inexact):\n        kth.append(-1)\n\n    if overwrite_input:\n        if axis is None:\n            part = a.ravel()\n            part.partition(kth)\n        else:\n            a.partition(kth, axis=axis)\n            part = a\n    else:\n        part = partition(a, kth, axis=axis)\n\n    if part.shape == ():\n        # make 0-D arrays work\n        return part.item()\n    if axis is None:\n        axis = 0\n\n    indexer = [slice(None)] * part.ndim\n    index = part.shape[axis] // 2\n    if part.shape[axis] % 2 == 1:\n        # index with slice to allow mean (below) to work\n        indexer[axis] = slice(index, index+1)\n    else:\n        indexer[axis] = slice(index-1, index+1)\n\n    # Check if the array contains any nan's\n    if np.issubdtype(a.dtype, np.inexact):\n        # warn and return nans like mean would\n        rout = mean(part[indexer], axis=axis, out=out)\n        part = np.rollaxis(part, axis, part.ndim)\n        n = np.isnan(part[..., -1])\n        if rout.ndim == 0:\n            if n == True:\n                warnings.warn(\"Invalid value encountered in median\",\n                              RuntimeWarning)\n                if out is not None:\n                    out[...] = a.dtype.type(np.nan)\n                    rout = out\n                else:\n                    rout = a.dtype.type(np.nan)\n        elif np.count_nonzero(n.ravel()) > 0:\n            warnings.warn(\"Invalid value encountered in median for\" +\n\nLocal variables at the crash:\n  a = array([], shape=(1, 1, 0), dtype=float64)  # ndarray\n  axis = 2  # int\n  out = None  # NoneType\n  overwrite_input = False  # bool\n  index = 0  # int\n  indexer = [slice(None, None, None), slice(None, None, None), slice(-1, 1, None)]  # list\n  kth = [-1, 0, -1]  # list\n  part = array([], shape=(1, 1, 0), dtype=float64)  # ndarray\n  rout = array([[ nan]])  # ndarray\n  sz = 0  # int\n  szh = 0  # int\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"function_base.py\", line 3346, in _median\n    n = np.isnan(part[..., -1])\nIndexError: index -1 is out of bounds for axis 2 with size 0\n"
+  }
+ ],
+ "reply": "```python\nn = np.zeros(part.shape[:-1], dtype=bool)\n```",
+ "usage": {
+  "prompt_tokens": 986,
+  "completion_tokens": 146,
+  "total_tokens": 1132,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 120,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 2.12,
+ "created": "2026-11-27T20:23:32"
+}

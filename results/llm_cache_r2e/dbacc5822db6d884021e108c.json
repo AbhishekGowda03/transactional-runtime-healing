@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.0,
+ "run_id": "1",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- Assign the variable(s) that the failing statement would have assigned, using exactly the names on the left side of the failing statement (for `r = a / b` assign `r`) and a sensible value.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: datetimes.py, line 184, in _maybe_cache\nException: TypeError: unhashable type: 'list'\n\nFailing statement:\nif cache:\n        # Perform a quicker unique check\n        if not should_cache(arg):\n            return cache_array\n\n        unique_dates = unique(arg)\n        if len(unique_dates) < len(arg):\n            cache_dates = convert_listlike(unique_dates, format)\n            cache_array = Series(cache_dates, index=unique_dates)\n\nEnclosing function:\ndef _maybe_cache(\n    arg: ArrayConvertible,\n    format: Optional[str],\n    cache: bool,\n    convert_listlike: Callable,\n) -> Series:\n    \"\"\"\n    Create a cache of unique dates from an array of dates\n\n    Parameters\n    ----------\n    arg : listlike, tuple, 1-d array, Series\n    format : string\n        Strftime format to parse time\n    cache : boolean\n        True attempts to create a cache of converted values\n    convert_listlike : function\n        Conversion function to apply on dates\n\n    Returns\n    -------\n    cache_array : Series\n        Cache of converted, unique dates. Can be empty\n    \"\"\"\n    from pandas import Series\n\n    cache_array = Series(dtype=object)\n\n    if cache:\n        # Perform a quicker unique check\n        if not should_cache(arg):\n            return cache_array\n\n        unique_dates = unique(arg)\n        if len(unique_dates) < len(arg):\n            cache_dates = convert_listlike(unique_dates, format)\n            cache_array = Series(cache_dates, index=unique_dates)\n    return cache_array\n\nLocal variables at the crash:\n  arg = 0     [a]\n1     [a]\n2     [a]\n3     [a]\n4     [a]\n     ... \n95    [a]\n96    [a]\n97    [a]\n98    [a]\n99    [a]\nLength: 100, dtype: object  # Series\n  format = None  # NoneType\n  cache = True  # bool\n  convert_listlike = functools.partial(<function _convert_listlike_datetimes at 0x\u2026>, tz=None, unit=None, dayfirst=False, yearfirst=False, errors='ignore', exact=True, infer_datetime_format=False)  # partial\n  Series = <class 'pandas.core.series.Series'>  # type\n  cache_array = Series([], dtype: object)  # Series\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"datetimes.py\", line 189, in _maybe_cache\n    unique_dates = unique(arg)\n  File \"algorithms.py\", line 441, in unique\n    uniques = table.unique(values)\n  File \"hashtable_class_helper.pxi\", line 5303, in pandas._libs.hashtable.PyObjectHashTable.unique\n    return self._unique(values, uniques, ignore_na=False,\n  File \"hashtable_class_helper.pxi\", line 5250, in pandas._libs.hashtable.PyObjectHashTable._unique\n    hash(val)\nTypeError: unhashable type: 'list'\n"
+  }
+ ],
+ "reply": "```python\nunique_dates = arg\n```",
+ "usage": {
+  "prompt_tokens": 848,
+  "completion_tokens": 116,
+  "total_tokens": 964,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 98,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 2.16,
+ "created": "2026-11-27T17:15:51"
+}

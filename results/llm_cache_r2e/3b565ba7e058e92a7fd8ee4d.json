@@ -1,0 +1,34 @@
+{
+ "model": "gpt-6-luna",
+ "temperature": 0.0,
+ "run_id": "1",
+ "messages": [
+  {
+   "role": "system",
+   "content": "You repair a Python program at the moment it crashes. The program is paused at the failing statement. You write a short piece of Python code that is run in the namespace of the crashed function (its local variables and the module globals are available). After your code runs, the program continues with the statement AFTER the failing one; the failing statement is not run again.\n\nRules:\n- Assign the variable(s) that the failing statement would have assigned, using exactly the names on the left side of the failing statement (for `r = a / b` assign `r`) and a sensible value.\n- Keep the code minimal. Do not print. Do not read or write files, start processes, use the network, or change global settings. Do not modify objects that are shared with the rest of the program unless that is the only way to repair the failure.\n- If you cannot repair it safely, answer with exactly RERAISE.\nAnswer with one Python code block and nothing else."
+  },
+  {
+   "role": "user",
+   "content": "File: recfunctions.py, line 973, in join_by\nException: ValueError: ['value', '<f8'] is not in list\n\nFailing statement:\nnameidx = ndtype.index(desc)\n\nEnclosing function:\ndef join_by(key, r1, r2, jointype='inner', r1postfix='1', r2postfix='2',\n                defaults=None, usemask=True, asrecarray=False):\n    \"\"\"\n    Join arrays `r1` and `r2` on key `key`.\n\n    The key should be either a string or a sequence of string corresponding\n    to the fields used to join the array.  An exception is raised if the\n    `key` field cannot be found in the two input arrays.  Neither `r1` nor\n    `r2` should have any duplicates along `key`: the presence of duplicates\n    will make the output quite unreliable. Note that duplicates are not\n    looked for by the algorithm.\n\n    Parameters\n    ----------\n    key : {string, sequence}\n        A string or a sequence of strings corresponding to the fields used\n        for comparison.\n    r1, r2 : arrays\n        Structured arrays.\n    jointype : {'inner', 'outer', 'leftouter'}, optional\n        If 'inner', returns the elements common to both r1 and r2.\n        If 'outer', returns the common elements as well as the elements of\n        r1 not in r2 and the elements of not in r2.\n        If 'leftouter', returns the common elements and the elements of r1\n        not in r2.\n    r1postfix : string, optional\n        String appended to the names of the fields of r1 that are present\n        in r2 but absent of the key.\n    r2postfix : string, optional\n        String appended to the names of the fields of r2 that are present\n        in r1 but absent of the key.\n    defaults : {dictionary}, optional\n        Dictionary mapping field names to the corresponding default values.\n    usemask : {True, False}, optional\n        Whether to return a MaskedArray (or MaskedRecords is\n        `asrecarray==True`) or a ndarray.\n    asrecarray : {False, True}, optional\n        Whether to return a recarray (or MaskedRecords if `usemask==True`)\n        or just a flexible-type ndarray.\n\n    Notes\n    -----\n    * The output is sorted along the key.\n    * A temporary array is formed by dropping the fields not in the key for\n      the two arrays and concatenating the result. This array is then\n      sorted, and the common entries selected. The output is constructed by\n      filling the fields with the selected entries. Matching is not\n      preserved if there are some duplicates...\n\n    \"\"\"\n    # Check jointype\n    if jointype not in ('inner', 'outer', 'leftouter'):\n        raise ValueError(\n                \"The 'jointype' argument should be in 'inner', \"\n                \"'outer' or 'leftouter' (got '%s' instead)\" % jointype\n                )\n    # If we have a single key, put it in a tuple\n    if isinstance(key, basestring):\n        key = (key,)\n\n\nLocal variables at the crash:\n  r1 = array([(b'Sarah',  8.), (b'John',  6.)],\n      dtype=[('key', 'S10'), ('value', '<f4')])  # ndarray\n  r2 = array([(b'Sarah',  10.), (b'John',   7.)],\n      dtype=[('key', 'S10'), ('value', '<f8')])  # ndarray\n  jointype = 'inner'  # str\n  r1postfix = '1'  # str\n  r2postfix = '2'  # str\n  defaults = None  # NoneType\n  usemask = True  # bool\n  asrecarray = False  # bool\n  aux = masked_array(data = [(b'John',) (b'John',) (b'Sarah',) (b'Sarah',)],\n             mask = [(False,) (False,) (False,) (False,)],\n       fill_value = (b'N/A',),\n            dtype = [('key', 'S10')])\n  # MaskedArray\n  collisions = {'value'}  # set\n  current = ['key', '|S10']  # list\n  desc = ['value', '<f8']  # list\n  flag_in = masked_array(data = [ True  True  True  True],\n             mask = False,\n       fill_value = True)\n  # MaskedArray\n  idx_1 = array([1, 0])  # ndarray\n  idx_2 = array([1, 0])  # ndarray\n  idx_in = array([1, 3, 0, 2])  # ndarray\n  idx_sort = array([1, 3, 0, 2])  # ndarray\n  key1 = ['key']  # list\n  name = 'value'  # str\n  nameidx = 0  # int\n  names = ['key', 'value']  # list\n  nb1 = 2  # int\n  ndtype = [['key', '|S10'], ['value', '<f4']]  # list\n  r1cmn = 2  # int\n  r1k = array([(b'Sarah',), (b'John',)],\n      dtype=[('key', 'S10')])  # ndarray\n  r1names = ('key', 'value')  # tuple\n  r1spc = 0  # int\n  r2cmn = 2  # int\n  r2k = array([(b'Sarah',), (b'John',)],\n      dtype=[('key', 'S10')])  # ndarray\n  r2names = ('key', 'value')  # tuple\n\nTraceback (last frames):\nTraceback (most recent call last):\n  File \"recfunctions.py\", line 973, in join_by\n    nameidx = ndtype.index(desc)\nValueError: ['value', '<f8'] is not in list\n"
+  }
+ ],
+ "reply": "nameidx = next(i for i, field in enumerate(ndtype) if field[0] == desc[0]) if any(field[0] == desc[0] for field in ndtype) else len(ndtype) - 1\n",
+ "usage": {
+  "prompt_tokens": 1535,
+  "completion_tokens": 392,
+  "total_tokens": 1927,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 1532,
+   "audio_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 333,
+   "audio_tokens": 0,
+   "accepted_prediction_tokens": 0,
+   "rejected_prediction_tokens": 0
+  }
+ },
+ "seconds": 3.93,
+ "created": "2026-11-27T23:45:04"
+}
